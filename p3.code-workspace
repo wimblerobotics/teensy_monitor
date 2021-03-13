@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.ino": "cpp"
+		},
+		"workbench.iconTheme": "vscode-icons-mac"
+	}
+}
