@@ -104,9 +104,9 @@ void TSonar::loop() {
     TAlert::SONAR_LEFT
   };
 
-  for (uint8_t i = 0; i < 1/*NUMBER_SENSORS*/; i++) {
+  for (uint8_t i = 0; i < NUMBER_SENSORS; i++) {
     if (getValueMm(i) < ALERT_DISTANCE_MM) {
-      //Serial.print("Sonar dist: ");Serial.println(getValueMm(i));
+      //#####Serial.print("Sonar dist: ");Serial.println(getValueMm(i));
       TAlert::singleton().set(map[i]);
     } else {
       TAlert::singleton().unset(map[i]);

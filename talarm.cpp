@@ -24,10 +24,10 @@ void TAlarm::loop() {
 
   if (newHighestPriorityAlarm != g_highestPriorityAlarm) {
     // Start a new cycle.
-    Serial.print("[TAlarm::loop] newHighestPriorityAlarm: ");Serial.println(newHighestPriorityAlarm);
+    //#####Serial.print("[TAlarm::loop] newHighestPriorityAlarm: ");Serial.println(newHighestPriorityAlarm);
     g_highestPriorityAlarm = newHighestPriorityAlarm;
 
-    Serial.print("Start new alarm: ");Serial.println(newHighestPriorityAlarm);
+    //#####Serial.print("Start new alarm: ");Serial.println(newHighestPriorityAlarm);
     g_toneStage = 0;
     g_lastStageTransitionMs = millis();
     switch (g_highestPriorityAlarm) {
@@ -61,8 +61,8 @@ void TAlarm::loop() {
 
 void TAlarm::set(TAlarmKind alarmKind) {
   g_alarms[alarmKind] = true;
-  Serial.print("[TAlarm::set] alarmKind: ");
-  Serial.println(alarmKind);
+  //#####Serial.print("[TAlarm::set] alarmKind: ");
+  //#####Serial.println(alarmKind);
 }
 
 
@@ -72,8 +72,8 @@ void TAlarm::setup() {}
 void TAlarm::unset(TAlarmKind alarmKind) {
   g_alarms[alarmKind] = false;
   g_highestPriorityAlarm = NUMBER_ALARMS;
-  Serial.print("[TAlarm::unset] alarmKind: ");
-  Serial.println(alarmKind);
+  //#####Serial.print("[TAlarm::unset] alarmKind: ");
+  //#####Serial.println(alarmKind);
 }
 
 TAlarm::TAlarm() {}

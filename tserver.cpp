@@ -71,12 +71,12 @@ std::string TServer::sensorString() {
 
 
 void TServer::loop() {
-  if (!g_isInitialized) {
-    initializeWhenLinkIsUp();
-    if (!g_isInitialized) {
-      return;
-    }
-  }
+//  if (!g_isInitialized) {
+//    initializeWhenLinkIsUp();
+//    if (!g_isInitialized) {
+//      return;
+//    }
+//  }
 
   static char str[2048];
   static uint16_t strIndex = 0;
@@ -94,7 +94,7 @@ void TServer::loop() {
       if (!g_client.connected() || !g_client.available()) {
         // Connection dropped.
         g_client.stop();
-        Serial.println("[TServer::loop] client disconnected");
+        //#####Serial.println("[TServer::loop] client disconnected");
         g_serverStatus = AWAIT_CLIENT;
       } else {
         char c = g_client.read();
@@ -104,14 +104,13 @@ void TServer::loop() {
 
         str[strIndex] = 0;
         if (c == '\n') {
-          // Serial.print("[TServer::loop] request: '");
-          // Serial.print(str);
-          // Serial.println("'");
-
           std::string result = sensorString();
           char content[512];
           sprintf(content, g_header, strlen(result.c_str()), result.c_str());
           g_client.println(content);
+          //#####Serial.println(result.c_str());
+          delay(1);
+          g_client.stop();
           g_serverStatus = AWAIT_CLIENT;
         }
       }
@@ -125,26 +124,31 @@ void TServer::loop() {
 
 
 void TServer::initializeWhenLinkIsUp() {
-  if (Ethernet.linkStatus() == LinkON) {
+//  if (Ethernet.linkStatus() == LinkON) {
+//    Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(192, 168, 2, 120));
+//    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+//      g_serverStatus = NO_DEVICE;
+//      Serial.println("Ethernet device is not found");
+//    } else {
+//      if (Ethernet.linkStatus() == LinkOFF) {
+//        g_serverStatus = NO_LINK;
+//        Serial.println("Ethernet cable not connected");
+//      } else {
+//        g_server.begin();
+//        Serial.print("TServer IP address is: ");
+//        Serial.println(Ethernet.localIP());
+//        g_serverStatus = AWAIT_CLIENT;
+//        g_isInitialized = true;
+//      }
+//    }
+//  } else {
     Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(192, 168, 2, 120));
-    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-      g_serverStatus = NO_DEVICE;
-      Serial.println("Ethernet device is not found");
-    } else {
-      if (Ethernet.linkStatus() == LinkOFF) {
-        g_serverStatus = NO_LINK;
-        Serial.println("Ethernet cable not connected");
-      } else {
-        g_server.begin();
-        Serial.print("TServer IP address is: ");
-        Serial.println(Ethernet.localIP());
-        g_serverStatus = AWAIT_CLIENT;
-        g_isInitialized = true;
-      }
-    }
-  } else {
-    Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(192, 168, 2, 120));
-  }
+    g_server.begin();
+    //#####Serial.print("TServer IP address is: ");
+    //#####Serial.println(Ethernet.localIP());
+    g_serverStatus = AWAIT_CLIENT;
+    g_isInitialized = true;
+//  }
 }
 
 
@@ -174,14 +178,11 @@ TServer* TServer::g_singleton = nullptr;
 
 const uint8_t TServer::MAC_ADDRESS[6] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
-const char* TServer::g_header = "HTTP/1.1 200 OK\n"
-  // "Date: Mon, 27 Jul 2009 12:28:53 GMT\n"
-  // "Server: Apache/2.2.14 (Win32)\n"
-  // "Last-Modified: Wed, 22 Jul 2009 19:15:56 GMT\n"
+const char* TServer::g_header = 
+  "HTTP/1.1 200 OK\n"
   "Content-Type: application/json\n"
-  // "Content-Type: text/html\n"
- "Content-Length: %d\n"
-  // "Connection: closed\n"
+  "Content-Length: %d\n"
+  "Connection: close\n"
   // "Refresh: 5\n"
   "\r\n"
   "%s";

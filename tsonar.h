@@ -36,10 +36,10 @@ class TSonar {
   static const uint8_t PIN_TRIGGER0 = 34;
   static const uint8_t PIN_ECHO1 = 37;
   static const uint8_t PIN_TRIGGER1 = 36;
-  static const uint8_t PIN_ECHO2 = 15;
-  static const uint8_t PIN_TRIGGER2 = 14;
-  static const uint8_t PIN_ECHO3 = 41;
-  static const uint8_t PIN_TRIGGER3 = 40;
+  static const uint8_t PIN_ECHO2 = 41;
+  static const uint8_t PIN_TRIGGER2 = 40;
+  static const uint8_t PIN_ECHO3 = 15;
+  static const uint8_t PIN_TRIGGER3 = 14;
 
   static const uint16_t TIMER_PERIOD_USEC = 20;
   static const uint16_t TIMER_SAMPLING_PERIOD_MSEC = 10;

@@ -64,19 +64,19 @@ void TOnOffButton::setState(uint8_t id, TButtonState newState) {
     TOnOffButton& button = _allButtonList[i];
     if (button._id == id) {
       button._state = newState;
-      Serial.print("[TOnOffButton::setState] MATCH for id: "); Serial.print(id);//#####
-      Serial.print(", newState: ");Serial.println(newState);
+      //#####Serial.print("[TOnOffButton::setState] MATCH for id: "); Serial.print(id);//#####
+      //#####Serial.print(", newState: ");Serial.println(newState);
       drawButton(TControlDisplay::singleton(), button, button._state == OFF);
       return;
     } else {
-      Serial.print("[TOnOffButton::setState] no match for id: ");
-      Serial.print(id);
-      Serial.print(", and button _id: ");
-      Serial.println(button._id);
+      //#####Serial.print("[TOnOffButton::setState] no match for id: ");
+      //#####Serial.print(id);
+      //#####Serial.print(", and button _id: ");
+      //#####Serial.println(button._id);
     }
   }
 
-  Serial.print("[TOnOffButton::setState] no match for id: "); Serial.println(id); //#####
+  //#####Serial.print("[TOnOffButton::setState] no match for id: "); Serial.println(id); //#####
 }
 
 

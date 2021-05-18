@@ -26,8 +26,8 @@ TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
 
 void setup() {
   Wire.begin();
-  Serial.begin(38400);
-  while (!Serial && (millis() <= 1000));
+  // Serial.begin(38400);
+  // while (!Serial && (millis() <= 1000));
 
   alarm.setup();
   alert.setup();
@@ -66,13 +66,13 @@ void setup() {
 
 
 void loop() {
-  alarm.loop();
-  alert.loop();
-  panelSelector.loop();
-  motorCurrent.loop();
-  relay.loop();
-  temperature.loop();
-  timeOfFlight.loop();
-  sonar.loop();
+  alarm.loop(); // Fast. .000679
+  alert.loop(); // Fast. .001225
+  panelSelector.loop(); // Fast. .00805
+  motorCurrent.loop(); // Fast .001316
+  relay.loop();  // Fast .000961
+  temperature.loop(); // Fast Accumulated for all fns up to here, 95 ms/loop
+  timeOfFlight.loop(); // VERY SLOW, about 2.2 sec/loop
+  sonar.loop(); // Fast.
   server.loop();
 }
