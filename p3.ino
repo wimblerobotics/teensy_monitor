@@ -64,15 +64,82 @@ void setup() {
   // }
 }
 
+void timeAlarm() {
+  alarm.loop();
+}
+void timeAlert() {
+  alert.loop();
+}
+void timeMotor() {
+  motorCurrent.loop();
+}
+void timePanel() {
+  panelSelector.loop();
+}
+void timeRelay() {
+  relay.loop();
+}
+void timeServer() {
+  server.loop();
+}
+void timeSonar() {
+  sonar.loop();
+}
+void timeTemperature() {
+  temperature.loop();
+}
+void timeTimeOfFlight() {
+  timeOfFlight.loop();
+}
+void timeFunction(void (*fn)(), const char* name) {
+  uint32_t start = micros();
+  fn();
+  float duration = ((micros() * 1.0) - start) / 1000.0;
+  Serial.print("fn: ");Serial.print(name);
+  Serial.print(", duration (ms): ");Serial.println(duration);
+}
+
+// Timings of slow functions:
+// TOF: 1223
+// PANEL 964
+// MOTOR 101
+//
+/** After power restart
+fn: TOF, duration (ms): 1.44
+fn: SONAR, duration (ms): 0.00
+fn: SERVER, duration (ms): 0.00
+fn: ALARM, duration (ms): 0.00
+fn: ALERT, duration (ms): 0.00
+fn: PANEL, duration (ms): 0.00
+fn: MOTOR, duration (ms): 0.98
+fn: RELAY, duration (ms): 0.00
+fn: TEMP, duration (ms): 0.03
+
+ */
+
+ // Loop duration 20170615: 1.06ms typ, 2.45 (once every 9 loops), 58.13 seldom (once every 33-40 loops)
 
 void loop() {
+//    uint32_t start = micros();
+
   alarm.loop(); // Fast. .000679
+//  timeFunction(timeAlarm, "ALARM");
   alert.loop(); // Fast. .001225
+//  timeFunction(timeAlert, "ALERT");
   panelSelector.loop(); // Fast. .00805
+//  timeFunction(timePanel, "PANEL");
   motorCurrent.loop(); // Fast .001316
+//  timeFunction(timeMotor, "MOTOR");
   relay.loop();  // Fast .000961
+//  timeFunction(timeRelay, "RELAY");
   temperature.loop(); // Fast Accumulated for all fns up to here, 95 ms/loop
+//  timeFunction(timeTemperature, "TEMP");
   timeOfFlight.loop(); // VERY SLOW, about 2.2 sec/loop
+//  timeFunction(timeTimeOfFlight, "TOF");
   sonar.loop(); // Fast.
+//  timeFunction(timeSonar, "SONAR");
   server.loop();
+//  timeFunction(timeServer, "SERVER");
+//  float duration = ((micros() * 1.0) - start) / 1000.0;
+//  Serial.print("Loop duration (ms): ");Serial.println(duration);
 }

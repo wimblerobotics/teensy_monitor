@@ -60,7 +60,7 @@ void TRelay::set(TRelay::TRelayDevice device) {
 
 void TRelay::setup() {
   pinMode(INTEL_ON_OFF_PIN, OUTPUT);
-  digitalWrite(INTEL_ON_OFF_PIN, HIGH);
+  digitalWrite(INTEL_ON_OFF_PIN, LOW);
   g_deviceSetTimeMs[INTEL_POWER] = millis();
 
   pinMode(INTEL_RESET_PIN, OUTPUT);
@@ -72,7 +72,7 @@ void TRelay::setup() {
   g_deviceSetTimeMs[MOTOR_POWER] = 0;
 
   pinMode(NVIDIA_ON_OFF_PIN, OUTPUT);
-  digitalWrite(NVIDIA_ON_OFF_PIN, HIGH);
+  digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
   g_deviceSetTimeMs[NVIDIA_POWER] = millis();
 
   pinMode(NVIDIA_RESET_PIN, OUTPUT);

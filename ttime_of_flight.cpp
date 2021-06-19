@@ -28,18 +28,32 @@ int TTimeOfFlight::getValueMm(uint8_t index) {
   static unsigned long lastWallTime = millis();
   unsigned long currentWallTime = millis();
   unsigned long durationSinceLastSense = currentWallTime - lastWallTime;
+//  Serial.print("currentWallTime: ");Serial.print(currentWallTime);
+//  Serial.print(", lastWallTime: ");Serial.print(lastWallTime);
+//  Serial.print(", GIVEN_NUMBER_OF_MILLISECONDS: ");Serial.print(GIVEN_NUMBER_OF_MILLISECONDS);
+//  Serial.print(", durationSinceLastSense: ");Serial.print(durationSinceLastSense);
+//  Serial.print(", lastSensedIndex: ");Serial.print(lastSensedIndex);
   if (durationSinceLastSense > GIVEN_NUMBER_OF_MILLISECONDS) {
-    if (g_sensor[lastSensedIndex]) {
+    if (g_sensor[lastSensedIndex] != nullptr) {
       selectTimeOfFlightSensor(lastSensedIndex);
       g_cachedValue[lastSensedIndex] = g_sensor[lastSensedIndex]->readRangeContinuousMillimeters();
-      lastSensedIndex += 1;
-      if (lastSensedIndex >= NUMBER_SENSORS) {
-        lastSensedIndex = 0;
-      }
+//      Serial.print("+");
+    }
+//    else { Serial.print("#"); }
+
+//    Serial.print(lastSensedIndex);
+//    Serial.print(" mm: ");Serial.println(g_cachedValue[lastSensedIndex]);
+//    Serial.flush();
+
+    lastSensedIndex += 1;
+    if (lastSensedIndex >= NUMBER_SENSORS) {
+      lastSensedIndex = 0;
     }
 
     lastWallTime = currentWallTime;
+//    Serial.print(", g_cachedValue[lastSensedIndex]: ");Serial.print(g_cachedValue[lastSensedIndex]);
   }
+//  Serial.println();
   
   if (g_sensor[index]) {
     return g_cachedValue[index];
@@ -50,6 +64,7 @@ int TTimeOfFlight::getValueMm(uint8_t index) {
 
 
 void TTimeOfFlight::loop() {
+//  Serial.print("TTOF-Loop, NUMBER_SENSORS: ");Serial.println(NUMBER_SENSORS);
   const int ALERT_DISTANCE_MM = 3 * 25.4;
 
   static const TAlert::TAlertSource map[] = {
@@ -63,9 +78,15 @@ void TTimeOfFlight::loop() {
     TAlert::TOF_LOWER_RIGHT_BACKWARD
   };
 
-  for (uint8_t i = 0; i < 1/*(NUMBER_SENSORS*/; i++) {
-    if ((getValueMm(i) != -1) && (getValueMm(i) < ALERT_DISTANCE_MM)) {
-    //#####Serial.print("Dist: ");Serial.println(getValueMm(i)); //#####
+  for (uint8_t i = 0; i < NUMBER_SENSORS; i++) {
+//    Serial.flush();
+//    uint32_t start = micros();
+    int mm = getValueMm(i);
+//    float duration = ((micros() * 1.0) - start) / 1000.0;
+//    Serial.print("i: ");Serial.print(i);
+//    Serial.print(", getValueMm duration (ms): ");Serial.println(duration);
+//    Serial.print("i: ");Serial.print(i);Serial.print(",Dist: ");Serial.println(getValueMm(i)); //#####
+    if ((mm != -1) && (mm < ALERT_DISTANCE_MM)) {
       TAlert::singleton().set(map[i]);
     } else {
       TAlert::singleton().unset(map[i]);
@@ -94,6 +115,10 @@ void TTimeOfFlight::setup() {
       numberSensorsFound++;
       sensor->setMeasurementTimingBudget(20000);
       sensor->startContinuous();
+    }
+    else {
+      g_sensor[i] = nullptr;
+//      Serial.print("TTOF setup fail for i: ");Serial.println(i);//#####
     }
   }
 }

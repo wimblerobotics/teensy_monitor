@@ -81,6 +81,7 @@ void TServer::loop() {
   static char str[2048];
   static uint16_t strIndex = 0;
 
+//  Serial.print("g_serverStatus: ");Serial.println(g_serverStatus);
   switch (g_serverStatus) {
     case AWAIT_CLIENT:
       g_client = g_server.available();
@@ -94,7 +95,7 @@ void TServer::loop() {
       if (!g_client.connected() || !g_client.available()) {
         // Connection dropped.
         g_client.stop();
-        //#####Serial.println("[TServer::loop] client disconnected");
+//        Serial.println("[TServer::loop] client disconnected"); //#####
         g_serverStatus = AWAIT_CLIENT;
       } else {
         char c = g_client.read();
@@ -108,7 +109,7 @@ void TServer::loop() {
           char content[512];
           sprintf(content, g_header, strlen(result.c_str()), result.c_str());
           g_client.println(content);
-          //#####Serial.println(result.c_str());
+//          Serial.println(result.c_str()); //#####
           delay(1);
           g_client.stop();
           g_serverStatus = AWAIT_CLIENT;
@@ -125,7 +126,7 @@ void TServer::loop() {
 
 void TServer::initializeWhenLinkIsUp() {
 //  if (Ethernet.linkStatus() == LinkON) {
-//    Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(192, 168, 2, 120));
+//    Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(10, 0, 0, 132));
 //    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
 //      g_serverStatus = NO_DEVICE;
 //      Serial.println("Ethernet device is not found");
@@ -142,10 +143,22 @@ void TServer::initializeWhenLinkIsUp() {
 //      }
 //    }
 //  } else {
-    Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(192, 168, 2, 120));
+
+    Ethernet.begin((uint8_t*) &MAC_ADDRESS, IPAddress(192, 168, 0, 132));
+
+//    Serial.println("DHCP request");
+//     if (Ethernet.begin((uint8_t*) &MAC_ADDRESS) == 0) {
+//    Serial.println("Failed to configure Ethernet using DHCP");
+//     } else {
+//      Serial.println("DHCP succeeded");
+//     }
+//
+//    
     g_server.begin();
-    //#####Serial.print("TServer IP address is: ");
-    //#####Serial.println(Ethernet.localIP());
+//  Serial.print("My IP address: ");
+//  Serial.println(Ethernet.localIP());
+
+    
     g_serverStatus = AWAIT_CLIENT;
     g_isInitialized = true;
 //  }
