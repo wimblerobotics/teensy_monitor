@@ -109,7 +109,7 @@ void TSonar::loop() {
       //#####Serial.print("Sonar dist: ");Serial.println(getValueMm(i));
       TAlert::singleton().set(map[i]);
     } else {
-      TAlert::singleton().unset(map[i]);
+      TAlert::singleton().reset(map[i]);
     }
   }
 }

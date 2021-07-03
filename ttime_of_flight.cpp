@@ -89,7 +89,7 @@ void TTimeOfFlight::loop() {
     if ((mm != -1) && (mm < ALERT_DISTANCE_MM)) {
       TAlert::singleton().set(map[i]);
     } else {
-      TAlert::singleton().unset(map[i]);
+      TAlert::singleton().reset(map[i]);
     }
   }
 }

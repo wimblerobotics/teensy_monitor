@@ -27,7 +27,7 @@ void TRelay::loop() {
 }
 
 
-void TRelay::set(TRelay::TRelayDevice device) {
+void TRelay::powerOn(TRelay::TRelayDevice device) {
   switch (device) {
     case INTEL_POWER:
       digitalWrite(INTEL_ON_OFF_PIN, HIGH);
@@ -83,7 +83,7 @@ void TRelay::setup() {
 }
 
 
-void TRelay::unset(TRelay::TRelayDevice device) {
+void TRelay::powerOff(TRelay::TRelayDevice device) {
   g_deviceSetTimeMs[device] = 0;
   switch (device) {
     case INTEL_POWER:

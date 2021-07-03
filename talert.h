@@ -4,6 +4,7 @@
 
 class TAlert : TModule {
  public:
+  // List of possible alert sources.
   typedef enum TAlertSource {
     CURRENT_LEFT_MOTOR,
     CURRENT_RIGHT_MOTOR,
@@ -21,23 +22,31 @@ class TAlert : TModule {
     TOF_UPPER_LEFT_SIDEWAY,
     TOF_UPPER_RIGHT_FORWARD,
     TOF_UPPER_RIGHT_SIDEWAY,
-    NUMER_ALERT_SOURCES
+    NUMER_ALERT_SOURCES // Number of alert sources.
   } TAlertSource;
 
-  const char* name() { return "TAlert"; }
-
+  // From TModule.
   void loop();
 
+  // From TModule.
+  const char* name() { return "TAlert"; }
+
+  // Set the alert.
   void set(TAlertSource alert);
 
+  // From TModule.
   void setup();
 
+  // Singleton constructor.
   static TAlert& singleton();
 
-  void unset(TAlertSource alert);
+  // Unset the alert.
+  void reset(TAlertSource alert);
 
  private:
+  // State of each possible alert.
   static bool g_alertsTriggered[NUMER_ALERT_SOURCES];
 
+  // Singleton instance.
   static TAlert* g_singleton;
 };

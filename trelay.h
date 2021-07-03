@@ -21,13 +21,13 @@ class TRelay : TModule {
 
   const char* name() { return "TRelay"; }
   
-  void set(TRelayDevice device);
+  void powerOn(TRelayDevice device);
 
   void setup();
 
   static TRelay& singleton();
 
-  void unset(TRelayDevice device);
+  void powerOff(TRelayDevice device);
 
  private:
   typedef enum {

@@ -17,9 +17,9 @@ void TPowerPanel::motorOnOffCallback(TOnOffButton &button, void *parameter) {
   button.setState(button.state() == TOnOffButton::ON ? TOnOffButton::OFF
                                                      : TOnOffButton::ON);
   if (button.state() == TOnOffButton::ON) {
-    TRelay::singleton().set(TRelay::MOTOR_POWER);
+    TRelay::singleton().powerOn(TRelay::MOTOR_POWER);
   } else {
-    TRelay::singleton().unset(TRelay::MOTOR_POWER);
+    TRelay::singleton().powerOff(TRelay::MOTOR_POWER);
   }
 }
 
@@ -28,15 +28,15 @@ void TPowerPanel::intelOnOffCallback(TOnOffButton &button, void *parameter) {
   button.setState(button.state() == TOnOffButton::ON ? TOnOffButton::OFF
                                                      : TOnOffButton::ON);
   if (button.state() == TOnOffButton::ON) {
-    TRelay::singleton().set(TRelay::INTEL_POWER);
+    TRelay::singleton().powerOn(TRelay::INTEL_POWER);
   } else {
-    TRelay::singleton().unset(TRelay::INTEL_POWER);
+    TRelay::singleton().powerOff(TRelay::INTEL_POWER);
   }
 }
 
 
 void TPowerPanel::intelResetCallback(TOnOffButton &button, void *parameter) {
-  TRelay::singleton().set(TRelay::INTEL_RESET);
+  TRelay::singleton().powerOn(TRelay::INTEL_RESET);
 }
 
 
@@ -44,15 +44,15 @@ void TPowerPanel::nvidiaOnOffCallback(TOnOffButton &button, void *parameter) {
   button.setState(button.state() == TOnOffButton::ON ? TOnOffButton::OFF
                                                      : TOnOffButton::ON);
   if (button.state() == TOnOffButton::ON) {
-    TRelay::singleton().set(TRelay::NVIDIA_POWER);
+    TRelay::singleton().powerOn(TRelay::NVIDIA_POWER);
   } else {
-    TRelay::singleton().unset(TRelay::NVIDIA_POWER);
+    TRelay::singleton().powerOff(TRelay::NVIDIA_POWER);
   }
 }
 
 
 void TPowerPanel::nvidiaResetCallback(TOnOffButton &button, void *parameter) {
-  TRelay::singleton().set(TRelay::NVIDIA_RESET);
+  TRelay::singleton().powerOn(TRelay::NVIDIA_RESET);
 }
 
 
