@@ -4,6 +4,12 @@
 			"path": "."
 		}
 	],
+	"includePath": [
+		"additional/paths",
+		"${default}",
+		"/Applications/Teensyduino.app/Contents/Java/hardware/teensy/avr/cores/teensy4",
+		"/Users/michaelwimble/Documents/Arduino/libraries"
+	],
 	"settings": {
 		"files.associations": {
 			"*.ino": "cpp"

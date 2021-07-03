@@ -3,8 +3,9 @@
 #include <stdint.h>
 #include <VL53L0X.h>
 
+#include "tmodule.h"
 
-class TTimeOfFlight {
+class TTimeOfFlight : TModule {
  public:
   static const uint8_t NUMBER_SENSORS = 8;
 
@@ -14,6 +15,8 @@ class TTimeOfFlight {
   int getValueMm(uint8_t index);
 
   void loop();
+
+  const char* name() { return "TTimeOfFlight"; }
 
   void setup();
 

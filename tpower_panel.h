@@ -12,7 +12,7 @@ public:
 
     void loop();
     
-    void setupPanel();
+    void setup();
 
     static const uint16_t PANEL_BACKGROUND_COLOR = ILI9341_BLUE;
     

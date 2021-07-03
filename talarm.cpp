@@ -76,7 +76,7 @@ void TAlarm::unset(TAlarmKind alarmKind) {
   //#####Serial.println(alarmKind);
 }
 
-TAlarm::TAlarm() {}
+TAlarm::TAlarm() : TModule() {}
 
 TAlarm& TAlarm::singleton() {
   if (!g_singleton) {

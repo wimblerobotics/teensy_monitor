@@ -2,8 +2,9 @@
 
 #include <stdint.h>
 
+#include "tmodule.h"
 
-class TTemperature {
+class TTemperature : TModule {
 public:
 
   static const uint8_t NUMBER_SENSORS = 2;
@@ -13,6 +14,8 @@ public:
   int16_t getValueTenthsC(uint8_t index);
 
   void loop();
+
+  const char* name() { return "TTemperature"; }
 
   void setup();
 

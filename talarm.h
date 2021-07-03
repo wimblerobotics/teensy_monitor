@@ -2,12 +2,15 @@
 
 #include <stdint.h>
 
+#include "tmodule.h"
 
-class TAlarm {
+class TAlarm : TModule {
 public:
   typedef enum { MOTOR_ALARM, NUMBER_ALARMS } TAlarmKind;
 
   void loop();
+
+  virtual const char* name() { return "TAlarm"; }
 
   void set(TAlarmKind alarmKind);
 

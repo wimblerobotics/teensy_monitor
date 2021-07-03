@@ -168,7 +168,7 @@ void TProximityPanel::loop() {
 }
 
 
-void TProximityPanel::setupPanel() {
+void TProximityPanel::setup() {
   TOnOffButton::clearAll();
   g_tc.fillScreen(PANEL_BACKGROUND_COLOR);
 

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <stdint.h>
-
 #include <Wire.h>
 
-class TSonar {
+#include "tmodule.h"
+
+class TSonar : TModule {
  public:
   static const uint8_t NUMBER_SENSORS = 4;
 
@@ -14,6 +15,8 @@ class TSonar {
   int getValueMm(uint8_t index);
 
   void loop();
+
+  const char* name() { return "TSonar"; }
 
   void setup();
 

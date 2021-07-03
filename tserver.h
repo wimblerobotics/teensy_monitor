@@ -4,14 +4,16 @@
 #include <string>
 #include <NativeEthernet.h>
 
+#include "tmodule.h"
 
-
-class TServer {
+class TServer : TModule {
 public:
 
   static TServer& singleton();
 
   void loop();
+
+  const char* name() { return "TServer"; }
 
   void setup();
 

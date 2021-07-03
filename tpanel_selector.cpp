@@ -4,9 +4,7 @@
 #include "tpower_panel.h"
 #include "tproximity_panel.h"
 
-
 TPanelSelector::TPanelSelector() { g_selectedPanel = PROXIMITY_PANEL; }
-
 
 void TPanelSelector::loop() {
   static uint32_t periodStart = millis();
@@ -42,29 +40,26 @@ void TPanelSelector::loop() {
   }
 }
 
-
 void TPanelSelector::powerPanelCallback(TOnOffButton &button, void *parameter) {
   TControlDisplay::singleton().clearAll();
   TOnOffButton::clearAll();
   g_selectedPanel = POWER_PANEL;
-  TPanelSelector::singleton().setupPanel();
+  TPanelSelector::singleton().setup();
 }
-
 
 void TPanelSelector::proximityPanelCallback(TOnOffButton &button,
                                             void *parameter) {
   TControlDisplay::singleton().clearAll();
   TOnOffButton::clearAll();
   g_selectedPanel = PROXIMITY_PANEL;
-  TPanelSelector::singleton().setupPanel();
+  TPanelSelector::singleton().setup();
 }
 
-
-void TPanelSelector::setupPanel() {
+void TPanelSelector::setup() {
   if (g_selectedPanel == POWER_PANEL) {
-    TPowerPanel::singleton().setupPanel();
+    TPowerPanel::singleton().setup();
   } else if (g_selectedPanel == PROXIMITY_PANEL) {
-    TProximityPanel::singleton().setupPanel();
+    TProximityPanel::singleton().setup();
   }
 
   TOnOffButton::makeButton(0, 155, 270, 85, 50, ILI9341_BLACK, ILI9341_WHITE,
@@ -76,7 +71,6 @@ void TPanelSelector::setupPanel() {
                            proximityPanelCallback, nullptr);
 }
 
-
 TPanelSelector &TPanelSelector::singleton() {
   if (!g_singleton) {
     g_singleton = new TPanelSelector();
@@ -84,7 +78,6 @@ TPanelSelector &TPanelSelector::singleton() {
 
   return *g_singleton;
 }
-
 
 TPanelSelector::TPanel TPanelSelector::g_selectedPanel =
     TPanelSelector::POWER_PANEL;

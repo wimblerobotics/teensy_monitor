@@ -56,7 +56,7 @@ void TPowerPanel::nvidiaResetCallback(TOnOffButton &button, void *parameter) {
 }
 
 
-void TPowerPanel::setupPanel() {
+void TPowerPanel::setup() {
   g_tc.fillScreen(PANEL_BACKGROUND_COLOR);
   g_tc.setTextColor(ILI9341_WHITE);
   g_tc.setTextSize(3);

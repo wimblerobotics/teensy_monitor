@@ -1,8 +1,9 @@
 #pragma once
 
-class TAlert {
-public:
+#include "tmodule.h"
 
+class TAlert : TModule {
+ public:
   typedef enum TAlertSource {
     CURRENT_LEFT_MOTOR,
     CURRENT_RIGHT_MOTOR,
@@ -23,6 +24,8 @@ public:
     NUMER_ALERT_SOURCES
   } TAlertSource;
 
+  const char* name() { return "TAlert"; }
+
   void loop();
 
   void set(TAlertSource alert);
@@ -33,10 +36,8 @@ public:
 
   void unset(TAlertSource alert);
 
-private:
+ private:
+  static bool g_alertsTriggered[NUMER_ALERT_SOURCES];
 
-static bool g_alertsTriggered[NUMER_ALERT_SOURCES];
-
-static TAlert* g_singleton;
-
+  static TAlert* g_singleton;
 };

@@ -2,11 +2,11 @@
 
 #include <stdint.h>
 
+#include "tmodule.h"
 
-class TRelay {
-public:
-
- typedef enum {
+class TRelay : TModule {
+ public:
+  typedef enum {
     INTEL_POWER,
     INTEL_RESET,
     MOTOR_POWER,
@@ -19,6 +19,8 @@ public:
 
   void loop();
 
+  const char* name() { return "TRelay"; }
+  
   void set(TRelayDevice device);
 
   void setup();
@@ -27,8 +29,7 @@ public:
 
   void unset(TRelayDevice device);
 
-private:
-
+ private:
   typedef enum {
     INTEL_ON_OFF_PIN = 0,
     INTEL_RESET_PIN = 1,
