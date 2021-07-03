@@ -16,6 +16,7 @@
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
 
+// Initialize all TModule instances in any required order.
 TAlarm& alarm = TAlarm::singleton();
 TAlert& alert = TAlert::singleton();
 TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
@@ -27,9 +28,9 @@ TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
 
-// TModule& modules = TModule::TModule::singleton();
 WDT_T4<WDT3> wdt;
 
+// Method to handle watchdog timeout.
 void watchdogTimeout() {
   Serial.println("WATCHDOG TIMEOUT, 255 CYCLES TILL RESET...");
 }
@@ -41,12 +42,11 @@ void setup() {
     ;
 
   WDT_timings_t config;
-  config.window =
-      1; /* in seconds, 32ms to 522.232s, must be smaller than timeout */
-  config.timeout = 160000; /* in seconds, 32ms to 522.232s */
+  config.window = 1; // Minimum time (ms) between watchdog feed() calls.
+  config.timeout = 20000; // Maximum time (ms) between watchdog feed() calls.
   config.callback = watchdogTimeout;
-  wdt.begin(config);
   TModule::doSetup();
+  wdt.begin(config);
 }
 
 void loop() {
