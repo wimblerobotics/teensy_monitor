@@ -27,7 +27,7 @@ TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
 
-TModule& modules = TModule::TModule::singleton();
+// TModule& modules = TModule::TModule::singleton();
 WDT_T4<WDT3> wdt;
 
 void watchdogTimeout() {
@@ -46,10 +46,10 @@ void setup() {
   config.timeout = 160000; /* in seconds, 32ms to 522.232s */
   config.callback = watchdogTimeout;
   wdt.begin(config);
-  modules.setup();
+  TModule::doSetup();
 }
 
 void loop() {
-  modules.loop();
+  TModule::doLoop();
   wdt.feed();
 }

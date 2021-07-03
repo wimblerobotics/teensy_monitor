@@ -19,10 +19,12 @@ class TModule {
     NUMBER_MODULES
   } MODULE;
 
-  virtual void loop();
+  static void doLoop();
+  static void doSetup();
+  virtual void loop() = 0;
   virtual const char* name() { return "TModule"; }
-  virtual void setup();
-  static TModule& singleton();
+  virtual void setup() = 0;
+  //static TModule& singleton();
 
  protected:
   TModule();
@@ -41,6 +43,6 @@ class TModule {
   static TModule* g_allModules[];
   static uint8_t g_nextModuleNumber;
   static int g_nextReadingNumber;
-  static TModule* g_singleton;
+  // static TModule* g_singleton;
   static float g_readings[NUMBER_MODULES][NUMBER_SLOTS];
 };
