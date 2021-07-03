@@ -44,6 +44,9 @@ class TAlert : TModule {
   void reset(TAlertSource alert);
 
  private:
+  // Private constructor.
+  TAlert();
+  
   // State of each possible alert.
   static bool g_alertsTriggered[NUMER_ALERT_SOURCES];
 

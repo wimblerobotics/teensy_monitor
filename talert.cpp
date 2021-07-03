@@ -69,6 +69,8 @@ void TAlert::set(TAlertSource alert) {
 
 void TAlert::setup() {}
 
+TAlert::TAlert() : TModule() {}
+
 TAlert& TAlert::singleton() {
   if (!g_singleton) {
     g_singleton = new TAlert();
