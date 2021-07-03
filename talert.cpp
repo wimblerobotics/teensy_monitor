@@ -72,9 +72,8 @@ void TAlert::loop() {
   } // for
 
   if (turnMotorsOff) {
-    //#####Serial.println("[TAlert::loop] need to turn motors off");
     TRelay::singleton().unset(TRelay::MOTOR_POWER);
-    TAlarm::singleton().set(TAlarm::MOTOR_ALARM);
+    TAlarm::singleton().raise(TAlarm::MOTOR_ALARM);
     TOnOffButton::setState(1, TOnOffButton::OFF);
   }
 }

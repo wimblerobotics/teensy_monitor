@@ -39,7 +39,9 @@ void TRelay::set(TRelay::TRelayDevice device) {
 
     case MOTOR_POWER:
       digitalWrite(MOTOR_ON_OFF_PIN, HIGH);
-      TAlarm::singleton().unset(TAlarm::MOTOR_ALARM);
+
+      // Manually resetting the motor power will also reset the overcurrent alarm.
+      TAlarm::singleton().reset(TAlarm::MOTOR_ALARM);
       break;
 
     case NVIDIA_POWER:

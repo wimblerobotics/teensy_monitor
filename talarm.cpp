@@ -15,8 +15,8 @@ TAlarm::TAlarmKind TAlarm::highestPriorityAlarm() {
 
 void TAlarm::loop() {
   TAlarmKind newHighestPriorityAlarm = highestPriorityAlarm();
-  // Serial.print("newHighestPriorityAlarm: ");Serial.println(newHighestPriorityAlarm);
   if (newHighestPriorityAlarm == NUMBER_ALARMS) {
+    // No alarm is raised.
     g_lastStageTransitionMs = 0;
     noTone(TONE_PIN);
     return;
@@ -24,29 +24,29 @@ void TAlarm::loop() {
 
   if (newHighestPriorityAlarm != g_highestPriorityAlarm) {
     // Start a new cycle.
-    //#####Serial.print("[TAlarm::loop] newHighestPriorityAlarm: ");Serial.println(newHighestPriorityAlarm);
     g_highestPriorityAlarm = newHighestPriorityAlarm;
-
-    //#####Serial.print("Start new alarm: ");Serial.println(newHighestPriorityAlarm);
     g_toneStage = 0;
     g_lastStageTransitionMs = millis();
     switch (g_highestPriorityAlarm) {
       case MOTOR_ALARM:
         g_currentAlarmMelody = &MOTOR_ALARM_TUNE[0];
-        tone(TONE_PIN, g_currentAlarmMelody[0], DURATION_STAGE_TRANSITIONS_MS);
-        return;
+        break;
 
       default:
-        return;
+        return; // No valid alarm.
     }
+
+      tone(TONE_PIN, g_currentAlarmMelody[0], DURATION_STAGE_TRANSITIONS_MS);
   }
 
-
+  // Determine if next note in song should be played.
   uint32_t now = millis();
-  if ((g_lastStageTransitionMs != 0) && (now > (g_lastStageTransitionMs + DURATION_STAGE_TRANSITIONS_MS))) {
+  if ((g_lastStageTransitionMs != 0) &&
+      (now > (g_lastStageTransitionMs + DURATION_STAGE_TRANSITIONS_MS))) {
     g_toneStage++;
     TPitch nextNote = g_currentAlarmMelody[g_toneStage];
     if (nextNote == END) {
+      // Start at beginning of song again.
       g_toneStage = 0;
       nextNote = g_currentAlarmMelody[0];
     }
@@ -58,22 +58,15 @@ void TAlarm::loop() {
   }
 }
 
-
-void TAlarm::set(TAlarmKind alarmKind) {
+void TAlarm::raise(TAlarmKind alarmKind) {
   g_alarms[alarmKind] = true;
-  //#####Serial.print("[TAlarm::set] alarmKind: ");
-  //#####Serial.println(alarmKind);
 }
-
 
 void TAlarm::setup() {}
 
-
-void TAlarm::unset(TAlarmKind alarmKind) {
+void TAlarm::reset(TAlarmKind alarmKind) {
   g_alarms[alarmKind] = false;
   g_highestPriorityAlarm = NUMBER_ALARMS;
-  //#####Serial.print("[TAlarm::unset] alarmKind: ");
-  //#####Serial.println(alarmKind);
 }
 
 TAlarm::TAlarm() : TModule() {}

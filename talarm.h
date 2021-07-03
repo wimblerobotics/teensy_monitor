@@ -5,23 +5,33 @@
 #include "tmodule.h"
 
 class TAlarm : TModule {
-public:
-  typedef enum { MOTOR_ALARM, NUMBER_ALARMS } TAlarmKind;
+ public:
+  // Kind of alarms.
+  typedef enum {
+    MOTOR_ALARM,   // Motor overcurrent.
+    NUMBER_ALARMS  // Number of possible alarm kinds.
+  } TAlarmKind;
 
+  // From TModule.
   void loop();
 
+  // From TModule.
   virtual const char* name() { return "TAlarm"; }
 
-  void set(TAlarmKind alarmKind);
+  // Raise the alarm.
+  void raise(TAlarmKind alarmKind);
 
+  // Reset the alarm.
+  void reset(TAlarmKind alarmKind);
+
+  // From TModule.
   void setup();
 
+  // Singleton constructor.
   static TAlarm& singleton();
 
-  void unset(TAlarmKind alarmKind);
-
  private:
-
+  // Possible notes to be played for an alarm.
   typedef enum {
     NOTE_B0 = 31,
     NOTE_C1 = 33,
@@ -113,28 +123,40 @@ public:
     NOTE_D8 = 4699,
     NOTE_DS8 = 4978,
     // REST,
-    END = 99999
+    END = 99999  // Marks the end of an alarm song.
   } TPitch;
 
+  // Milliseconds to play each note.
   static const uint32_t DURATION_STAGE_TRANSITIONS_MS = 1000;
 
+  // GPIO pin of the speaker
   static const uint8_t TONE_PIN = 23;
 
+  // Private constructor.
   TAlarm();
 
+  // Find the highest priority alarm.
+  // Return NUMBER_ALARMS if no current alarm.
   TAlarmKind highestPriorityAlarm();
 
+  // List of all raised alarms.
   static bool g_alarms[NUMBER_ALARMS];
 
+  // Song for currently active alarm.
   static const TPitch* g_currentAlarmMelody;
 
+  // The current, highest priority alarm.
   static TAlarmKind g_highestPriorityAlarm;
 
+  // Time at start of playing current alarm note. Zero => no alarm is being signaled.
   static uint32_t g_lastStageTransitionMs;
 
+  // Singleton instance.
   static TAlarm* g_singleton;
 
+  // Index of which note is being played for current alarm.
   static uint8_t g_toneStage;
 
+  // Song to be played to signal a motor overcurrent alarm.
   static const TPitch MOTOR_ALARM_TUNE[];
 };

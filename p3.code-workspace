@@ -12,7 +12,16 @@
 	],
 	"settings": {
 		"files.associations": {
-			"*.ino": "cpp"
+			"*.ino": "cpp",
+			"__config": "cpp",
+			"__hash_table": "cpp",
+			"algorithm": "cpp",
+			"bitset": "cpp",
+			"locale": "cpp",
+			"sstream": "cpp",
+			"type_traits": "cpp",
+			"version": "cpp",
+			"complex": "cpp"
 		},
 		"workbench.iconTheme": "vscode-icons-mac"
 	}
