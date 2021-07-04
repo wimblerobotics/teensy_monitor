@@ -69,7 +69,7 @@ class TProximityPanel {
       SONAR_SECOND_LINE_Y + TEXT_SIZE_3_HEIGHT;
   static const uint16_t SONAR_FOURTH_LINE_Y =
       SONAR_THIRD_LINE_Y + TEXT_SIZE_3_HEIGHT;
-  static const int SONAR_BOX_POSITIONS[TSonar::NUMBER_SENSORS][2];
+  static const int SONAR_BOX_POSITIONS[TSonar::NUMBER_SONARS][2];
 
   static const uint16_t MOTOR_SECOND_LINE_Y =
       SONAR_FOURTH_LINE_Y + (TEXT_SIZE_3_HEIGHT * 2) + BORDER_PAD - 4;

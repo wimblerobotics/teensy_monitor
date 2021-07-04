@@ -54,10 +54,10 @@ void TProximityPanel::loopTimeOfFlight() {
 
 void TProximityPanel::loopSonar() {
   g_sonarAlert = false;
-  for (uint8_t i = 0; i < TSonar::NUMBER_SENSORS; i++) {
+  for (uint8_t i = 0; i < TSonar::NUMBER_SONARS; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueMm = TSonar::singleton().getValueMm(i);
+    int valueMm = TSonar::singleton().getValueMm(static_cast<TSonar::SONAR>(i));
     g_tc.fillRect(SONAR_BOX_POSITIONS[i][0], SONAR_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -261,7 +261,7 @@ const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_SENSORS][2] =
         /*6*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, TOF_SIXTH_LINE_Y},
         /*7*/ {TEXT_SIZE_3_WIDTH * (5 + 6) + BORDER_PAD, TOF_SIXTH_LINE_Y}};
 
-const int TProximityPanel::SONAR_BOX_POSITIONS[TSonar::NUMBER_SENSORS][2] =
+const int TProximityPanel::SONAR_BOX_POSITIONS[TSonar::NUMBER_SONARS][2] =
     {
         /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, SONAR_SECOND_LINE_Y},
         /*1*/ {0 + BORDER_PAD, SONAR_THIRD_LINE_Y},
