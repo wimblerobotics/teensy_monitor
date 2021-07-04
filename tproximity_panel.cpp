@@ -91,10 +91,10 @@ void TProximityPanel::loopSonar() {
 
 void TProximityPanel::loopMotor() {
   g_motorCurrentAlert = false;
-  for (uint8_t i = 0; i < 2; i++) {
+  for (uint8_t i = 0; i < TMotorCurrent::NUMBER_MOTORS; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    float valueMa = TMotorCurrent::singleton().getValueMa(i);
+    float valueMa = TMotorCurrent::singleton().getValueMa(static_cast<TMotorCurrent::MOTOR>(i));
     g_tc.fillRect(MOTOR_BOX_POSITIONS[i][0], MOTOR_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);

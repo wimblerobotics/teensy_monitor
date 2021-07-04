@@ -16,8 +16,8 @@ std::string TServer::sensorString() {
   int temperatureValues[TTemperature::NUMBER_SENSORS];
   int timeOfFlightValues[TTimeOfFlight::NUMBER_SENSORS];
 
-  for (uint8_t i = 0; i < 2; i++) {
-    motorCurrentValues[i] = TMotorCurrent::singleton().getValueMa(i);
+  for (uint8_t i = 0; i < TMotorCurrent::NUMBER_MOTORS; i++) {
+    motorCurrentValues[i] = TMotorCurrent::singleton().getValueMa(static_cast<TMotorCurrent::MOTOR>(i));
   }
 
   for (uint8_t i = 0; i < TSonar::NUMBER_SENSORS; i++) {
