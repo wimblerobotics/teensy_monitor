@@ -8,11 +8,7 @@
 class TMotorCurrent : TModule {
  public:
   // Which motor.
-  typedef enum MOTOR {
-    LEFT,
-    RIGHT,
-    NUMBER_MOTORS
-  } MOTOR;
+  typedef enum MOTOR { LEFT, RIGHT, NUMBER_MOTORS } MOTOR;
 
   // Get the average motor current value.
   int getValueMa(MOTOR index);
@@ -39,8 +35,8 @@ class TMotorCurrent : TModule {
   // Private constructor.
   TMotorCurrent();
 
- // Singleton instance.
-   static TMotorCurrent* g_singleton;
+  // Singleton instance.
+  static TMotorCurrent* g_singleton;
 
   // Number of samples to go into an average motor current.
   static const uint8_t AVERAGE_COUNT = 20;
