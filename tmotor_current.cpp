@@ -1,8 +1,7 @@
-#include "tmotor_current.h"
-
 #include <stdint.h>
 #include <Adafruit_INA260.h>
 
+#include "tmotor_current.h"
 
 TMotorCurrent::TMotorCurrent() {
   for (int8_t i = 0; i < AVERAGE_COUNT; i++) {
