@@ -59,7 +59,7 @@ class TProximityPanel {
       (TEXT_SIZE_3_HEIGHT * 5) + BORDER_PAD;
   static const uint16_t TOF_SIXTH_LINE_Y =
       (TEXT_SIZE_3_HEIGHT * 6) + BORDER_PAD;
-  static const int TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_SENSORS][2];
+  static const int TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT][2];
 
   static const uint16_t SONAR_TITLE_Y =
       TOF_SIXTH_LINE_Y + (TEXT_SIZE_3_HEIGHT * 3) + BORDER_PAD - 10;

@@ -17,10 +17,10 @@ bool TProximityPanel::hasAlert() {
 
 void TProximityPanel::loopTimeOfFlight() {
   g_tofAlert = false;
-  for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_SENSORS; i++) {
+  for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_TIME_OF_FLIGHT; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueMm = TTimeOfFlight::singleton().getValueMm(i);
+    int valueMm = TTimeOfFlight::singleton().getValueMm(static_cast<TTimeOfFlight::TIMEOFFLIGHT>(i));
     g_tc.fillRect(TOF_BOX_POSITIONS[i][0], TOF_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -250,7 +250,7 @@ TProximityPanel* TProximityPanel::g_singleton = nullptr;
 
 TControlDisplay& TProximityPanel::g_tc = TControlDisplay::singleton();
 
-const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_SENSORS][2] =
+const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT][2] =
     {
         /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, TOF_SECOND_LINE_Y},
         /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 6) + BORDER_PAD, TOF_SECOND_LINE_Y},
