@@ -6,10 +6,15 @@
 
 TPanelSelector::TPanelSelector() { g_selectedPanel = PROXIMITY_PANEL; }
 
+void TPanelSelector::colorizeAlertIcon(uint16_t color) {
+  g_tc.fillRect(270, 190, 50, 50, color);
+}
+
 void TPanelSelector::loop() {
-  static uint32_t periodStart = millis();
-  static bool flashOn = true;
-  static bool wasFlashing = false;
+  static uint32_t periodStart = millis();  // For timing some-alert flashing.
+  static bool useAlertColor =
+      true;  // some-alert highlight color to use (alert color/bacground color).
+  static bool isFlashing = false;  // Is flashing occurring?
 
   TOnOffButton::update();
   TPowerPanel::singleton().loop();
@@ -20,22 +25,23 @@ void TPanelSelector::loop() {
     uint16_t backgroundColor = g_selectedPanel == PROXIMITY_PANEL
                                    ? TProximityPanel::PANEL_BACKGROUND_COLOR
                                    : TPowerPanel::PANEL_BACKGROUND_COLOR;
-    if (duration > 500) {
-      if (flashOn) {
-        g_tc.fillRect(270, 190, 50, 50, ILI9341_RED);
+    if (duration > ALERT_ALTERNATING_FLASH_DURATION_MS) {
+      // Time to alternate alert color.
+      if (useAlertColor) {
+        colorizeAlertIcon(ILI9341_RED);
       } else {
-        g_tc.fillRect(270, 190, 50, 50, backgroundColor);
+        colorizeAlertIcon(backgroundColor);
       }
 
-      flashOn = !flashOn;
+      useAlertColor = !useAlertColor;
       periodStart = millis();
     }
 
-    wasFlashing = true;
+    isFlashing = true;
   } else {
-    if (wasFlashing) {
-      g_tc.fillRect(270, 190, 50, 50, ILI9341_GREEN);
-      wasFlashing = false;
+    if (isFlashing) {
+      colorizeAlertIcon(ILI9341_GREEN);
+      isFlashing = false;
     }
   }
 }
@@ -69,6 +75,7 @@ void TPanelSelector::setup() {
   TOnOffButton::makeButton(0, 80, 270, 75, 50, ILI9341_OLIVE, ILI9341_WHITE,
                            "SENSE", "SENSE", TOnOffButton::ON,
                            proximityPanelCallback, nullptr);
+  colorizeAlertIcon(ILI9341_GREEN);
 }
 
 TPanelSelector &TPanelSelector::singleton() {

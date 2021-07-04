@@ -17,7 +17,7 @@ class TMotorCurrent : TModule {
   // Get the average motor current value.
   int getValueMa(MOTOR index);
 
-  // From TModule.
+  // From TModule.‰
   void loop();
 
   // From TModule.
