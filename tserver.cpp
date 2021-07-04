@@ -55,7 +55,7 @@ void TServer::loop() {
 std::string TServer::sensorString() {
   int motorCurrentValues[TMotorCurrent::NUMBER_MOTORS];
   int sonarValues[TSonar::NUMBER_SONARS];
-  int temperatureValues[TTemperature::NUMBER_SENSORS];
+  int temperatureValues[TTemperature::NUMBER_TEMPERATURES];
   int timeOfFlightValues[TTimeOfFlight::NUMBER_SENSORS];
 
   for (uint8_t i = 0; i < TMotorCurrent::NUMBER_MOTORS; i++) {
@@ -67,8 +67,8 @@ std::string TServer::sensorString() {
     sonarValues[i] = TSonar::singleton().getValueMm(static_cast<TSonar::SONAR>(i));
   }
 
-  for (uint8_t i = 0; i < TTemperature::NUMBER_SENSORS; i++) {
-    temperatureValues[i] = TTemperature::singleton().getValueTenthsC(i);
+  for (uint8_t i = 0; i < TTemperature::NUMBER_TEMPERATURES; i++) {
+    temperatureValues[i] = TTemperature::singleton().getValueTenthsC(static_cast<TTemperature::TEMPERATURE>(i));
   }
 
   for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_SENSORS; i++) {

@@ -131,10 +131,10 @@ void TProximityPanel::loopMotor() {
 
 void TProximityPanel::loopTemperature() {
   g_temperatureAlert = false;
-  for (uint8_t i = 0; i < TTemperature::NUMBER_SENSORS; i++) {
+  for (uint8_t i = 0; i < TTemperature::NUMBER_TEMPERATURES; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueTenthsC = TTemperature::singleton().getValueTenthsC(i);
+    int valueTenthsC = TTemperature::singleton().getValueTenthsC(static_cast<TTemperature::TEMPERATURE>(i));
     g_tc.fillRect(TEMP_BOX_POSITIONS[i][0], TEMP_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -275,7 +275,7 @@ const int TProximityPanel::MOTOR_BOX_POSITIONS[2][2] =
       /*Right*/ {50 + (TEXT_SIZE_3_WIDTH * 6), MOTOR_SECOND_LINE_Y}
     };
 
-const int TProximityPanel::TEMP_BOX_POSITIONS[TTemperature::NUMBER_SENSORS][2] =
+const int TProximityPanel::TEMP_BOX_POSITIONS[TTemperature::NUMBER_TEMPERATURES][2] =
     {
       /*0*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10, TEMP_SECOND_LINE_Y},
       /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10, TEMP_THIRD_LINE_Y}

@@ -5,31 +5,39 @@
 #include "tmodule.h"
 
 class TTemperature : TModule {
-public:
+ public:
+  // Which temperature sensor.
+  typedef enum TEMPERATURE {
+    LEFT,
+    RIGHT,
+    NUMBER_TEMPERATURES  // Number of temperature sensors.
+  } TEMPERATURE;
 
-  static const uint8_t NUMBER_SENSORS = 2;
+  int16_t getValueTenthsC(TEMPERATURE device);
 
-  static TTemperature& singleton();
-
-  int16_t getValueTenthsC(uint8_t index);
-
+  // From TModule.
   void loop();
 
+  // From TModule.
   const char* name() { return "TTemperature"; }
 
+  // From TModule.
   void setup();
 
-private:
+  // Singleton constructor.
+  static TTemperature& singleton();
 
-  typedef enum {
-    ANALOG_0_PIN = 24,
-    ANALOG_1_PIN = 25
-  } TAnalogPins;
+ private:
+  // GPIO addresses of temperature sensors.
+  enum { ANALOG_0_PIN = 24, ANALOG_1_PIN = 25 };
 
+  // Private constructor.
   TTemperature();
 
+  // Last temperature sensor readings.
   static int16_t g_analog0Value;
   static int16_t g_analog1Value;
-  
+
+  // Singleton instance.
   static TTemperature* g_singleton;
 };

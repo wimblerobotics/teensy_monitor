@@ -81,6 +81,6 @@ class TProximityPanel {
       TEMP_TITLE_Y + TEXT_SIZE_3_HEIGHT;
   static const uint16_t TEMP_THIRD_LINE_Y =
       TEMP_SECOND_LINE_Y + TEXT_SIZE_3_HEIGHT;
-  static const int TEMP_BOX_POSITIONS[TTemperature::NUMBER_SENSORS][2];
+  static const int TEMP_BOX_POSITIONS[TTemperature::NUMBER_TEMPERATURES][2];
 
 };
