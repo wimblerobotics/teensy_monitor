@@ -5,11 +5,9 @@
 
 #include "talarm.h"
 
-
-bool TRelay::isSet(TRelayDevice device) {
+bool TRelay::isPoweredOn(TRelayDevice device) {
   return g_deviceSetTimeMs[device] != 0;
 }
-
 
 void TRelay::loop() {
   uint32_t now = millis();
@@ -25,63 +23,6 @@ void TRelay::loop() {
     g_deviceSetTimeMs[NVIDIA_RESET] = 0;
   }
 }
-
-
-void TRelay::powerOn(TRelay::TRelayDevice device) {
-  switch (device) {
-    case INTEL_POWER:
-      digitalWrite(INTEL_ON_OFF_PIN, HIGH);
-      break;
-
-    case INTEL_RESET:
-      digitalWrite(INTEL_RESET_PIN, HIGH);
-      break;
-
-    case MOTOR_POWER:
-      digitalWrite(MOTOR_ON_OFF_PIN, HIGH);
-
-      // Manually resetting the motor power will also reset the overcurrent alarm.
-      TAlarm::singleton().reset(TAlarm::MOTOR_ALARM);
-      break;
-
-    case NVIDIA_POWER:
-      digitalWrite(NVIDIA_ON_OFF_PIN, HIGH);
-      break;
-
-    case NVIDIA_RESET:
-      digitalWrite(NVIDIA_RESET_PIN, HIGH);
-      break;
-
-    default:
-      break;
-  }
-
-  g_deviceSetTimeMs[device] = millis();
-}
-
-
-void TRelay::setup() {
-  pinMode(INTEL_ON_OFF_PIN, OUTPUT);
-  digitalWrite(INTEL_ON_OFF_PIN, LOW);
-  g_deviceSetTimeMs[INTEL_POWER] = millis();
-
-  pinMode(INTEL_RESET_PIN, OUTPUT);
-  digitalWrite(INTEL_RESET_PIN, LOW);
-  g_deviceSetTimeMs[INTEL_RESET] = 0;
-
-  pinMode(MOTOR_ON_OFF_PIN, OUTPUT);
-  digitalWrite(MOTOR_ON_OFF_PIN, LOW);
-  g_deviceSetTimeMs[MOTOR_POWER] = 0;
-
-  pinMode(NVIDIA_ON_OFF_PIN, OUTPUT);
-  digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
-  g_deviceSetTimeMs[NVIDIA_POWER] = millis();
-
-  pinMode(NVIDIA_RESET_PIN, OUTPUT);
-  digitalWrite(NVIDIA_RESET_PIN, LOW);
-  g_deviceSetTimeMs[NVIDIA_RESET] = 0;
-}
-
 
 void TRelay::powerOff(TRelay::TRelayDevice device) {
   g_deviceSetTimeMs[device] = 0;
@@ -111,6 +52,61 @@ void TRelay::powerOff(TRelay::TRelayDevice device) {
   }
 }
 
+void TRelay::powerOn(TRelay::TRelayDevice device) {
+  switch (device) {
+    case INTEL_POWER:
+      digitalWrite(INTEL_ON_OFF_PIN, HIGH);
+      break;
+
+    case INTEL_RESET:
+      digitalWrite(INTEL_RESET_PIN, HIGH);
+      break;
+
+    case MOTOR_POWER:
+      digitalWrite(MOTOR_ON_OFF_PIN, HIGH);
+
+      // Manually resetting the motor power will also reset the overcurrent
+      // alarm.
+      TAlarm::singleton().reset(TAlarm::MOTOR_ALARM);
+      break;
+
+    case NVIDIA_POWER:
+      digitalWrite(NVIDIA_ON_OFF_PIN, HIGH);
+      break;
+
+    case NVIDIA_RESET:
+      digitalWrite(NVIDIA_RESET_PIN, HIGH);
+      break;
+
+    default:
+      break;
+  }
+
+  g_deviceSetTimeMs[device] = millis();
+}
+
+void TRelay::setup() {
+  pinMode(INTEL_ON_OFF_PIN, OUTPUT);
+  digitalWrite(INTEL_ON_OFF_PIN, LOW);
+  g_deviceSetTimeMs[INTEL_POWER] = millis();
+
+  pinMode(INTEL_RESET_PIN, OUTPUT);
+  digitalWrite(INTEL_RESET_PIN, LOW);
+  g_deviceSetTimeMs[INTEL_RESET] = 0;
+
+  pinMode(MOTOR_ON_OFF_PIN, OUTPUT);
+  digitalWrite(MOTOR_ON_OFF_PIN, LOW);
+  g_deviceSetTimeMs[MOTOR_POWER] = 0;
+
+  pinMode(NVIDIA_ON_OFF_PIN, OUTPUT);
+  digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
+  g_deviceSetTimeMs[NVIDIA_POWER] = millis();
+
+  pinMode(NVIDIA_RESET_PIN, OUTPUT);
+  digitalWrite(NVIDIA_RESET_PIN, LOW);
+  g_deviceSetTimeMs[NVIDIA_RESET] = 0;
+}
+
 TRelay::TRelay() {}
 
 TRelay& TRelay::singleton() {
@@ -120,7 +116,6 @@ TRelay& TRelay::singleton() {
 
   return *g_singleton;
 }
-
 
 uint32_t TRelay::g_deviceSetTimeMs[TRelay::NUMBER_DEVICES];
 
