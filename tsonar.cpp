@@ -172,4 +172,4 @@ TSonar* TSonar::g_singleton = nullptr;
 
 int TSonar::g_valuesMm[TSonar::NUMBER_SONARS] = {-1, -1, -1, -1};
 
-static const float TSonar::g_TimeToMmScaler = (10.0 / 2.0) / 29.1;
+const float TSonar::g_TimeToMmScaler = (10.0 / 2.0) / 29.1;

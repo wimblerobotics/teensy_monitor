@@ -5,12 +5,15 @@
 #include <SD.h>
 #include <stdint.h>
 
-void TSd::log(char* message) {
+void TSd::log(const char* message) {
+  if (g_initialized) {
   char prefix[20]; // Big enough to hold '[1234567.890] '.
   uint32_t now = millis();
   sprintf(prefix, "[%07ld.%03ld] ", now / 1000, now % 1000);
   g_logFile.print(prefix);
   g_logFile.println(message);
+  g_logFile.flush();
+  }
 }
 
 void TSd::loop() {}

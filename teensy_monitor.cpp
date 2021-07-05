@@ -11,6 +11,7 @@
 #include "tproximity_panel.h"
 #include "trelay.h"
 #include "tros_client.h"
+#include "tsd.h"
 #include "tserver.h"
 #include "tsonar.h"
 #include "ttemperature.h"
@@ -23,6 +24,7 @@ TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
 TRosClient& rosClient = TRosClient::singleton();
+TSd& sd = TSd::singleton();
 TServer& server = TServer::singleton();
 TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();

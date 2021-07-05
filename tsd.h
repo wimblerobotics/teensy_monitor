@@ -7,7 +7,7 @@
 class TSd : TModule {
  public:
   // Write message to log file.
-  void log(char* message);
+  void log(const char* message);
 
   // From TModule.
   void loop();
