@@ -3,20 +3,9 @@
 #include <stdint.h>
 
 #include "Arduino.h"
-#include "talert.h"
 #include "TimerOne.h"
 #include "Wire.h"
-
-TSonar::TSonar() {}
-
-TSonar& TSonar::singleton() {
-  if (!g_singleton) {
-    g_singleton = new TSonar();
-  }
-
-  return *g_singleton;
-}
-
+#include "talert.h"
 
 void TSonar::echo0InterruptHandler() {
   static long endTime = 0;
@@ -29,11 +18,10 @@ void TSonar::echo0InterruptHandler() {
 
     case LOW:
       endTime = micros();
-      g_valuesMm[0] = ((endTime - startTime) * 10 / 2) / 29.1;
+      g_valuesMm[0] = (endTime - startTime) * g_TimeToMmScaler;
       break;
   }
 }
-
 
 void TSonar::echo1InterruptHandler() {
   static long endTime = 0;
@@ -46,11 +34,10 @@ void TSonar::echo1InterruptHandler() {
 
     case LOW:
       endTime = micros();
-      g_valuesMm[1] = ((endTime - startTime) * 10 / 2) / 29.1;
+      g_valuesMm[1] = (endTime - startTime) * g_TimeToMmScaler;
       break;
   }
 }
-
 
 void TSonar::echo2InterruptHandler() {
   static long endTime = 0;
@@ -63,11 +50,10 @@ void TSonar::echo2InterruptHandler() {
 
     case LOW:
       endTime = micros();
-      g_valuesMm[2] = ((endTime - startTime) * 10 / 2) / 29.1;
+      g_valuesMm[2] = (endTime - startTime) * g_TimeToMmScaler;
       break;
   }
 }
-
 
 void TSonar::echo3InterruptHandler() {
   static long endTime = 0;
@@ -80,40 +66,32 @@ void TSonar::echo3InterruptHandler() {
 
     case LOW:
       endTime = micros();
-      g_valuesMm[3] = ((endTime - startTime) * 10 / 2) / 29.1;
+      g_valuesMm[3] = (endTime - startTime) * g_TimeToMmScaler;
       break;
   }
 }
 
-
-int TSonar::getValueMm(uint8_t index) {
-  if (index >= NUMBER_SENSORS) {
+int TSonar::getValueMm(SONAR device) {
+  if (static_cast<int>(device) >= NUMBER_SONARS) {
     return -1;
   } else {
-    return g_valuesMm[index];
+    return g_valuesMm[static_cast<int>(device)];
   }
 }
 
-
 void TSonar::loop() {
   const int ALERT_DISTANCE_MM = 3 * 25.4;
-  TAlert::TAlertSource map[] = {
-    TAlert::SONAR_FRONT,
-    TAlert::SONAR_RIGHT,
-    TAlert::SONAR_BACK,
-    TAlert::SONAR_LEFT
-  };
+  TAlert::TAlertSource map[] = {TAlert::SONAR_FRONT, TAlert::SONAR_RIGHT,
+                                TAlert::SONAR_BACK, TAlert::SONAR_LEFT};
 
-  for (uint8_t i = 0; i < NUMBER_SENSORS; i++) {
-    if (getValueMm(i) < ALERT_DISTANCE_MM) {
-      //#####Serial.print("Sonar dist: ");Serial.println(getValueMm(i));
+  for (uint8_t i = 0; i < NUMBER_SONARS; i++) {
+    if (getValueMm(static_cast<SONAR>(i)) < ALERT_DISTANCE_MM) {
       TAlert::singleton().set(map[i]);
     } else {
       TAlert::singleton().reset(map[i]);
     }
   }
 }
-
 
 void TSonar::setup() {
   pinMode(PIN_ECHO0, INPUT);
@@ -132,11 +110,10 @@ void TSonar::setup() {
   attachInterrupt(PIN_ECHO3, echo3InterruptHandler, CHANGE);
 }
 
-
 void TSonar::timerInterruptHandler() {
-  typedef enum { COUNTDOWN, PULSE_HIGH, PULSE_LOW } STATE;
+  typedef enum { COUNTDOWN, PULSE_HIGH, PULSE_LOW } TTimerState;
 
-  static volatile STATE state = COUNTDOWN;
+  static volatile TTimerState state = COUNTDOWN;
   static volatile long countdown = TIMER_COUNTS_PER_SAMPLING_PERIOD;
 
   if (--countdown == 0) {
@@ -179,9 +156,20 @@ void TSonar::timerInterruptHandler() {
   }
 }
 
+TSonar::TSonar() {}
+
+TSonar& TSonar::singleton() {
+  if (!g_singleton) {
+    g_singleton = new TSonar();
+  }
+
+  return *g_singleton;
+}
 
 uint8_t TSonar::g_nextSensorIndex = 0;
 
 TSonar* TSonar::g_singleton = nullptr;
 
-int TSonar::g_valuesMm[TSonar::NUMBER_SENSORS] = {-1, -1, -1, -1};
+int TSonar::g_valuesMm[TSonar::NUMBER_SONARS] = {-1, -1, -1, -1};
+
+const float TSonar::g_TimeToMmScaler = (10.0 / 2.0) / 29.1;

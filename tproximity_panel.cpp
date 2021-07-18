@@ -17,10 +17,10 @@ bool TProximityPanel::hasAlert() {
 
 void TProximityPanel::loopTimeOfFlight() {
   g_tofAlert = false;
-  for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_SENSORS; i++) {
+  for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_TIME_OF_FLIGHT; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueMm = TTimeOfFlight::singleton().getValueMm(i);
+    int valueMm = TTimeOfFlight::singleton().getValueMm(static_cast<TTimeOfFlight::TIMEOFFLIGHT>(i));
     g_tc.fillRect(TOF_BOX_POSITIONS[i][0], TOF_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -54,10 +54,10 @@ void TProximityPanel::loopTimeOfFlight() {
 
 void TProximityPanel::loopSonar() {
   g_sonarAlert = false;
-  for (uint8_t i = 0; i < TSonar::NUMBER_SENSORS; i++) {
+  for (uint8_t i = 0; i < TSonar::NUMBER_SONARS; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueMm = TSonar::singleton().getValueMm(i);
+    int valueMm = TSonar::singleton().getValueMm(static_cast<TSonar::SONAR>(i));
     g_tc.fillRect(SONAR_BOX_POSITIONS[i][0], SONAR_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -91,10 +91,10 @@ void TProximityPanel::loopSonar() {
 
 void TProximityPanel::loopMotor() {
   g_motorCurrentAlert = false;
-  for (uint8_t i = 0; i < 2; i++) {
+  for (uint8_t i = 0; i < TMotorCurrent::NUMBER_MOTORS; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    float valueMa = TMotorCurrent::singleton().getValueMa(i);
+    float valueMa = TMotorCurrent::singleton().getValueMa(static_cast<TMotorCurrent::MOTOR>(i));
     g_tc.fillRect(MOTOR_BOX_POSITIONS[i][0], MOTOR_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -131,10 +131,10 @@ void TProximityPanel::loopMotor() {
 
 void TProximityPanel::loopTemperature() {
   g_temperatureAlert = false;
-  for (uint8_t i = 0; i < TTemperature::NUMBER_SENSORS; i++) {
+  for (uint8_t i = 0; i < TTemperature::NUMBER_TEMPERATURES; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueTenthsC = TTemperature::singleton().getValueTenthsC(i);
+    int valueTenthsC = TTemperature::singleton().getValueTenthsC(static_cast<TTemperature::TEMPERATURE>(i));
     g_tc.fillRect(TEMP_BOX_POSITIONS[i][0], TEMP_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -250,7 +250,7 @@ TProximityPanel* TProximityPanel::g_singleton = nullptr;
 
 TControlDisplay& TProximityPanel::g_tc = TControlDisplay::singleton();
 
-const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_SENSORS][2] =
+const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT][2] =
     {
         /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, TOF_SECOND_LINE_Y},
         /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 6) + BORDER_PAD, TOF_SECOND_LINE_Y},
@@ -261,7 +261,7 @@ const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::NUMBER_SENSORS][2] =
         /*6*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, TOF_SIXTH_LINE_Y},
         /*7*/ {TEXT_SIZE_3_WIDTH * (5 + 6) + BORDER_PAD, TOF_SIXTH_LINE_Y}};
 
-const int TProximityPanel::SONAR_BOX_POSITIONS[TSonar::NUMBER_SENSORS][2] =
+const int TProximityPanel::SONAR_BOX_POSITIONS[TSonar::NUMBER_SONARS][2] =
     {
         /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, SONAR_SECOND_LINE_Y},
         /*1*/ {0 + BORDER_PAD, SONAR_THIRD_LINE_Y},
@@ -275,7 +275,7 @@ const int TProximityPanel::MOTOR_BOX_POSITIONS[2][2] =
       /*Right*/ {50 + (TEXT_SIZE_3_WIDTH * 6), MOTOR_SECOND_LINE_Y}
     };
 
-const int TProximityPanel::TEMP_BOX_POSITIONS[TTemperature::NUMBER_SENSORS][2] =
+const int TProximityPanel::TEMP_BOX_POSITIONS[TTemperature::NUMBER_TEMPERATURES][2] =
     {
       /*0*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10, TEMP_SECOND_LINE_Y},
       /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10, TEMP_THIRD_LINE_Y}

@@ -11,8 +11,8 @@ TMotorCurrent::TMotorCurrent() {
 }
 
 
-int TMotorCurrent::getValueMa(uint8_t index) {
-  if (index == 0) return g_leftMotorCurrentMa;
+int TMotorCurrent::getValueMa(MOTOR index) {
+  if (index == LEFT) return g_leftMotorCurrentMa;
   else return g_rightMotorCurrentMa;
 }
 
@@ -44,9 +44,6 @@ void TMotorCurrent::loop() {
 
   g_leftMotorCurrentMa = leftAveragaMa / AVERAGE_COUNT;
   g_rightMotorCurrentMa = rightAveragaMa / AVERAGE_COUNT;
-
-  // Serial.print("left_ma: "); Serial.print(g_leftMotorCurrentMa);
-  // Serial.print(", right_ma: "); Serial.println(g_rightMotorCurrentMa);
 }
 
 

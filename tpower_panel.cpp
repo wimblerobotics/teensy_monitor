@@ -61,11 +61,11 @@ void TPowerPanel::setup() {
   g_tc.setTextColor(ILI9341_WHITE);
   g_tc.setTextSize(3);
 
-  bool motorOn = TRelay::singleton().isSet(TRelay::MOTOR_POWER);
-  bool intelOn = TRelay::singleton().isSet(TRelay::INTEL_POWER);
-  bool intelResetOn = TRelay::singleton().isSet(TRelay::INTEL_RESET);
-  bool nvidiaOn = TRelay::singleton().isSet(TRelay::NVIDIA_POWER);
-  bool nvidiaResetOn = TRelay::singleton().isSet(TRelay::NVIDIA_RESET);
+  bool motorOn = TRelay::singleton().isPoweredOn(TRelay::MOTOR_POWER);
+  bool intelOn = TRelay::singleton().isPoweredOn(TRelay::INTEL_POWER);
+  bool intelResetOn = TRelay::singleton().isPoweredOn(TRelay::INTEL_RESET);
+  bool nvidiaOn = TRelay::singleton().isPoweredOn(TRelay::NVIDIA_POWER);
+  bool nvidiaResetOn = TRelay::singleton().isPoweredOn(TRelay::NVIDIA_RESET);
   TOnOffButton::TButtonState motorPowerButtonState = motorOn ? TOnOffButton::ON : TOnOffButton::OFF;
   TOnOffButton::TButtonState intelPowerButtonState = intelOn ? TOnOffButton::ON : TOnOffButton::OFF;
   TOnOffButton::TButtonState intelResetButtonState = intelResetOn ? TOnOffButton::ON : TOnOffButton::OFF;

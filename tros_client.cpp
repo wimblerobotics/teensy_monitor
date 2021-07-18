@@ -57,16 +57,10 @@ void TRosClient::loop() {
 }
 
 void TRosClient::makeHttpRequest() {
-  // Serial.println("makeHttpRequest");
   IPAddress server(67, 20, 113, 11);
   // char server[] = "wimble.org";
   int connectSuccess;
   if ((connectSuccess = g_client.connect(server, 80)) == 1) {
-    // Send HTTP GET request.
-    // Serial.print("connectSuccess: ");
-    // Serial.println(connectSuccess);
-    // Serial.print("connected, status: ");
-    // Serial.println(g_client.status());
     g_client.println("GET /index.html HTTP/1.1");
     g_client.println("Host: www.wimble.org");
     g_client.println("User-Agent: arduino-ethernet");
@@ -74,7 +68,6 @@ void TRosClient::makeHttpRequest() {
     g_client.println();
     g_state = AWAIT_RESPONSE;
   } else {
-    // if you couldn't make a connection:
     // Serial.print("connection failed: ");
     // Serial.println(connectSuccess);
   }
@@ -86,7 +79,6 @@ void TRosClient::setup() {
   // Serial.println(Ethernet.localIP());
   g_state = AWAIT_CLIENT;
   delay(100);
-  g_isInitialized = true;
 }
 
 TRosClient::TRosClient() : TModule() {}
@@ -100,8 +92,6 @@ TRosClient &TRosClient::singleton() {
 }
 
 EthernetClient TRosClient::g_client;
-
-bool TRosClient::g_isInitialized = false;
 
 TRosClient *TRosClient::g_singleton = nullptr;
 

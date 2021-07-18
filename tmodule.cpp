@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "tsd.h"
+
 #define DO_TIMING true
 
 TModule::TModule() {
@@ -57,6 +59,15 @@ void TModule::doLoop() {
         Serial.print(" avg: ");
         Serial.print(g_readings[i][SUM] / g_nextReadingNumber);
         Serial.println();
+        String logMessage;
+        logMessage += g_allModules[i]->name();
+        logMessage += "\tmin\t";
+        logMessage += g_readings[i][MIN];
+        logMessage += "\tmax\t";
+        logMessage += g_readings[i][MAX];
+        logMessage += "\tavg\t";
+        logMessage += g_readings[i][SUM] / g_nextReadingNumber;
+        TSd::singleton().log(logMessage.c_str());
       }
 
       resetReadings();

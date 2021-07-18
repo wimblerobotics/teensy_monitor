@@ -6,15 +6,20 @@
 
 class TRosClient : TModule {
  public:
- 
-  static TRosClient &singleton();
-
+  // From TModule.
   void loop();
 
+  // From TModule.
   const char *name() { return "TRosClient"; }
 
+  // From TModule.
   void setup();
 
+  // Singleton constructor.
+  static TRosClient &singleton();
+
+ private:
+  // States for loop execution.
   typedef enum {
     NONE,
     AWAIT_CLIENT,
@@ -22,18 +27,21 @@ class TRosClient : TModule {
     GATHER_RESPONSE,
   } TState;
 
- private:
+  // Private constructor.
   TRosClient();
 
+  // Request data from ROS.
   void makeHttpRequest();
 
+  // The singleton instance of the HTTP client.
   static EthernetClient g_client;
 
-  static bool g_isInitialized;
-
+  // Singleton instance.
   static TRosClient *g_singleton;
 
+  // Current state in state machine.
   static TState g_state;
 
+  // THe MAC address of the device.ß
   static const uint8_t MAC_ADDRESS[6];
 };

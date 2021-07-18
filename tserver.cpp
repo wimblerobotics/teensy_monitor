@@ -8,28 +8,71 @@
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
 
-TServer::TServer() : TModule() {}
+void TServer::loop() {
+  static char str[2048]; // Big enough to hold the HTTP request.
+  static uint16_t strIndex = 0; // Index to stuff next character into 'str'.
+
+  switch (g_state) {
+    case AWAIT_CLIENT:
+      g_client = g_server.available();
+      if (g_client) {
+        g_state = READ_REQUEST;
+      }
+
+      break;
+
+    case READ_REQUEST:
+      if (!g_client.connected() || !g_client.available()) {
+        // Connection dropped.
+        g_client.stop();
+        g_state = AWAIT_CLIENT;
+      } else {
+        char c = g_client.read();
+        if (strIndex < (sizeof(str) - 1)) {
+          str[strIndex++] = c;
+        }
+
+        str[strIndex] = 0;
+        if (c == '\n') {
+          // End of the request has been received.
+          std::string result = sensorString();
+          char content[512]; // To hold the response.
+          sprintf(content, g_header, strlen(result.c_str()), result.c_str());
+          g_client.println(content);
+          delay(1);
+          g_client.stop();
+          g_state = AWAIT_CLIENT;
+        }
+      }
+
+      break;
+
+    default:
+      break;
+  }
+}
 
 std::string TServer::sensorString() {
-  int motorCurrentValues[2];
-  int sonarValues[TSonar::NUMBER_SENSORS];
-  int temperatureValues[TTemperature::NUMBER_SENSORS];
-  int timeOfFlightValues[TTimeOfFlight::NUMBER_SENSORS];
+  int motorCurrentValues[TMotorCurrent::NUMBER_MOTORS];
+  int sonarValues[TSonar::NUMBER_SONARS];
+  int temperatureValues[TTemperature::NUMBER_TEMPERATURES];
+  int timeOfFlightValues[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT];
 
-  for (uint8_t i = 0; i < 2; i++) {
-    motorCurrentValues[i] = TMotorCurrent::singleton().getValueMa(i);
+  for (uint8_t i = 0; i < TMotorCurrent::NUMBER_MOTORS; i++) {
+    motorCurrentValues[i] = TMotorCurrent::singleton().getValueMa(
+        static_cast<TMotorCurrent::MOTOR>(i));
   }
 
-  for (uint8_t i = 0; i < TSonar::NUMBER_SENSORS; i++) {
-    sonarValues[i] = TSonar::singleton().getValueMm(i);
+  for (uint8_t i = 0; i < TSonar::NUMBER_SONARS; i++) {
+    sonarValues[i] = TSonar::singleton().getValueMm(static_cast<TSonar::SONAR>(i));
   }
 
-  for (uint8_t i = 0; i < TTemperature::NUMBER_SENSORS; i++) {
-    temperatureValues[i] = TTemperature::singleton().getValueTenthsC(i);
+  for (uint8_t i = 0; i < TTemperature::NUMBER_TEMPERATURES; i++) {
+    temperatureValues[i] = TTemperature::singleton().getValueTenthsC(static_cast<TTemperature::TEMPERATURE>(i));
   }
 
-  for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_SENSORS; i++) {
-    timeOfFlightValues[i] = TTimeOfFlight::singleton().getValueMm(i);
+  for (uint8_t i = 0; i < TTimeOfFlight::NUMBER_TIME_OF_FLIGHT; i++) {
+    timeOfFlightValues[i] = TTimeOfFlight::singleton().getValueMm(static_cast<TTimeOfFlight::TIMEOFFLIGHT>(i));
   }
 
   char result[512];
@@ -52,72 +95,17 @@ std::string TServer::sensorString() {
   return str;
 }
 
-void TServer::loop() {
-  //  if (!g_isInitialized) {
-  //    initializeWhenLinkIsUp();
-  //    if (!g_isInitialized) {
-  //      return;
-  //    }
-  //  }
-
-  static char str[2048];
-  static uint16_t strIndex = 0;
-
-  //  Serial.print("g_serverStatus: ");Serial.println(g_serverStatus);
-  switch (g_serverStatus) {
-    case AWAIT_CLIENT:
-      g_client = g_server.available();
-      if (g_client) {
-        g_serverStatus = READ_REQUEST;
-      }
-
-      break;
-
-    case READ_REQUEST:
-      if (!g_client.connected() || !g_client.available()) {
-        // Connection dropped.
-        g_client.stop();
-        //        Serial.println("[TServer::loop] client disconnected"); //#####
-        g_serverStatus = AWAIT_CLIENT;
-      } else {
-        char c = g_client.read();
-        if (strIndex < (sizeof(str) - 1)) {
-          str[strIndex++] = c;
-        }
-
-        str[strIndex] = 0;
-        if (c == '\n') {
-          std::string result = sensorString();
-          char content[512];
-          sprintf(content, g_header, strlen(result.c_str()), result.c_str());
-          g_client.println(content);
-          //          Serial.println(result.c_str()); //#####
-          delay(1);
-          g_client.stop();
-          g_serverStatus = AWAIT_CLIENT;
-        }
-      }
-
-      break;
-
-    default:
-      break;
-  }
-}
-
-void TServer::initializeWhenLinkIsUp() {
+void TServer::setup() {
   Ethernet.begin((uint8_t *)&MAC_ADDRESS, IPAddress(192, 168, 0, 132));
 
   g_server.begin();
   //  Serial.print("My IP address: ");
   //  Serial.println(Ethernet.localIP());
 
-  g_serverStatus = AWAIT_CLIENT;
-  g_isInitialized = true;
-  //  }
+  g_state = AWAIT_CLIENT;
 }
 
-void TServer::setup() { initializeWhenLinkIsUp(); }
+TServer::TServer() : TModule() {}
 
 TServer &TServer::singleton() {
   if (!g_singleton) {
@@ -125,15 +113,13 @@ TServer &TServer::singleton() {
   }
 
   return *g_singleton;
+
 }
 
 EthernetClient TServer::g_client;
-
-bool TServer::g_isInitialized = false;
-
 EthernetServer TServer::g_server(80);
 
-TServer::TServerStatus TServer::g_serverStatus = NO_DEVICE;
+TServer::TState TServer::g_state = NO_DEVICE;
 
 TServer *TServer::g_singleton = nullptr;
 
