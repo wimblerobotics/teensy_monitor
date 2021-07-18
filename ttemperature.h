@@ -29,7 +29,7 @@ class TTemperature : TModule {
 
  private:
   // GPIO addresses of temperature sensors.
-  enum { ANALOG_0_PIN = 24, ANALOG_1_PIN = 25 };
+  enum { ANALOG_0_PIN = 26, ANALOG_1_PIN = 27 };
 
   // Private constructor.
   TTemperature();

@@ -32,10 +32,10 @@ void regexpMatchCallback(const char* match, const unsigned int length,
 void TSd::setup() {
   g_highestExistingLogFileNumber = 0;
   g_initialized = false;
-  if (!SD.begin(BUILTIN_SDCARD)) {
+  if (!g_sd.begin(BUILTIN_SDCARD)) {
     Serial.println("[TSd::setup] Unable to access builtin SD card");
   } else {
-    File rootDirectory = SD.open("/");
+    File rootDirectory = g_sd.open("/");
     while (true) {
       File nextFileInDirectory = rootDirectory.openNextFile();
       if (!nextFileInDirectory) break;
@@ -47,7 +47,7 @@ void TSd::setup() {
 
     char newLogFileName[20]; // Big enough to hold file name like: LOG12345.TXT.
     sprintf(newLogFileName, "LOG%05d.TXT", ++g_highestExistingLogFileNumber);
-    g_logFile = SD.open(newLogFileName, FILE_WRITE);
+    g_logFile = g_sd.open(newLogFileName, FILE_WRITE);
     if (!g_logFile) {
       Serial.print("[TSd::setup] Unable to create new log file: '");
       Serial.print(newLogFileName);
@@ -68,6 +68,8 @@ TSd& TSd::singleton() {
 
   return *g_singleton;
 }
+
+SDClass TSd::g_sd;
 
 bool TSd::g_initialized = false;
 

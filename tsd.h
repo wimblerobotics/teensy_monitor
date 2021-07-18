@@ -24,6 +24,8 @@ class TSd : TModule {
   // Private constructor.
   TSd();
 
+  static SDClass g_sd;
+
   // Has SD device been properly initialized?
   static bool g_initialized;
 

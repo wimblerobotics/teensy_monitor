@@ -17,7 +17,7 @@ int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
   static unsigned long lastWallTime = millis();
   unsigned long currentWallTime = millis();
   unsigned long durationSinceLastSense = currentWallTime - lastWallTime;
-  
+
   if (durationSinceLastSense > GIVEN_NUMBER_OF_MILLISECONDS) {
     if (g_sensor[lastSensedIndex] != nullptr) {
       selectTimeOfFlightSensor(static_cast<TIMEOFFLIGHT>(lastSensedIndex));
@@ -41,7 +41,6 @@ int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
 }
 
 void TTimeOfFlight::loop() {
-
   static const TAlert::TAlertSource map[] = {
       TAlert::TOF_UPPER_LEFT_FORWARD,  TAlert::TOF_UPPER_RIGHT_FORWARD,
       TAlert::TOF_UPPER_LEFT_SIDEWAY,  TAlert::TOF_UPPER_RIGHT_SIDEWAY,
@@ -70,7 +69,7 @@ void TTimeOfFlight::setup() {
   uint8_t numberSensorsFound = 0;
   for (uint8_t i = 0; i < NUMBER_TIME_OF_FLIGHT; i++) {
     selectTimeOfFlightSensor(static_cast<TIMEOFFLIGHT>(i));
-    VL53L0X* sensor = new VL53L0X();
+    VL53L0X *sensor = new VL53L0X();
     sensor->setTimeout(500);
     if (sensor->init()) {
       g_sensor[i] = sensor;
@@ -92,7 +91,7 @@ TTimeOfFlight::TTimeOfFlight() {
   }
 }
 
-TTimeOfFlight& TTimeOfFlight::singleton() {
+TTimeOfFlight &TTimeOfFlight::singleton() {
   if (!g_singleton) {
     g_singleton = new TTimeOfFlight();
   }
@@ -100,7 +99,7 @@ TTimeOfFlight& TTimeOfFlight::singleton() {
   return *g_singleton;
 }
 
-TTimeOfFlight* TTimeOfFlight::g_singleton = nullptr;
+TTimeOfFlight *TTimeOfFlight::g_singleton = nullptr;
 
 int TTimeOfFlight::g_cachedValue[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT];
-VL53L0X* TTimeOfFlight::g_sensor[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT];
+VL53L0X *TTimeOfFlight::g_sensor[TTimeOfFlight::NUMBER_TIME_OF_FLIGHT];

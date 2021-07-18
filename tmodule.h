@@ -32,6 +32,7 @@ class TModule {
     PANEL_SELECTOR,
     RELAY,
     ROS_CLIENT,
+    SD,
     SERVER,
     SONAR,
     TEMPERATURE,
