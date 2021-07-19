@@ -31,6 +31,7 @@ class TModule {
     MOTOR_CURRENT,
     PANEL_SELECTOR,
     RELAY,
+    ROBOCLAW,
     ROS_CLIENT,
     SD,
     SERVER,

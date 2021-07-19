@@ -10,6 +10,7 @@
 #include "tpower_panel.h"
 #include "tproximity_panel.h"
 #include "trelay.h"
+#include "troboclaw.h"
 #include "tros_client.h"
 #include "tsd.h"
 #include "tserver.h"
@@ -23,6 +24,7 @@ TAlert& alert = TAlert::singleton();
 TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
+TRoboClaw& roboclaw = TRoboClaw::singleton();
 TRosClient& rosClient = TRosClient::singleton();
 TSd& sd = TSd::singleton();
 TServer& server = TServer::singleton();
@@ -44,14 +46,28 @@ void setup() {
     ;
 
   WDT_timings_t config;
-  config.window = 1; // Minimum time (ms) between watchdog feed() calls.
-  config.timeout = 20000; // Maximum time (ms) between watchdog feed() calls.
+  config.window = 1;       // Minimum time (ms) between watchdog feed() calls.
+  config.timeout = 20000;  // Maximum time (ms) between watchdog feed() calls.
   config.callback = watchdogTimeout;
   TModule::doSetup();
   wdt.begin(config);
 }
 
 void loop() {
+  static int counter = 0;
+  static const int STAT_LOOPS = 1'000;
+  static uint32_t start = micros();
   TModule::doLoop();
   wdt.feed();
+  counter++;
+  if ((counter % STAT_LOOPS) == 0) {
+    float durationMs = ((micros() * 1.0) - start) / 1000.0;
+    float avgDurationMs = durationMs / STAT_LOOPS;
+    Serial.print("MONITOR avg loop duration: ");
+    Serial.print(avgDurationMs);
+    Serial.print(" ms, fps: ");
+    Serial.println(1000 / avgDurationMs);
+    start = micros();
+    counter = 0;
+  }
 }
