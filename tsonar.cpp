@@ -85,7 +85,7 @@ void TSonar::loop() {
                                 TAlert::SONAR_BACK, TAlert::SONAR_LEFT};
 
   for (uint8_t i = 0; i < NUMBER_SONARS; i++) {
-    if (getValueMm(static_cast<SONAR>(i)) < ALERT_DISTANCE_MM) {
+    if (doStopMotorsOnCollisionThreat && (getValueMm(static_cast<SONAR>(i)) < ALERT_DISTANCE_MM)) {
       TAlert::singleton().set(map[i]);
     } else {
       TAlert::singleton().reset(map[i]);

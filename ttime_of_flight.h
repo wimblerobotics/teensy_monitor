@@ -36,6 +36,10 @@ class TTimeOfFlight : TModule {
   static TTimeOfFlight& singleton();
 
  private:
+
+  // Should motors be put in e-stop if collision is imminent?
+  static const bool doStopMotorsOnCollisionThreat = false;
+
   // Private constructor.
   TTimeOfFlight();
 

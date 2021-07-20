@@ -49,7 +49,7 @@ void TTimeOfFlight::loop() {
 
   for (uint8_t i = 0; i < NUMBER_TIME_OF_FLIGHT; i++) {
     int mm = getValueMm(static_cast<TIMEOFFLIGHT>(i));
-    if ((mm != -1) && (mm < ALERT_DISTANCE_MM)) {
+    if (doStopMotorsOnCollisionThreat && (mm != -1) && (mm < ALERT_DISTANCE_MM)) {
       TAlert::singleton().set(map[i]);
     } else {
       TAlert::singleton().reset(map[i]);
