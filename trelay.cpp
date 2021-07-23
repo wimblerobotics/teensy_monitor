@@ -47,6 +47,10 @@ void TRelay::powerOff(TRelay::TRelayDevice device) {
       digitalWrite(NVIDIA_RESET_PIN, LOW);
       break;
 
+    case MOTOR_ESTOP:
+      digitalWrite(MOTOR_ESTOP_PIN, LOW);
+      break;
+
     default:
       break;
   }
@@ -78,6 +82,10 @@ void TRelay::powerOn(TRelay::TRelayDevice device) {
       digitalWrite(NVIDIA_RESET_PIN, HIGH);
       break;
 
+    case MOTOR_ESTOP:
+      digitalWrite(MOTOR_ESTOP_PIN, HIGH);
+      break;
+
     default:
       break;
   }
@@ -105,6 +113,10 @@ void TRelay::setup() {
   pinMode(NVIDIA_RESET_PIN, OUTPUT);
   digitalWrite(NVIDIA_RESET_PIN, LOW);
   g_deviceSetTimeMs[NVIDIA_RESET] = 0;
+
+  pinMode(MOTOR_ESTOP_PIN, OUTPUT);
+  digitalWrite(MOTOR_ESTOP_PIN, LOW);
+  g_deviceSetTimeMs[MOTOR_ESTOP] = 0;
 }
 
 TRelay::TRelay() {}

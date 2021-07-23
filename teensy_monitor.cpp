@@ -11,7 +11,7 @@
 #include "tproximity_panel.h"
 #include "trelay.h"
 #include "troboclaw.h"
-#include "tros_client.h"
+// #include "tros_client.h"
 #include "tsd.h"
 #include "tserver.h"
 #include "tsonar.h"
@@ -25,7 +25,7 @@ TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
-TRosClient& rosClient = TRosClient::singleton();
+// TRosClient& rosClient = TRosClient::singleton();
 TSd& sd = TSd::singleton();
 TServer& server = TServer::singleton();
 TSonar& sonar = TSonar::singleton();

@@ -97,10 +97,9 @@ std::string TServer::sensorString() {
 
 void TServer::setup() {
   Ethernet.begin((uint8_t *)&MAC_ADDRESS, IPAddress(192, 168, 0, 132));
-
   g_server.begin();
-  //  Serial.print("My IP address: ");
-  //  Serial.println(Ethernet.localIP());
+   Serial.print("My IP address: ");
+   Serial.println(Ethernet.localIP());
 
   g_state = AWAIT_CLIENT;
 }
