@@ -106,7 +106,7 @@ void TRoboClaw::getMainBattery() {
     g_state = VERSION;
   } else {
     g_main_battery = voltage;
-    g_state = VERSION;
+    g_state = SPEED_M1; //  Restart sequence
   }
 }
 
@@ -148,6 +148,9 @@ void TRoboClaw::getVersion() {
       Serial.println("'");
       reconnect();
     } else {
+      Serial.print("[TRoboClaw::getVersion] version match: '");
+      Serial.print(version);
+      Serial.println("'");
       g_state = SPEED_M1;
     }
   } else {

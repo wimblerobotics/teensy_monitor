@@ -53,6 +53,7 @@ void TServer::loop() {
 }
 
 std::string TServer::sensorString() {
+  static uint32_t sequenceNumber = 0;
   int motorCurrentValues[TMotorCurrent::NUMBER_MOTORS];
   int sonarValues[TSonar::NUMBER_SONARS];
   int temperatureValues[TTemperature::NUMBER_TEMPERATURES];
@@ -78,11 +79,13 @@ std::string TServer::sensorString() {
   char result[512];
   sprintf(result,
           "{\n"
+          " \"sequence_number\": %d,\n"
           "  \"motor_currents_ma\": [ %d, %d],\n"
           "  \"sonar_mm\": [%d, %d, %d, %d],\n"
           "  \"temperature_tenthsC\": [%d, %d],\n"
           "  \"time_of_flight_mm\": [%d, %d, %d, %d, %d, %d, %d, %d]\n"
           "}\n",
+          sequenceNumber++,
           motorCurrentValues[0], motorCurrentValues[1], sonarValues[0],
           sonarValues[1], sonarValues[2], sonarValues[3], temperatureValues[0],
           temperatureValues[1], timeOfFlightValues[0], timeOfFlightValues[1],
