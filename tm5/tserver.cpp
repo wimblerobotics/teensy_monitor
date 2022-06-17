@@ -54,6 +54,7 @@ void TServer::loop() {
 
 std::string TServer::sensorString() {
   static uint32_t sequenceNumber = 0;
+  static uint32_t start = micros();
   int motorCurrentValues[TMotorCurrent::NUMBER_MOTORS];
   int sonarValues[TSonar::NUMBER_SONARS];
   int temperatureValues[TTemperature::NUMBER_TEMPERATURES];
@@ -105,8 +106,13 @@ std::string TServer::sensorString() {
           roboclaw.getM2Current(), roboclaw.getM2Encoder(), roboclaw.getM2Speed()
           );
 
-  // Serial.print("[TServer::handleRequest] result length:
+  // Serial.print("[TServer::sensorString] result length:
   // ");Serial.println(strlen(result));
+  float durationMs = ((micros() * 1.0) - start) / 1000.0;
+  Serial.print("[TServer::sensorString] post sequenceNumber: ");
+  Serial.print(sequenceNumber);
+  Serial.print(", durationMs: ");
+  Serial.println(durationMs);
   std::string str(result);
   return str;
 }
