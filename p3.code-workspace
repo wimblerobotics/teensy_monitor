@@ -21,7 +21,15 @@
 			"sstream": "cpp",
 			"type_traits": "cpp",
 			"version": "cpp",
-			"complex": "cpp"
+			"complex": "cpp",
+			"array": "cpp",
+			"deque": "cpp",
+			"list": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"vector": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp"
 		},
 		"workbench.iconTheme": "vscode-icons-mac"
 	}
