@@ -84,26 +84,26 @@ std::string TServer::sensorString() {
           "  \"motor_currents_ma\": [ %d, %d],\n"
           "  \"sonar_mm\": [%d, %d, %d, %d],\n"
           "  \"temperature_tenthsC\": [%d, %d],\n"
-          "  \"time_of_flight_mm\": [%d, %d, %d, %d, %d, %d, %d, %d],\n"
-          "  \"roboclaw_battery_logic\": %3.1f,\n"
-          "  \"roboclaw_battery_main\": %3.1f\n,"
-          "  \"roboclaw_m1_current\": %3.1f,\n"
-          "  \"roboclaw_m1_encoder\": %ld,\n"
-          "  \"roboclaw_m1_speed\": %ld,\n"
-          "  \"roboclaw_m2_current\": %3.1f,\n"
-          "  \"roboclaw_m2_encoder\": %ld,\n"
-          "  \"roboclaw_m2_speed\": %ld\n"
+          "  \"time_of_flight_mm\": [%d, %d, %d, %d, %d, %d, %d, %d]\n"
+//          "  \",roboclaw_battery_logic\": %3.1f,\n"
+//          "  \"roboclaw_battery_main\": %3.1f,\n"
+//          "  \"roboclaw_m1_current\": %3.1f,\n"
+//          "  \"roboclaw_m1_encoder\": %ld,\n"
+//          "  \"roboclaw_m1_speed\": %ld,\n"
+//          "  \"roboclaw_m2_current\": %3.1f,\n"
+//          "  \"roboclaw_m2_encoder\": %ld,\n"
+//          "  \"roboclaw_m2_speed\": %ld\n"
           "}\n",
           sequenceNumber++,
           motorCurrentValues[0], motorCurrentValues[1], sonarValues[0],
           sonarValues[1], sonarValues[2], sonarValues[3], temperatureValues[0],
           temperatureValues[1], timeOfFlightValues[0], timeOfFlightValues[1],
           timeOfFlightValues[2], timeOfFlightValues[3], timeOfFlightValues[4],
-          timeOfFlightValues[5], timeOfFlightValues[6], timeOfFlightValues[7],
-          roboclaw.getBatteryLogic(),
-          roboclaw.getBatteryMain(),
-          roboclaw.getM1Current(), roboclaw.getM1Encoder(), roboclaw.getM1Speed(),
-          roboclaw.getM2Current(), roboclaw.getM2Encoder(), roboclaw.getM2Speed()
+          timeOfFlightValues[5], timeOfFlightValues[6], timeOfFlightValues[7]
+//          , roboclaw.getBatteryLogic(),
+//          roboclaw.getBatteryMain(),
+//          roboclaw.getM1Current(), roboclaw.getM1Encoder(), roboclaw.getM1Speed(),
+//          roboclaw.getM2Current(), roboclaw.getM2Encoder(), roboclaw.getM2Speed()
           );
 
   // Serial.print("[TServer::sensorString] result length:
