@@ -74,7 +74,7 @@ void TRosClient::makeHttpRequest() {
 }
 
 void TRosClient::setup() {
-  Ethernet.begin((uint8_t *)&MAC_ADDRESS, IPAddress(10, 40, 0, 132));
+  Ethernet.begin((uint8_t *)&MAC_ADDRESS, IPAddress(10, 0, 0, 132));
   // Serial.print("My IP address: ");
   // Serial.println(Ethernet.localIP());
   g_state = AWAIT_CLIENT;

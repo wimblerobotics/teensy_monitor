@@ -54,7 +54,6 @@ void TServer::loop() {
 
 std::string TServer::sensorString() {
   static uint32_t sequenceNumber = 0;
-  static uint32_t start = micros();
   int motorCurrentValues[TMotorCurrent::NUMBER_MOTORS];
   int sonarValues[TSonar::NUMBER_SONARS];
   int temperatureValues[TTemperature::NUMBER_TEMPERATURES];
@@ -80,7 +79,7 @@ std::string TServer::sensorString() {
   char result[512];
   sprintf(result,
           "{\n"
-          " \"sequence_number\": %ld,\n"
+          " \"sequence_number\": %d,\n"
           "  \"motor_currents_ma\": [ %d, %d],\n"
           "  \"sonar_mm\": [%d, %d, %d, %d],\n"
           "  \"temperature_tenthsC\": [%d, %d],\n"
@@ -91,16 +90,10 @@ std::string TServer::sensorString() {
           sonarValues[1], sonarValues[2], sonarValues[3], temperatureValues[0],
           temperatureValues[1], timeOfFlightValues[0], timeOfFlightValues[1],
           timeOfFlightValues[2], timeOfFlightValues[3], timeOfFlightValues[4],
-          timeOfFlightValues[5], timeOfFlightValues[6], timeOfFlightValues[7]
-          );
+          timeOfFlightValues[5], timeOfFlightValues[6], timeOfFlightValues[7]);
 
-  // Serial.print("[TServer::sensorString] result length:
+  // Serial.print("[TServer::handleRequest] result length:
   // ");Serial.println(strlen(result));
-  float durationMs = ((micros() * 1.0) - start) / 1000.0;
-  Serial.print("[TServer::sensorString] post sequenceNumber: ");
-  Serial.print(sequenceNumber);
-  Serial.print(", durationMs: ");
-  Serial.println(durationMs);
   std::string str(result);
   return str;
 }
@@ -108,7 +101,7 @@ std::string TServer::sensorString() {
 void TServer::setup() {
   Ethernet.begin((uint8_t *)&MAC_ADDRESS, IPAddress(10, 42, 0, 132));
   g_server.begin();
-   Serial.print("server IP address: ");
+   Serial.print("My IP address: ");
    Serial.println(Ethernet.localIP());
 
   g_state = AWAIT_CLIENT;

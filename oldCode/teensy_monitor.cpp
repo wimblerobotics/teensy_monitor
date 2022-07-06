@@ -10,9 +10,9 @@
 #include "tpower_panel.h"
 #include "tproximity_panel.h"
 #include "trelay.h"
-//#include "troboclaw.h"
-//#include "tros_client.h"
-//######include "tsd.h"
+#include "troboclaw.h"
+// #include "tros_client.h"
+#include "tsd.h"
 #include "tserver.h"
 #include "tsonar.h"
 #include "ttemperature.h"
@@ -24,9 +24,9 @@ TAlert& alert = TAlert::singleton();
 TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
-//TRoboClaw& roboclaw = TRoboClaw::singleton();
-//#####TRosClient& rosClient = TRosClient::singleton();
-//#####TSd& sd = TSd::singleton();
+TRoboClaw& roboclaw = TRoboClaw::singleton();
+// TRosClient& rosClient = TRosClient::singleton();
+// ###TSd& sd = TSd::singleton();
 TServer& server = TServer::singleton();
 TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
@@ -45,13 +45,8 @@ void setup() {
   while (!Serial && (millis() <= 1000))
     ;
 
-  Serial.print("Teensy monitor compiled at: ");
-  Serial.print("MONITOR ");
-  Serial.print(__DATE__);
-  Serial.print(" ");
-  Serial.println(__TIME__);
   WDT_timings_t config;
-  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed() calls.
+  config.window = 1;       // Minimum time (ms) between watchdog feed() calls.
   config.timeout = 20000;  // Maximum time (ms) between watchdog feed() calls.
   config.callback = watchdogTimeout;
   TModule::doSetup();
@@ -68,11 +63,7 @@ void loop() {
   if ((counter % STAT_LOOPS) == 0) {
     float durationMs = ((micros() * 1.0) - start) / 1000.0;
     float avgDurationMs = durationMs / STAT_LOOPS;
-    Serial.print("MONITOR ");
-    Serial.print(__DATE__);
-    Serial.print(" ");
-    Serial.print(__TIME__);
-    Serial.print(" duration: ");
+    Serial.print("MONITOR avg loop duration: ");
     Serial.print(avgDurationMs);
     Serial.print(" ms, fps: ");
     Serial.println(1000 / avgDurationMs);

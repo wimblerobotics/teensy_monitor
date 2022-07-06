@@ -48,5 +48,4 @@ class TServer : TModule {
 
   // The boiler plate template for a response to the request.
   static const char* g_header;
-
 };
