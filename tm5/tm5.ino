@@ -1,9 +1,21 @@
+#include <micro_ros_arduino.h>
+#include <yaml.h>
+
+#include <bar.h>
+
+#include <fip.h>
+
+#include <foo.h>
+
+#include <yaml.h>
+
 #include <Wire.h>
 #include <stdint.h>
 
 #include "Watchdog_t4.h"
 #include "talarm.h"
 #include "talert.h"
+#include "tmicro_ros.h"
 #include "tmodule.h"
 #include "tmotor_current.h"
 #include "tpanel_selector.h"
@@ -13,7 +25,7 @@
 //#include "troboclaw.h"
 //#include "tros_client.h"
 //######include "tsd.h"
-#include "tserver.h"
+//######include "tserver.h"
 #include "tsonar.h"
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
@@ -21,13 +33,14 @@
 // Initialize all TModule instances in any required order.
 TAlarm& alarm = TAlarm::singleton();
 TAlert& alert = TAlert::singleton();
+TMicroRos& microRos = TMicroRos::singleton();
 TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
 //TRoboClaw& roboclaw = TRoboClaw::singleton();
 //#####TRosClient& rosClient = TRosClient::singleton();
 //#####TSd& sd = TSd::singleton();
-TServer& server = TServer::singleton();
+//#####TServer& server = TServer::singleton();
 TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
@@ -41,15 +54,14 @@ void watchdogTimeout() {
 
 void setup() {
   Wire.begin();
-  Serial.begin(38400);
-  while (!Serial && (millis() <= 1000))
-    ;
-
-  Serial.print("Teensy monitor compiled at: ");
-  Serial.print("MONITOR ");
-  Serial.print(__DATE__);
-  Serial.print(" ");
-  Serial.println(__TIME__);
+//  Serial.begin(38400);
+//  while (!Serial && (millis() <= 1000));
+//
+//  Serial.print("Teensy monitor compiled at: ");
+//  Serial.print("MONITOR ");
+//  Serial.print(__DATE__);
+//  Serial.print(" ");
+//  Serial.println(__TIME__);
   WDT_timings_t config;
   config.window = 1;       // Minimum time (ms) betwee//n watchdog feed() calls.
   config.timeout = 20000;  // Maximum time (ms) between watchdog feed() calls.
@@ -68,14 +80,14 @@ void loop() {
   if ((counter % STAT_LOOPS) == 0) {
     float durationMs = ((micros() * 1.0) - start) / 1000.0;
     float avgDurationMs = durationMs / STAT_LOOPS;
-    Serial.print("MONITOR ");
-    Serial.print(__DATE__);
-    Serial.print(" ");
-    Serial.print(__TIME__);
-    Serial.print(" duration: ");
-    Serial.print(avgDurationMs);
-    Serial.print(" ms, fps: ");
-    Serial.println(1000 / avgDurationMs);
+//    Serial.print("MONITOR ");
+//    Serial.print(__DATE__);
+//    Serial.print(" ");
+//    Serial.print(__TIME__);
+//    Serial.print(" duration: ");
+//    Serial.print(avgDurationMs);
+//    Serial.print(" ms, fps: ");
+//    Serial.println(1000 / avgDurationMs);
     start = micros();
     counter = 0;
   }
