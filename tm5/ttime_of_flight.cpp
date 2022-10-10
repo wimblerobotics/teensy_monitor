@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "talert.h"
+#include "tmicro_ros.h"
 
 int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
   if (device >= NUMBER_TIME_OF_FLIGHT) {
@@ -23,6 +24,7 @@ int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
       selectTimeOfFlightSensor(static_cast<TIMEOFFLIGHT>(lastSensedIndex));
       g_cachedValue[lastSensedIndex] =
           g_sensor[lastSensedIndex]->readRangeContinuousMillimeters();
+      TMicroRos::publishTof(lastSensedIndex, g_cachedValue[lastSensedIndex] * 0.001);
     }
 
     lastSensedIndex += 1;
@@ -49,7 +51,8 @@ void TTimeOfFlight::loop() {
 
   for (uint8_t i = 0; i < NUMBER_TIME_OF_FLIGHT; i++) {
     int mm = getValueMm(static_cast<TIMEOFFLIGHT>(i));
-    if (doStopMotorsOnCollisionThreat && (mm != -1) && (mm < ALERT_DISTANCE_MM)) {
+    if (doStopMotorsOnCollisionThreat && (mm != -1) &&
+        (mm < ALERT_DISTANCE_MM)) {
       TAlert::singleton().set(map[i]);
     } else {
       TAlert::singleton().reset(map[i]);

@@ -6,6 +6,7 @@
 #include "TimerOne.h"
 #include "Wire.h"
 #include "talert.h"
+#include "tmicro_ros.h"
 
 void TSonar::echo0InterruptHandler() {
   static long endTime = 0;
@@ -19,6 +20,7 @@ void TSonar::echo0InterruptHandler() {
     case LOW:
       endTime = micros();
       g_valuesMm[0] = (endTime - startTime) * g_TimeToMmScaler;
+      TMicroRos::publishSonar(0, g_valuesMm[0] * 0.001);
       break;
   }
 }
@@ -35,6 +37,7 @@ void TSonar::echo1InterruptHandler() {
     case LOW:
       endTime = micros();
       g_valuesMm[1] = (endTime - startTime) * g_TimeToMmScaler;
+      TMicroRos::publishSonar(1, g_valuesMm[1] * 0.001);
       break;
   }
 }
@@ -51,6 +54,7 @@ void TSonar::echo2InterruptHandler() {
     case LOW:
       endTime = micros();
       g_valuesMm[2] = (endTime - startTime) * g_TimeToMmScaler;
+      TMicroRos::publishSonar(2, g_valuesMm[2] * 0.001);
       break;
   }
 }
@@ -67,6 +71,7 @@ void TSonar::echo3InterruptHandler() {
     case LOW:
       endTime = micros();
       g_valuesMm[3] = (endTime - startTime) * g_TimeToMmScaler;
+      TMicroRos::publishSonar(3, g_valuesMm[3] * 0.001);
       break;
   }
 }

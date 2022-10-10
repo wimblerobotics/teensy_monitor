@@ -73,13 +73,13 @@ void setup() {
 void loop() {
   static int counter = 0;
   static const int STAT_LOOPS = 1'000;
-  static uint32_t start = micros();
+//  static uint32_t start = micros();
   TModule::doLoop();
   wdt.feed();
   counter++;
   if ((counter % STAT_LOOPS) == 0) {
-    float durationMs = ((micros() * 1.0) - start) / 1000.0;
-    float avgDurationMs = durationMs / STAT_LOOPS;
+//    float durationMs = ((micros() * 1.0) - start) / 1000.0;
+//    float avgDurationMs = durationMs / STAT_LOOPS;
 //    Serial.print("MONITOR ");
 //    Serial.print(__DATE__);
 //    Serial.print(" ");
@@ -88,7 +88,7 @@ void loop() {
 //    Serial.print(avgDurationMs);
 //    Serial.print(" ms, fps: ");
 //    Serial.println(1000 / avgDurationMs);
-    start = micros();
+//    start = micros();
     counter = 0;
   }
 }

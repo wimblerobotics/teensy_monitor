@@ -6,6 +6,7 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
+#include <sensor_msgs/msg/range.h>
 #include <std_msgs/msg/string.h>
 #include <stdio.h>
 
@@ -18,6 +19,9 @@ class TMicroRos : TModule {
 
   // From TModule
   const char* name() { return "TMicroRos"; }
+
+  static void publishSonar(uint8_t frame_id, float range);
+  static void publishTof(uint8_t frame_id, float range);
 
   // From TModule
   void setup();
@@ -51,6 +55,12 @@ class TMicroRos : TModule {
   uint32_t sequence_number_;
   rclc_support_t support_;
   rcl_timer_t timer_;
+
+  rcl_publisher_t sonar_publisher_;
+  sensor_msgs__msg__Range sonar_range_msg_;
+
+  rcl_publisher_t tof_publisher_;
+  sensor_msgs__msg__Range tof_range_msg_;
 
   // Singleton instance.
   static TMicroRos* g_singleton;
