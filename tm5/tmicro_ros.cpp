@@ -43,6 +43,7 @@
   }
 
 void TMicroRos::loop() {
+  rmw_uros_sync_session(1000);
   // Serial.print("State: ");Serial.println(state_);
   switch (state_) {
     case WAITING_AGENT:
@@ -76,25 +77,43 @@ void TMicroRos::loop() {
 
 void TMicroRos::publishSonar(uint8_t frame_id, float range) {
   if (g_singleton->state_ == AGENT_CONNECTED) {
+    if (rmw_uros_epoch_synchronized()) {
+      g_singleton->sonar_range_msg_.header.stamp.nanosec =
+          (int32_t) (rmw_uros_epoch_nanos() % 1000000000);
+      g_singleton->sonar_range_msg_.header.stamp.sec =
+          (int32_t) (rmw_uros_epoch_nanos() / 1000000000);
+    } else {
+      g_singleton->sonar_range_msg_.header.stamp.nanosec = 0;
+      g_singleton->sonar_range_msg_.header.stamp.sec = 0;
+    }
+
     snprintf(g_singleton->sonar_range_msg_.header.frame_id.data,
-             g_singleton->sonar_range_msg_.header.frame_id.capacity, "sonar_%1d",
-             frame_id);
+             g_singleton->sonar_range_msg_.header.frame_id.capacity,
+             "sonar_%1d", frame_id);
     g_singleton->sonar_range_msg_.header.frame_id.size =
         strlen(g_singleton->sonar_range_msg_.header.frame_id.data);
     g_singleton->sonar_range_msg_.radiation_type = 0;
     g_singleton->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
     g_singleton->sonar_range_msg_.max_range = 2.0;
     g_singleton->sonar_range_msg_.min_range = 0.0254;
-    g_singleton->sonar_range_msg_.radiation_type =
-        sensor_msgs__msg__Range__ULTRASOUND;
     g_singleton->sonar_range_msg_.range = range;
-    ignore_result(
-        rcl_publish(&g_singleton->sonar_publisher_, &g_singleton->sonar_range_msg_, nullptr));
+    ignore_result(rcl_publish(&g_singleton->sonar_publisher_,
+                              &g_singleton->sonar_range_msg_, nullptr));
   }
 }
 
 void TMicroRos::publishTof(uint8_t frame_id, float range) {
   if (g_singleton->state_ == AGENT_CONNECTED) {
+    if (rmw_uros_epoch_synchronized()) {
+      g_singleton->tof_range_msg_.header.stamp.nanosec =
+          (int32_t) (rmw_uros_epoch_nanos() % 1000000000);
+      g_singleton->tof_range_msg_.header.stamp.sec =
+          (int32_t) (rmw_uros_epoch_nanos() / 1000000000);
+    } else {
+      g_singleton->tof_range_msg_.header.stamp.nanosec = 0;
+      g_singleton->tof_range_msg_.header.stamp.sec = 0;
+    }
+
     snprintf(g_singleton->tof_range_msg_.header.frame_id.data,
              g_singleton->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
              frame_id);
@@ -107,8 +126,8 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
     g_singleton->tof_range_msg_.radiation_type =
         sensor_msgs__msg__Range__ULTRASOUND;
     g_singleton->tof_range_msg_.range = range;
-    ignore_result(
-        rcl_publish(&g_singleton->tof_publisher_, &g_singleton->tof_range_msg_, nullptr));
+    ignore_result(rcl_publish(&g_singleton->tof_publisher_,
+                              &g_singleton->tof_range_msg_, nullptr));
   }
 }
 
@@ -123,12 +142,11 @@ void TMicroRos::setup() {
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   if (timer != NULL) {
-    static const size_t STR_SIZE = 256;
-    char message[STR_SIZE];
-    g_singleton->msg_.data.size =
-        sprintf(message, "%ld", g_singleton->sequence_number_++);
-    g_singleton->msg_.data.capacity = g_singleton->msg_.data.size + 1;
-    g_singleton->msg_.data.data = message;
+    rmw_ret_t ok = rmw_uros_sync_session(1000);
+    snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+             "Time(ns): %lld, time(ms): %lld, ok: %ld", rmw_uros_epoch_nanos(),
+             rmw_uros_epoch_millis(), ok);
+    g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
     // Serial.print("Serial number:
@@ -145,6 +163,9 @@ TMicroRos::TMicroRos() : TModule() {
   tof_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
   tof_range_msg_.header.frame_id.size = 0;
+  msg_.data.capacity = 256;
+  msg_.data.data = (char *)malloc(msg_.data.capacity * sizeof(char));
+  msg_.data.size = 0;
 }
 
 bool TMicroRos::create_entities() {
@@ -170,7 +191,7 @@ bool TMicroRos::create_entities() {
       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), "tofSensor"));
 
   // create timer,
-  const unsigned int timer_timeout = 5;
+  const unsigned int timer_timeout = 1000;
   RCCHECK(rclc_timer_init_default(&timer_, &support_,
                                   RCL_MS_TO_NS(timer_timeout), timer_callback));
 
