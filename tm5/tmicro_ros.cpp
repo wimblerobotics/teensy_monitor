@@ -8,19 +8,11 @@
 #include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/range.h>
 #include <stdio.h>
+#include "troboclaw.h"
 
 #define ignore_result(x) \
   if (x) {               \
   }
-
-//#include <micro_ros_arduino.h>
-//#include <yaml.h>
-//
-//#include "tmicro_ros.h"
-//
-//#include <rcl.h>
-//#include <rclc/rclc.h>
-//#include <rclc/executor.h>
 
 #define EXECUTE_EVERY_N_MS(MS, X)      \
   do {                                 \
@@ -142,10 +134,17 @@ void TMicroRos::setup() {
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   if (timer != NULL) {
-    rmw_ret_t ok = rmw_uros_sync_session(1000);
+    // rmw_ret_t ok = rmw_uros_sync_session(1000);
+    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+    //          "Time(ns): %lld, time(ms): %lld, ok: %ld", rmw_uros_epoch_nanos(),
+    //          rmw_uros_epoch_millis(), ok);
+    // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "Time(ns): %lld, time(ms): %lld, ok: %ld", rmw_uros_epoch_nanos(),
-             rmw_uros_epoch_millis(), ok);
+    "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: %ld",
+    TRoboClaw::singleton().getBatteryLogic(),
+    TRoboClaw::singleton().getBatteryMain(),
+    TRoboClaw::singleton().getM1Encoder(),
+    TRoboClaw::singleton().getM2Encoder());
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
