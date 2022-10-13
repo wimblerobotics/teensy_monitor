@@ -47,7 +47,7 @@ class TMicroRos : TModule {
 
   static void timer_callback(rcl_timer_t* timer, int64_t last_call_time);
 
-  static void twist_callback(const void *msg);
+  static void twist_callback(const void* msg);
 
   rcl_allocator_t allocator_;
   rcl_subscription_t cmd_vel_subscriber_;
@@ -56,7 +56,6 @@ class TMicroRos : TModule {
   std_msgs__msg__String msg_;
   rcl_node_t node_;
   rcl_publisher_t publisher_;
-  uint32_t sequence_number_;
   rclc_support_t support_;
   rcl_timer_t timer_;
 

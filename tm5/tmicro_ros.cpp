@@ -43,7 +43,7 @@ void TMicroRos::loop() {
   // Serial.print("State: ");Serial.println(state_);
   switch (state_) {
     case WAITING_AGENT:
-      EXECUTE_EVERY_N_MS(500,
+      EXECUTE_EVERY_N_MS(10,
                          state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1))
                                       ? AGENT_AVAILABLE
                                       : WAITING_AGENT;);
@@ -65,9 +65,6 @@ void TMicroRos::loop() {
       EXECUTE_EVERY_N_MS(1, state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1))
                                          ? AGENT_CONNECTED
                                          : AGENT_DISCONNECTED;);
-      if (state_ == AGENT_CONNECTED) {
-        rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(1));
-      }
       break;
     case AGENT_DISCONNECTED:
       destroy_entities();
@@ -75,6 +72,10 @@ void TMicroRos::loop() {
       break;
     default:
       break;
+  }
+
+  if (roboclaw_params_were_setup) {
+    rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(1));
   }
 }
 
@@ -137,7 +138,6 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
 void TMicroRos::setup() {
   set_microros_transports();
   state_ = WAITING_AGENT;
-  sequence_number_ = 0;
 }
 
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
@@ -146,8 +146,16 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     const size_t MAXSIZE = 2048;
     char stats[MAXSIZE];
     TModule::getStatistics(stats, MAXSIZE);
+    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+    //          "Compiled on %s %s, Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
+    //          "%ld\n%s",
+    //          __DATE__, __TIME__, TRoboClaw::singleton().getBatteryLogic(),
+    //          TRoboClaw::singleton().getBatteryMain(),
+    //          TRoboClaw::singleton().getM1Encoder(),
+    //          TRoboClaw::singleton().getM2Encoder(), stats);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: %ld\n%s",
+             "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
+             "%ld\n%s",
              TRoboClaw::singleton().getBatteryLogic(),
              TRoboClaw::singleton().getBatteryMain(),
              TRoboClaw::singleton().getM1Encoder(),
@@ -155,8 +163,6 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
-    // Serial.print("Serial number: ");
-    // Serial.println(g_singleton->sequence_number_);
   }
 }
 
