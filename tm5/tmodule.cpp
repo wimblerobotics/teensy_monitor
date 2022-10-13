@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include <stdint.h>
-
 #define DO_TIMING true
 
 TModule::TModule() {
@@ -11,67 +10,49 @@ TModule::TModule() {
   }
 }
 
-void TModule::doLoop() {
-  uint32_t start;
+void TModule::getStatistics(char* outString, size_t outStringSize) {
   static uint32_t statTimingStart = micros();
-  for (int i = 0; i < g_nextModuleNumber; i++) {
-    if (DO_TIMING) {
-      start = micros();
-    }
+  // StringBuffer
+  char statList[2048];
 
+  statList[0] = '\0';
+
+  for (int i = 0; i < g_nextModuleNumber; i++) {
+    static size_t MAXLEN = 512;
+    char temp[MAXLEN];
+    temp[0] = '\0';
+    snprintf(temp, MAXLEN, "%s min: %3.1f, max: %3.1f, avg: %3.1f\n",
+             g_allModules[i]->name(), g_readings[i][MIN], g_readings[i][MAX],
+             g_readings[i][SUM] / g_nextReadingNumber);
+    strcat(statList, temp);
+  }
+
+  snprintf(outString, outStringSize,
+           "--- --- --- duration for %d readings: %5.1f ms\n%s",
+           g_nextReadingNumber, ((micros() * 1.0) - statTimingStart) / 1000.0,
+           statList);
+  resetReadings();
+  g_nextReadingNumber = 0;
+  statTimingStart = micros();
+}
+
+void TModule::doLoop() {
+  for (int i = 0; i < g_nextModuleNumber; i++) {
+    uint32_t start = micros();
     g_allModules[i]->loop();
 
-    if (DO_TIMING) {
-      float duration = ((micros() * 1.0) - start) / 1000.0;
-      g_readings[i][SUM] += duration;
-      if (duration < g_readings[i][MIN]) {
-        g_readings[i][MIN] = duration;
-      }
+    float duration = ((micros() * 1.0) - start) / 1000.0;
+    g_readings[i][SUM] += duration;
+    if (duration < g_readings[i][MIN]) {
+      g_readings[i][MIN] = duration;
+    }
 
-      if (duration > g_readings[i][MAX]) {
-        g_readings[i][MAX] = duration;
-      }
-
-      // Serial.print("fn: ");
-      // Serial.print(g_allModules[i]->name());
-      // Serial.print(", duration (ms): ");
-      // Serial.println(duration);
+    if (duration > g_readings[i][MAX]) {
+      g_readings[i][MAX] = duration;
     }
   }
 
-  if (DO_TIMING) {
-    g_nextReadingNumber++;
-    if (false && g_nextReadingNumber >= NUMBER_READINGS) {
-      Serial.print("--- --- --- duration for ");
-      Serial.print(NUMBER_READINGS);
-      Serial.print(" readings: ");
-      Serial.print(((micros() * 1.0) - statTimingStart) / 1000.0);
-      Serial.println(" ms");
-
-      for (int i = 0; i < g_nextModuleNumber; i++) {
-        Serial.print(g_allModules[i]->name());
-        Serial.print(" min: ");
-        Serial.print(g_readings[i][MIN]);
-        Serial.print(", max: ");
-        Serial.print(g_readings[i][MAX]);
-        Serial.print(" avg: ");
-        Serial.print(g_readings[i][SUM] / g_nextReadingNumber);
-        Serial.println();
-        String logMessage;
-        logMessage += g_allModules[i]->name();
-        logMessage += "\tmin\t";
-        logMessage += g_readings[i][MIN];
-        logMessage += "\tmax\t";
-        logMessage += g_readings[i][MAX];
-        logMessage += "\tavg\t";
-        logMessage += g_readings[i][SUM] / g_nextReadingNumber;
-      }
-
-      resetReadings();
-      g_nextReadingNumber = 0;
-      statTimingStart = micros();
-    }
-  }
+  g_nextReadingNumber++;
 }
 
 void TModule::resetReadings() {

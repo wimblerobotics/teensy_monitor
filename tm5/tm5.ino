@@ -41,9 +41,9 @@ void watchdogTimeout() {
 
 void setup() {
   Wire.begin();
-  Serial.begin(38400);
-  while (!Serial && (millis() <= 1000))
-    ;
+  // Serial.begin(38400);
+  // while (!Serial && (millis() <= 1000))
+  //   ;
 
   // Serial.print("Teensy monitor compiled at: ");
   // Serial.print("MONITOR ");
@@ -59,24 +59,6 @@ void setup() {
 }
 
 void loop() {
-  static int counter = 0;
-  static const int STAT_LOOPS = 1'000;
-  // static uint32_t start = micros();
   TModule::doLoop();
   //  wdt.feed();
-  counter++;
-  if ((counter % STAT_LOOPS) == 0) {
-    // float durationMs = ((micros() * 1.0) - start) / 1000.0;
-    // float avgDurationMs = durationMs / STAT_LOOPS;
-    // Serial.print("MONITOR ");
-    // Serial.print(__DATE__);
-    // Serial.print(" ");
-    // Serial.print(__TIME__);
-    // Serial.print(" duration: ");
-    // Serial.print(avgDurationMs);
-    // Serial.print(" ms, fps: ");
-    // Serial.println(1000 / avgDurationMs);
-    // start = micros();
-    counter = 0;
-  }
 }

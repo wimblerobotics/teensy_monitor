@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Arduino.h"
 #include <stdint.h>
 
 /**
@@ -56,6 +57,8 @@ class TModule {
   // Perform one-time setup for the module.
   virtual void setup() = 0;
 
+  static void getStatistics(char* outString, size_t outStringSize);
+
  protected:
   TModule();
 
@@ -83,4 +86,5 @@ class TModule {
 
   // Statistics gathered for all registered modules.
   static float g_readings[NUMBER_MODULES][NUMBER_SLOTS];
+
 };

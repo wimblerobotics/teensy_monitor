@@ -138,24 +138,20 @@ void TMicroRos::setup() {
   set_microros_transports();
   state_ = WAITING_AGENT;
   sequence_number_ = 0;
-  msg_.data.capacity = 256;
-  msg_.data.size = 256;
 }
 
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   if (timer != NULL) {
-    // rmw_ret_t ok = rmw_uros_sync_session(1000);
-    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    //          "Time(ns): %lld, time(ms): %lld, ok: %ld",
-    //          rmw_uros_epoch_nanos(), rmw_uros_epoch_millis(), ok);
-    // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+    const size_t MAXSIZE = 2048;
+    char stats[MAXSIZE];
+    TModule::getStatistics(stats, MAXSIZE);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: %ld",
+             "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: %ld\n%s",
              TRoboClaw::singleton().getBatteryLogic(),
              TRoboClaw::singleton().getBatteryMain(),
              TRoboClaw::singleton().getM1Encoder(),
-             TRoboClaw::singleton().getM2Encoder());
+             TRoboClaw::singleton().getM2Encoder(), stats);
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
@@ -209,6 +205,9 @@ TMicroRos::TMicroRos()
       quad_pulses_per_meter_(1566),
       wheel_radius_(0.10169),
       wheel_separation_(0.345) {
+  msg_.data.capacity = 2048;
+  msg_.data.data = (char *)malloc(msg_.data.capacity * sizeof(char));
+  msg_.data.size = 0;
   sonar_range_msg_.header.frame_id.capacity = 32;
   sonar_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
@@ -217,9 +216,6 @@ TMicroRos::TMicroRos()
   tof_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
   tof_range_msg_.header.frame_id.size = 0;
-  msg_.data.capacity = 256;
-  msg_.data.data = (char *)malloc(msg_.data.capacity * sizeof(char));
-  msg_.data.size = 0;
 }
 
 bool TMicroRos::create_entities() {
@@ -234,7 +230,7 @@ bool TMicroRos::create_entities() {
   // create publishers.
   RCCHECK(rclc_publisher_init_best_effort(
       &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "teensy_sensors"));
+      "teensy_stats"));
 
   RCCHECK(rclc_publisher_init_best_effort(
       &sonar_publisher_, &node_,
