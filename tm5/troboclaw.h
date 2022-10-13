@@ -1,18 +1,18 @@
 /**
  * MIT License
  * Copyright 2021 by Michael Wimble
- * 
+ *
  * Interface to the RoboClaw controller.
- * 
- * This module alks over serial bus and gathers several values of 
- * interest, such as the motor encoder values, motor speeds, and 
+ *
+ * This module alks over serial bus and gathers several values of
+ * interest, such as the motor encoder values, motor speeds, and
  * motor currents. Also, a check is made of the software version.
- * 
+ *
  * If any operation fails, the serial port is dropped and restarted.
  * The average loop duration is 1.05 ms with a min of 0.54 ms and
  * a max of 3.17 ms.
- * 
- * To minimum loop duration, during each call to loop(), the next 
+ *
+ * To minimum loop duration, during each call to loop(), the next
  * parameter is read from the RoboClaw via state machine, so each
  * loop() call results in one parameter being read. That means, for
  * an average loop duration 1.05 ms, and there being 8 parameters
@@ -27,6 +27,16 @@
 
 class TRoboClaw : TModule {
  public:
+  void doMixedSpeedDist(int32_t m1_quad_pulses_per_second,
+                        int32_t m1_max_distance,
+                        int32_t m2_quad_pulses_per_second,
+                        int32_t m2_max_distance);
+
+  void doMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
+                             int32_t m1_quad_pulses_per_second,
+                             uint32_t m1_max_distance,
+                             int32_t m2_quad_pulses_per_second,
+                             uint32_t m2_max_distance);
 
   // Get the logic battery voltage.
   float getBatteryLogic();
@@ -59,6 +69,10 @@ class TRoboClaw : TModule {
 
   // From TModule.
   virtual const char* name() { return "TRoboClaw"; }
+
+  void resetEncoders();
+  void setM1PID(float p, float i, float d, uint32_t qpps);
+  void setM2PID(float p, float i, float d, uint32_t qpps);
 
   // From TModule.
   void setup();
@@ -119,7 +133,7 @@ class TRoboClaw : TModule {
   // Motor encoders.
   int32_t g_encoder_m1;
   int32_t g_encoder_m2;
-  
+
   // Battery voltages;
   int16_t g_logic_battery;
   int16_t g_main_battery;

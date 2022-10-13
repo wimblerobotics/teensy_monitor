@@ -1,5 +1,6 @@
 #include "tmicro_ros.h"
 
+#include <geometry_msgs/msg/twist.h>
 #include <micro_ros_arduino.h>
 #include <rcl/error_handling.h>
 #include <rcl/rcl.h>
@@ -8,6 +9,7 @@
 #include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/range.h>
 #include <stdio.h>
+
 #include "troboclaw.h"
 
 #define ignore_result(x) \
@@ -35,6 +37,8 @@
   }
 
 void TMicroRos::loop() {
+  static bool roboclaw_params_were_setup = false;
+
   rmw_uros_sync_session(1000);
   // Serial.print("State: ");Serial.println(state_);
   switch (state_) {
@@ -46,6 +50,13 @@ void TMicroRos::loop() {
       break;
     case AGENT_AVAILABLE:
       state_ = (true == create_entities()) ? AGENT_CONNECTED : WAITING_AGENT;
+      if (!roboclaw_params_were_setup) {
+        TRoboClaw::singleton().setM1PID(5.466340, 1.133720, 0.0, 2625);
+        TRoboClaw::singleton().setM2PID(5.466340, 1.133720, 0.0, 2625);
+        TRoboClaw::singleton().resetEncoders();
+        roboclaw_params_were_setup = true;
+      }
+
       if (state_ == WAITING_AGENT) {
         destroy_entities();
       };
@@ -71,9 +82,9 @@ void TMicroRos::publishSonar(uint8_t frame_id, float range) {
   if (g_singleton->state_ == AGENT_CONNECTED) {
     if (rmw_uros_epoch_synchronized()) {
       g_singleton->sonar_range_msg_.header.stamp.nanosec =
-          (int32_t) (rmw_uros_epoch_nanos() % 1000000000);
+          (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
       g_singleton->sonar_range_msg_.header.stamp.sec =
-          (int32_t) (rmw_uros_epoch_nanos() / 1000000000);
+          (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
     } else {
       g_singleton->sonar_range_msg_.header.stamp.nanosec = 0;
       g_singleton->sonar_range_msg_.header.stamp.sec = 0;
@@ -98,9 +109,9 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
   if (g_singleton->state_ == AGENT_CONNECTED) {
     if (rmw_uros_epoch_synchronized()) {
       g_singleton->tof_range_msg_.header.stamp.nanosec =
-          (int32_t) (rmw_uros_epoch_nanos() % 1000000000);
+          (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
       g_singleton->tof_range_msg_.header.stamp.sec =
-          (int32_t) (rmw_uros_epoch_nanos() / 1000000000);
+          (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
     } else {
       g_singleton->tof_range_msg_.header.stamp.nanosec = 0;
       g_singleton->tof_range_msg_.header.stamp.sec = 0;
@@ -136,24 +147,68 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
     // rmw_ret_t ok = rmw_uros_sync_session(1000);
     // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    //          "Time(ns): %lld, time(ms): %lld, ok: %ld", rmw_uros_epoch_nanos(),
-    //          rmw_uros_epoch_millis(), ok);
+    //          "Time(ns): %lld, time(ms): %lld, ok: %ld",
+    //          rmw_uros_epoch_nanos(), rmw_uros_epoch_millis(), ok);
     // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: %ld",
-    TRoboClaw::singleton().getBatteryLogic(),
-    TRoboClaw::singleton().getBatteryMain(),
-    TRoboClaw::singleton().getM1Encoder(),
-    TRoboClaw::singleton().getM2Encoder());
+             "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: %ld",
+             TRoboClaw::singleton().getBatteryLogic(),
+             TRoboClaw::singleton().getBatteryMain(),
+             TRoboClaw::singleton().getM1Encoder(),
+             TRoboClaw::singleton().getM2Encoder());
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
-    // Serial.print("Serial number:
-    // ");Serial.println(g_singleton->sequence_number_);
+    // Serial.print("Serial number: ");
+    // Serial.println(g_singleton->sequence_number_);
   }
 }
 
-TMicroRos::TMicroRos() : TModule() {
+void TMicroRos::twist_callback(const void *twist_msg) {
+  const geometry_msgs__msg__Twist *msg =
+      (const geometry_msgs__msg__Twist *)twist_msg;
+
+  double x_velocity =
+      min(max((float)msg->linear.x, -g_singleton->max_linear_velocity_),
+          g_singleton->max_linear_velocity_);
+  double yaw_velocity =
+      min(max((float)msg->angular.z, -g_singleton->max_angular_velocity_),
+          g_singleton->max_angular_velocity_);
+  if ((msg->linear.x == 0) && (msg->angular.z == 0)) {
+    TRoboClaw::singleton().doMixedSpeedDist(0, 0, 0, 0);
+  } else if ((fabs(x_velocity) > 0.01) || (fabs(yaw_velocity) > 0.01)) {
+    const double m1_desired_velocity =
+        x_velocity - (yaw_velocity * g_singleton->wheel_separation_ / 2.0) /
+                         g_singleton->wheel_radius_;
+    const double m2_desired_velocity =
+        x_velocity + (yaw_velocity * g_singleton->wheel_separation_ / 2.0) /
+                         g_singleton->wheel_radius_;
+
+    const int32_t m1_quad_pulses_per_second =
+        m1_desired_velocity * g_singleton->quad_pulses_per_meter_;
+    const int32_t m2_quad_pulses_per_second =
+        m2_desired_velocity * g_singleton->quad_pulses_per_meter_;
+    const int32_t m1_max_distance =
+        fabs(m1_quad_pulses_per_second *
+             g_singleton->max_seconds_uncommanded_travel_);
+    const int32_t m2_max_distance =
+        fabs(m2_quad_pulses_per_second *
+             g_singleton->max_seconds_uncommanded_travel_);
+    TRoboClaw::singleton().doMixedSpeedAccelDist(
+        g_singleton->accel_quad_pulses_per_second_, m1_quad_pulses_per_second,
+        m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
+  }
+}
+
+TMicroRos::TMicroRos()
+    : TModule(),
+      accel_quad_pulses_per_second_(1000),
+      max_angular_velocity_(0.07),
+      max_linear_velocity_(0.3),
+      max_seconds_uncommanded_travel_(0.25),
+      quad_pulses_per_meter_(1566),
+      wheel_radius_(0.10169),
+      wheel_separation_(0.345) {
   sonar_range_msg_.header.frame_id.capacity = 32;
   sonar_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
@@ -174,9 +229,9 @@ bool TMicroRos::create_entities() {
   RCCHECK(rclc_support_init(&support_, 0, nullptr, &allocator_));
 
   // create node
-  RCCHECK(rclc_node_init_default(&node_, "teensy_publisher", "", &support_));
+  RCCHECK(rclc_node_init_default(&node_, "teensy_node", "", &support_));
 
-  // create publisher
+  // create publishers.
   RCCHECK(rclc_publisher_init_best_effort(
       &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
       "teensy_sensors"));
@@ -189,6 +244,11 @@ bool TMicroRos::create_entities() {
       &tof_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), "tofSensor"));
 
+  // Create subscribers.
+  RCCHECK(rclc_subscription_init_default(
+      &cmd_vel_subscriber_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "cmd_vel"));
+
   // create timer,
   const unsigned int timer_timeout = 1000;
   RCCHECK(rclc_timer_init_default(&timer_, &support_,
@@ -196,8 +256,11 @@ bool TMicroRos::create_entities() {
 
   // create executor
   executor_ = rclc_executor_get_zero_initialized_executor();
-  RCCHECK(rclc_executor_init(&executor_, &support_.context, 1, &allocator_));
+  RCCHECK(rclc_executor_init(&executor_, &support_.context, 2, &allocator_));
   RCCHECK(rclc_executor_add_timer(&executor_, &timer_));
+  RCCHECK(rclc_executor_add_subscription(&executor_, &cmd_vel_subscriber_,
+                                         &twist_msg_, &twist_callback,
+                                         ON_NEW_DATA));
 
   return true;
 }

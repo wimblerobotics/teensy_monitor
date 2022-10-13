@@ -1,16 +1,10 @@
-#include <micro_ros_arduino.h>
-#include <yaml.h>
-
-#include <bar.h>
-
-#include <fip.h>
-
-#include <foo.h>
-
-#include <yaml.h>
-
 #include <Wire.h>
+#include <bar.h>
+#include <fip.h>
+#include <foo.h>
+#include <micro_ros_arduino.h>
 #include <stdint.h>
+#include <yaml.h>
 
 //#include "Watchdog_t4.h"
 #include "talarm.h"
@@ -45,7 +39,7 @@ TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
 
-//WDT_T4<WDT3> wdt;
+// WDT_T4<WDT3> wdt;
 
 // Method to handle watchdog timeout.
 void watchdogTimeout() {
@@ -55,27 +49,28 @@ void watchdogTimeout() {
 void setup() {
   Wire.begin();
   Serial.begin(38400);
-  while (!Serial && (millis() <= 1000));
+  while (!Serial && (millis() <= 1000))
+    ;
 
   // Serial.print("Teensy monitor compiled at: ");
   // Serial.print("MONITOR ");
   // Serial.print(__DATE__);
   // Serial.print(" ");
   // Serial.println(__TIME__);
-//  WDT_timings_t config;
-//  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed() calls.
-//  config.timeout = 20000;  // Maximum time (ms) between watchdog feed() calls.
-//  config.callback = watchdogTimeout;
+  //  WDT_timings_t config;
+  //  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed()
+  //  calls. config.timeout = 20000;  // Maximum time (ms) between watchdog
+  //  feed() calls. config.callback = watchdogTimeout;
   TModule::doSetup();
-//  wdt.begin(config);
+  //  wdt.begin(config);
 }
 
 void loop() {
   static int counter = 0;
   static const int STAT_LOOPS = 1'000;
-  static uint32_t start = micros();
+  // static uint32_t start = micros();
   TModule::doLoop();
-//  wdt.feed();
+  //  wdt.feed();
   counter++;
   if ((counter % STAT_LOOPS) == 0) {
     // float durationMs = ((micros() * 1.0) - start) / 1000.0;
@@ -88,7 +83,7 @@ void loop() {
     // Serial.print(avgDurationMs);
     // Serial.print(" ms, fps: ");
     // Serial.println(1000 / avgDurationMs);
-    start = micros();
+    // start = micros();
     counter = 0;
   }
 }

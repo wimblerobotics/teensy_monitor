@@ -7,6 +7,25 @@
 
 #define HWSERIAL Serial6
 
+void TRoboClaw::doMixedSpeedDist(int32_t m1_quad_pulses_per_second,
+                                 int32_t m1_max_distance,
+                                 int32_t m2_quad_pulses_per_second,
+                                 int32_t m2_max_distance) {
+  g_roboclaw.SpeedDistanceM1M2(DEVICE_ADDRESS, m1_quad_pulses_per_second,
+                               m1_max_distance, m2_quad_pulses_per_second,
+                               m2_max_distance, 1);
+}
+
+void TRoboClaw::doMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
+                                      int32_t m1_quad_pulses_per_second,
+                                      uint32_t m1_max_distance,
+                                      int32_t m2_quad_pulses_per_second,
+                                      uint32_t m2_max_distance) {
+  g_roboclaw.SpeedAccelDistanceM1M2(
+      DEVICE_ADDRESS, accel_quad_pulses_per_second, m1_quad_pulses_per_second,
+      m1_max_distance, m2_quad_pulses_per_second, m2_max_distance, 1);
+}
+
 float TRoboClaw::getBatteryLogic() { return g_logic_battery / 10.0; }
 
 float TRoboClaw::getBatteryMain() { return g_main_battery / 10.0; }
@@ -143,6 +162,19 @@ void TRoboClaw::getVersion() {
     reconnect();
     g_state = VERSION;
   }
+}
+
+void TRoboClaw::resetEncoders() {
+  g_roboclaw.SetEncM1(DEVICE_ADDRESS, 0);
+  g_roboclaw.SetEncM2(DEVICE_ADDRESS, 0);
+}
+
+void TRoboClaw::setM1PID(float p, float i, float d, uint32_t qpps) {
+  g_roboclaw.SetM1VelocityPID(DEVICE_ADDRESS, p, i, d, qpps);
+}
+
+void TRoboClaw::setM2PID(float p, float i, float d, uint32_t qpps) {
+  g_roboclaw.SetM2VelocityPID(DEVICE_ADDRESS, p, i, d, qpps);
 }
 
 void TRoboClaw::loop() {
