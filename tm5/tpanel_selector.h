@@ -9,7 +9,7 @@
 class TPanelSelector : TModule {
  public:
   // The different touch screen panels.
-  typedef enum { POWER_PANEL, PROXIMITY_PANEL } TPanel;
+  typedef enum { PROXIMITY_PANEL } TPanel;
 
   // Which panel is currently active.
   TPanel activePanel() { return g_selectedPanel; }
@@ -33,11 +33,8 @@ class TPanelSelector : TModule {
   // Set the alert icon to the given color.
   void colorizeAlertIcon(uint16_t color);
 
-  // Callback to handle screen press for selecting power panel.
-  static void powerPanelCallback(TOnOffButton& button, void* parameter);
-
-  // Callback to handle screen press for selecting power panel.
-  static void proximityPanelCallback(TOnOffButton& button, void* parameter);
+  // // Callback to handle screen press for selecting power panel.
+  // static void proximityPanelCallback(TOnOffButton& button, void* parameter);
 
   // Currently selected panel.
   static TPanel g_selectedPanel;

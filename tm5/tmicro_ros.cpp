@@ -143,16 +143,9 @@ void TMicroRos::setup() {
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   if (timer != NULL) {
-    const size_t MAXSIZE = 2048;
+    const size_t MAXSIZE = 3000;
     char stats[MAXSIZE];
     TModule::getStatistics(stats, MAXSIZE);
-    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    //          "Compiled on %s %s, Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
-    //          "%ld\n%s",
-    //          __DATE__, __TIME__, TRoboClaw::singleton().getBatteryLogic(),
-    //          TRoboClaw::singleton().getBatteryMain(),
-    //          TRoboClaw::singleton().getM1Encoder(),
-    //          TRoboClaw::singleton().getM2Encoder(), stats);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
              "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
              "%ld\n%s",
@@ -160,6 +153,13 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
              TRoboClaw::singleton().getBatteryMain(),
              TRoboClaw::singleton().getM1Encoder(),
              TRoboClaw::singleton().getM2Encoder(), stats);
+    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+    //          "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
+    //          "%ld\n%s",
+    //          TRoboClaw::singleton().getBatteryLogic(),
+    //          TRoboClaw::singleton().getBatteryMain(),
+    //          TRoboClaw::singleton().getM1Encoder(),
+    //          TRoboClaw::singleton().getM2Encoder(), stats);
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
@@ -211,7 +211,7 @@ TMicroRos::TMicroRos()
       quad_pulses_per_meter_(1566),
       wheel_radius_(0.10169),
       wheel_separation_(0.345) {
-  msg_.data.capacity = 2048;
+  msg_.data.capacity = 3000;
   msg_.data.data = (char *)malloc(msg_.data.capacity * sizeof(char));
   msg_.data.size = 0;
   sonar_range_msg_.header.frame_id.capacity = 32;

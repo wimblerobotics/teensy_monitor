@@ -10,8 +10,6 @@
 #include "tmodule.h"
 #include "tmotor_current.h"
 #include "tpanel_selector.h"
-#include "tpower_panel.h"
-#include "tproximity_panel.h"
 #include "trelay.h"
 #include "troboclaw.h"
 //######include "tsd.h"
