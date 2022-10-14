@@ -143,23 +143,17 @@ void TMicroRos::setup() {
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   if (timer != NULL) {
+    uint32_t error = TRoboClaw::singleton().getError();
     const size_t MAXSIZE = 3000;
     char stats[MAXSIZE];
     TModule::getStatistics(stats, MAXSIZE);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
-             "%ld\n%s",
+             "\nLbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
+             "%ld Error: %lX\n%s",
              TRoboClaw::singleton().getBatteryLogic(),
              TRoboClaw::singleton().getBatteryMain(),
              TRoboClaw::singleton().getM1Encoder(),
-             TRoboClaw::singleton().getM2Encoder(), stats);
-    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    //          "Lbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
-    //          "%ld\n%s",
-    //          TRoboClaw::singleton().getBatteryLogic(),
-    //          TRoboClaw::singleton().getBatteryMain(),
-    //          TRoboClaw::singleton().getM1Encoder(),
-    //          TRoboClaw::singleton().getM2Encoder(), stats);
+             TRoboClaw::singleton().getM2Encoder(), error, stats);
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
     ignore_result(
         rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
@@ -197,8 +191,9 @@ void TMicroRos::twist_callback(const void *twist_msg) {
         fabs(m2_quad_pulses_per_second *
              g_singleton->max_seconds_uncommanded_travel_);
     TRoboClaw::singleton().doMixedSpeedAccelDist(
-        g_singleton->accel_quad_pulses_per_second_, m1_quad_pulses_per_second,
-        m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
+        g_singleton->accel_quad_pulses_per_second_,
+        m1_quad_pulses_per_second, m1_max_distance,
+        m2_quad_pulses_per_second, m2_max_distance);
   }
 }
 
@@ -235,8 +230,8 @@ bool TMicroRos::create_entities() {
 
   // create publishers.
   RCCHECK(rclc_publisher_init_best_effort(
-      &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "teensy_stats"));
+      &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg,
+      String), "teensy_stats"));
 
   RCCHECK(rclc_publisher_init_best_effort(
       &sonar_publisher_, &node_,
@@ -251,19 +246,19 @@ bool TMicroRos::create_entities() {
       &cmd_vel_subscriber_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "cmd_vel"));
 
-  // create timer,
+  // Create timer,
   const unsigned int timer_timeout = 1000;
   RCCHECK(rclc_timer_init_default(&timer_, &support_,
-                                  RCL_MS_TO_NS(timer_timeout), timer_callback));
+                                  RCL_MS_TO_NS(timer_timeout),
+                                  timer_callback));
 
-  // create executor
+  // Create executor
   executor_ = rclc_executor_get_zero_initialized_executor();
   RCCHECK(rclc_executor_init(&executor_, &support_.context, 2, &allocator_));
   RCCHECK(rclc_executor_add_timer(&executor_, &timer_));
   RCCHECK(rclc_executor_add_subscription(&executor_, &cmd_vel_subscriber_,
                                          &twist_msg_, &twist_callback,
                                          ON_NEW_DATA));
-
   return true;
 }
 

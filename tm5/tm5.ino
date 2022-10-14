@@ -43,16 +43,12 @@ void setup() {
   // while (!Serial && (millis() <= 1000))
   //   ;
 
-  // Serial.print("Teensy monitor compiled at: ");
-  // Serial.print("MONITOR ");
-  // Serial.print(__DATE__);
-  // Serial.print(" ");
-  // Serial.println(__TIME__);
   //  WDT_timings_t config;
   //  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed()
   //  calls. config.timeout = 20000;  // Maximum time (ms) between watchdog
   //  feed() calls. config.callback = watchdogTimeout;
   TModule::doSetup();
+
   //  wdt.begin(config);
 }
 

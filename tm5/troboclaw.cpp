@@ -73,6 +73,10 @@ void TRoboClaw::getEncoderM2() {
   }
 }
 
+uint32_t TRoboClaw::getError() {
+  return g_roboclaw.ReadError(DEVICE_ADDRESS);
+}
+
 void TRoboClaw::getLogicBattery() {
   bool valid;
   int16_t voltage;

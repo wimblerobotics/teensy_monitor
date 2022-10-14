@@ -28,7 +28,7 @@ void TModule::getStatistics(char* outString, size_t outStringSize) {
   }
 
   snprintf(outString, outStringSize,
-           "--- --- --- duration for %d readings: %5.1f ms\n%s",
+           "%d loops. Time %3.1f ms\n%s",
            g_nextReadingNumber, ((micros() * 1.0) - statTimingStart) / 1000.0,
            statList);
   resetReadings();

@@ -44,6 +44,8 @@ class TRoboClaw : TModule {
   // Get the main battery voltage.
   float getBatteryMain();
 
+  uint32_t getError();
+
   // Get the motor current (amps) for motor 1. This is
   // always a positive number.
   float getM1Current();
