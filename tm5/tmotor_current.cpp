@@ -3,7 +3,7 @@
 
 #include "tmotor_current.h"
 
-TMotorCurrent::TMotorCurrent() {
+TMotorCurrent::TMotorCurrent() : TModule(TModule::kMOTOR_CURRENT) {
   for (int8_t i = 0; i < AVERAGE_COUNT; i++) {
     g_leftMotorCurrentMaReadings[i] = 0.0;
     g_rightMotorCurrentMaReadings[i] = 0;

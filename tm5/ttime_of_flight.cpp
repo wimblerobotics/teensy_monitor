@@ -24,7 +24,8 @@ int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
       selectTimeOfFlightSensor(static_cast<TIMEOFFLIGHT>(lastSensedIndex));
       g_cachedValue[lastSensedIndex] =
           g_sensor[lastSensedIndex]->readRangeContinuousMillimeters();
-      TMicroRos::publishTof(lastSensedIndex, g_cachedValue[lastSensedIndex] * 0.001);
+      TMicroRos::publishTof(lastSensedIndex,
+                            g_cachedValue[lastSensedIndex] * 0.001);
     }
 
     lastSensedIndex += 1;
@@ -43,19 +44,19 @@ int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
 }
 
 void TTimeOfFlight::loop() {
-  static const TAlert::TAlertSource map[] = {
-      TAlert::TOF_UPPER_LEFT_FORWARD,  TAlert::TOF_UPPER_RIGHT_FORWARD,
-      TAlert::TOF_UPPER_LEFT_SIDEWAY,  TAlert::TOF_UPPER_RIGHT_SIDEWAY,
-      TAlert::TOF_LOWER_LEFT_SIDEWAY,  TAlert::TOF_LOWER_RIGHT_SIDEWAY,
-      TAlert::TOF_LOWER_LEFT_BACKWARD, TAlert::TOF_LOWER_RIGHT_BACKWARD};
+  // static const TAlert::TAlertSource map[] = {
+  //     TAlert::TOF_UPPER_LEFT_FORWARD,  TAlert::TOF_UPPER_RIGHT_FORWARD,
+  //     TAlert::TOF_UPPER_LEFT_SIDEWAY,  TAlert::TOF_UPPER_RIGHT_SIDEWAY,
+  //     TAlert::TOF_LOWER_LEFT_SIDEWAY,  TAlert::TOF_LOWER_RIGHT_SIDEWAY,
+  //     TAlert::TOF_LOWER_LEFT_BACKWARD, TAlert::TOF_LOWER_RIGHT_BACKWARD};
 
   for (uint8_t i = 0; i < NUMBER_TIME_OF_FLIGHT; i++) {
     int mm = getValueMm(static_cast<TIMEOFFLIGHT>(i));
     if (doStopMotorsOnCollisionThreat && (mm != -1) &&
         (mm < ALERT_DISTANCE_MM)) {
-      TAlert::singleton().set(map[i]);
+      // TAlert::singleton().set(map[i]);
     } else {
-      TAlert::singleton().reset(map[i]);
+      // TAlert::singleton().reset(map[i]);
     }
   }
 }
@@ -85,7 +86,7 @@ void TTimeOfFlight::setup() {
   }
 }
 
-TTimeOfFlight::TTimeOfFlight() {
+TTimeOfFlight::TTimeOfFlight() : TModule(TModule::kTIME_OF_FLIGHT) {
   pinMode(8, OUTPUT);
   digitalWrite(8, HIGH);
 

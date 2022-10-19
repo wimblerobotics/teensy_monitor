@@ -20,11 +20,13 @@ class TSonar : TModule {
   // during setup.
   int getValueMm(SONAR device);
 
+  float getAverageValueM(SONAR device);
+
   // From TModule.‰
   void loop();
 
   // From TModule.‰
-  const char* name() { return "TSonar"; }
+  const char* name() { return "SO"; }
 
   // From TModule.‰
   void setup();
@@ -33,11 +35,21 @@ class TSonar : TModule {
   static TSonar& singleton();
 
  private:
+  // Number of readings to average.
+  enum MISC_CONSTANTS {
+    NUMBER_READINGS_TO_AVERAGE = 4
+  };
+
   // Should motors be put in e-stop if collision is imminent?
   static const bool doStopMotorsOnCollisionThreat = false;
 
   // Private constructor.
   TSonar();
+
+  // Common interrupt handler.
+  static void commonInterruptHandler(uint8_t PIN, long& endTime,
+                                     long& startTime, uint8_t& averageIndex,
+                                     size_t SONAR_INDEX);
 
   // Interrupt handler for device echo..
   static void echo0InterruptHandler();
@@ -54,6 +66,10 @@ class TSonar : TModule {
 
   // Last captured sensed distance for each SONAR device.
   static int g_valuesMm[NUMBER_SONARS];
+
+  static int g_valuesMmHistory[NUMBER_SONARS][NUMBER_READINGS_TO_AVERAGE];
+
+  static float g_averageValueM[NUMBER_SONARS];
 
   // Minimum detection distance before an alert is raised
   static const int ALERT_DISTANCE_MM = 3 * 25.4;

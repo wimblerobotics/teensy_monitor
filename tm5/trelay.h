@@ -31,7 +31,7 @@ class TRelay : TModule {
   void loop();
 
   // From TModule.
-  const char* name() { return "TRelay"; }
+  const char* name() { return "RE"; }
 
   // Power the relay on.
   void powerOff(TRelayDevice device);

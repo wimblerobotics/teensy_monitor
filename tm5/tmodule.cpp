@@ -4,82 +4,94 @@
 #include <stdint.h>
 #define DO_TIMING true
 
-TModule::TModule() {
-  if (g_nextModuleNumber < NUMBER_MODULES) {
-    g_allModules[g_nextModuleNumber++] = this;
+// TModule::TModule() : total_do_loop_count_(0) {
+//   for (size_t i = 0; i < kNumberModules; i++) {
+//     all_modules_[i] = nullptr;
+//   }
+// }
+
+TModule::TModule(TModule::MODULE moduleKind) {
+  all_modules_[moduleKind] = this;
+  loop_calls_between_get_statistics_calls = 0;
+  for (size_t i = 0; i < kNumberSlots; i++) {
+    duration_stats_[i] = 0.0;
   }
 }
 
 void TModule::getStatistics(char* outString, size_t outStringSize) {
   static uint32_t statTimingStart = micros();
-  // StringBuffer
   char statList[2048];
 
   statList[0] = '\0';
 
-  for (int i = 0; i < g_nextModuleNumber; i++) {
-    static size_t MAXLEN = 512;
-    char temp[MAXLEN];
-    temp[0] = '\0';
-    snprintf(temp, MAXLEN, "%s min: %3.1f, max: %3.1f, avg: %3.1f\n",
-             g_allModules[i]->name(), g_readings[i][MIN], g_readings[i][MAX],
-             g_readings[i][SUM] / g_nextReadingNumber);
-    strcat(statList, temp);
+  for (size_t i = 0; i < kNumberModules; i++) {
+    if (all_modules_[i] != nullptr) {
+      TModule* module = all_modules_[i];
+      static size_t MAXLEN = 512;
+      char temp[MAXLEN];
+      temp[0] = '\0';
+      snprintf(temp, MAXLEN,
+               "{\"n\":\"%-s\",\"v\":[%-2.1f,%-2.1f,%-2.1f,%-d]},",
+               all_modules_[i]->name(), module->duration_stats_[kMin],
+               module->duration_stats_[kMax],
+               module->duration_stats_[kSum] /
+                   module->loop_calls_between_get_statistics_calls,
+               module->loop_calls_between_get_statistics_calls);
+      strcat(statList, temp);
+      module->loop_calls_between_get_statistics_calls = 0;
+      module->duration_stats_[kMin] = 10'000'000.0;
+      module->duration_stats_[kMax] = -10'000'000.0;
+      module->duration_stats_[kSum] = 0.0;
+    }
+  }
+
+  // remove trailing comma from previous list.
+  if (strlen(statList) > 0) {
+    statList[strlen(statList) - 1] = '\0';
   }
 
   snprintf(outString, outStringSize,
-           "%d loops. Time %3.1f ms\n%s",
-           g_nextReadingNumber, ((micros() * 1.0) - statTimingStart) / 1000.0,
+           "{\"loops\":%-ld,\"Ms\":%-2.1f,\"m\":[%-s]}",
+           total_do_loop_count_, ((micros() * 1.0) - statTimingStart) / 1000.0,
            statList);
-  resetReadings();
-  g_nextReadingNumber = 0;
   statTimingStart = micros();
+  total_do_loop_count_ = 0;
 }
 
-void TModule::doLoop() {
-  for (int i = 0; i < g_nextModuleNumber; i++) {
-    uint32_t start = micros();
-    g_allModules[i]->loop();
+void TModule::DoLoop() {
+  for (size_t i = 0; i < kNumberModules; i++) {
+    if (all_modules_[i] != nullptr) {
+      TModule* module = all_modules_[i];
+      uint32_t start = micros();
+      all_modules_[i]->loop();
 
-    float duration = ((micros() * 1.0) - start) / 1000.0;
-    g_readings[i][SUM] += duration;
-    if (duration < g_readings[i][MIN]) {
-      g_readings[i][MIN] = duration;
-    }
+      float duration = ((micros() * 1.0) - start) / 1000.0;
+      module->duration_stats_[kSum] += duration;
+      if (duration < module->duration_stats_[kMin]) {
+        module->duration_stats_[kMin] = duration;
+      }
 
-    if (duration > g_readings[i][MAX]) {
-      g_readings[i][MAX] = duration;
+      if (duration > module->duration_stats_[kMax]) {
+        module->duration_stats_[kMax] = duration;
+      }
+
+      module->loop_calls_between_get_statistics_calls++;
     }
   }
 
-  g_nextReadingNumber++;
-}
-
-void TModule::resetReadings() {
-  for (int i = 0; i < NUMBER_MODULES; i++) {
-    g_readings[i][MIN] = 10'000'000;
-    g_readings[i][MAX] = -10'000'000;
-    g_readings[i][SUM] = 0;
-  }
+  total_do_loop_count_++;
 }
 
 void TModule::doSetup() {
-  for (int i = 0; i < g_nextModuleNumber; i++) {
-    g_allModules[i]->setup();
+  for (int i = 0; i < kNumberModules; i++) {
+    if (all_modules_[i] != nullptr) {
+      all_modules_[i]->setup();
+    }
   }
 }
 
-// TModule& TModule::singleton() {
-//   if (!g_singleton) {
-//     g_singleton = new TModule();
-//     resetReadings();
-//   }
+TModule* TModule::all_modules_[TModule::kNumberModules + 1] = {
+    nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr};
 
-//   return *g_singleton;
-// }
-
-TModule* TModule::g_allModules[TModule::NUMBER_MODULES + 1];
-uint8_t TModule::g_nextModuleNumber = 0;
-int TModule::g_nextReadingNumber = 0;
-// TModule* TModule::g_singleton = nullptr;
-float TModule::g_readings[TModule::NUMBER_MODULES][TModule::NUMBER_SLOTS];
+uint32_t TModule::total_do_loop_count_ = 0;

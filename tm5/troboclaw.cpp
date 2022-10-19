@@ -238,7 +238,7 @@ void TRoboClaw::reconnect() {
 void TRoboClaw::setup() { reconnect(); }
 
 TRoboClaw::TRoboClaw()
-    : TModule(),
+    : TModule(TModule::kROBOCLAW),
       g_current_m1(0),
       g_current_m2(0),
       g_encoder_m1(0),

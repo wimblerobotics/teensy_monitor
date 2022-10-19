@@ -8,10 +8,9 @@
 #include "talert.h"
 #include "tmicro_ros.h"
 
-void TSonar::echo0InterruptHandler() {
-  static long endTime = 0;
-  static long startTime = 0;
-  switch (digitalRead(PIN_ECHO0)) {
+void TSonar::commonInterruptHandler(uint8_t PIN, long& endTime, long& startTime,
+                                    uint8_t& averageIndex, size_t SONAR_INDEX) {
+  switch (digitalRead(PIN)) {
     case HIGH:
       endTime = 0;
       startTime = micros();
@@ -19,61 +18,54 @@ void TSonar::echo0InterruptHandler() {
 
     case LOW:
       endTime = micros();
-      g_valuesMm[0] = (endTime - startTime) * g_TimeToMmScaler;
-      TMicroRos::publishSonar(0, g_valuesMm[0] * 0.001);
+      g_valuesMm[SONAR_INDEX] = (endTime - startTime) * g_TimeToMmScaler;
+      g_valuesMmHistory[PIN][averageIndex++] = g_valuesMm[SONAR_INDEX];
+      if (averageIndex >= NUMBER_READINGS_TO_AVERAGE) {
+        averageIndex = 0;
+      }
+
+      int averageSum = 0;
+      for (size_t i = 0; i < NUMBER_READINGS_TO_AVERAGE; i++) {
+        averageSum += g_valuesMmHistory[PIN][i];
+      }
+
+      g_averageValueM[PIN] = (averageSum * 0.001) / NUMBER_READINGS_TO_AVERAGE;
+
+      TMicroRos::publishSonar(0, g_averageValueM[PIN]);
       break;
   }
+}
+
+float TSonar::getAverageValueM(SONAR device) {
+  return g_averageValueM[device];
+}
+
+void TSonar::echo0InterruptHandler() {
+  static long endTime = 0;
+  static long startTime = 0;
+  static uint8_t averageIndex = 0;
+  commonInterruptHandler(PIN_ECHO0, endTime, startTime, averageIndex, 0);
 }
 
 void TSonar::echo1InterruptHandler() {
   static long endTime = 0;
   static long startTime = 0;
-  switch (digitalRead(PIN_ECHO1)) {
-    case HIGH:
-      endTime = 0;
-      startTime = micros();
-      break;
-
-    case LOW:
-      endTime = micros();
-      g_valuesMm[1] = (endTime - startTime) * g_TimeToMmScaler;
-      TMicroRos::publishSonar(1, g_valuesMm[1] * 0.001);
-      break;
-  }
+  static uint8_t averageIndex = 0;
+  commonInterruptHandler(PIN_ECHO1, endTime, startTime, averageIndex, 1);
 }
 
 void TSonar::echo2InterruptHandler() {
   static long endTime = 0;
   static long startTime = 0;
-  switch (digitalRead(PIN_ECHO2)) {
-    case HIGH:
-      endTime = 0;
-      startTime = micros();
-      break;
-
-    case LOW:
-      endTime = micros();
-      g_valuesMm[2] = (endTime - startTime) * g_TimeToMmScaler;
-      TMicroRos::publishSonar(2, g_valuesMm[2] * 0.001);
-      break;
-  }
+  static uint8_t averageIndex = 0;
+  commonInterruptHandler(PIN_ECHO2, endTime, startTime, averageIndex, 2);
 }
 
 void TSonar::echo3InterruptHandler() {
   static long endTime = 0;
   static long startTime = 0;
-  switch (digitalRead(PIN_ECHO3)) {
-    case HIGH:
-      endTime = 0;
-      startTime = micros();
-      break;
-
-    case LOW:
-      endTime = micros();
-      g_valuesMm[3] = (endTime - startTime) * g_TimeToMmScaler;
-      TMicroRos::publishSonar(3, g_valuesMm[3] * 0.001);
-      break;
-  }
+  static uint8_t averageIndex = 0;
+  commonInterruptHandler(PIN_ECHO3, endTime, startTime, averageIndex, 3);
 }
 
 int TSonar::getValueMm(SONAR device) {
@@ -86,14 +78,15 @@ int TSonar::getValueMm(SONAR device) {
 
 void TSonar::loop() {
   const int ALERT_DISTANCE_MM = 3 * 25.4;
-  TAlert::TAlertSource map[] = {TAlert::SONAR_FRONT, TAlert::SONAR_RIGHT,
-                                TAlert::SONAR_BACK, TAlert::SONAR_LEFT};
+  // TAlert::TAlertSource map[] = {TAlert::SONAR_FRONT, TAlert::SONAR_RIGHT,
+  //                               TAlert::SONAR_BACK, TAlert::SONAR_LEFT};
 
   for (uint8_t i = 0; i < NUMBER_SONARS; i++) {
-    if (doStopMotorsOnCollisionThreat && (getValueMm(static_cast<SONAR>(i)) < ALERT_DISTANCE_MM)) {
-      TAlert::singleton().set(map[i]);
+    if (doStopMotorsOnCollisionThreat &&
+        (getValueMm(static_cast<SONAR>(i)) < ALERT_DISTANCE_MM)) {
+      // TAlert::singleton().set(map[i]);
     } else {
-      TAlert::singleton().reset(map[i]);
+      // TAlert::singleton().reset(map[i]);
     }
   }
 }
@@ -161,7 +154,13 @@ void TSonar::timerInterruptHandler() {
   }
 }
 
-TSonar::TSonar() {}
+TSonar::TSonar() : TModule(TModule::kSONAR) {
+  for (size_t i = 0; i < NUMBER_SONARS; i++) {
+    for (size_t j = 0; j < NUMBER_READINGS_TO_AVERAGE; j++) {
+      g_valuesMmHistory[i][j] = 0;
+    }
+  }
+}
 
 TSonar& TSonar::singleton() {
   if (!g_singleton) {
@@ -176,5 +175,10 @@ uint8_t TSonar::g_nextSensorIndex = 0;
 TSonar* TSonar::g_singleton = nullptr;
 
 int TSonar::g_valuesMm[TSonar::NUMBER_SONARS] = {-1, -1, -1, -1};
+
+int TSonar::g_valuesMmHistory[TSonar::NUMBER_SONARS]
+                             [TSonar::NUMBER_READINGS_TO_AVERAGE];
+
+float TSonar::g_averageValueM[TSonar::NUMBER_SONARS] = {0, 0, 0, 0};
 
 const float TSonar::g_TimeToMmScaler = (10.0 / 2.0) / 29.1;

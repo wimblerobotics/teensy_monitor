@@ -29,7 +29,7 @@ void TTemperature::loop() {
 
 void TTemperature::setup() { analogReadResolution(10); }
 
-TTemperature::TTemperature() {}
+TTemperature::TTemperature() : TModule(TModule::kTEMPERATURE) {}
 
 TTemperature& TTemperature::singleton() {
   if (!g_singleton) {

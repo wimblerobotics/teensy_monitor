@@ -18,7 +18,7 @@ void TAlarm::loop() {
   if (newHighestPriorityAlarm == NUMBER_ALARMS) {
     // No alarm is raised.
     g_lastStageTransitionMs = 0;
-    noTone(TONE_PIN);
+    // noTone(TONE_PIN);
     return;
   }
 
@@ -36,26 +36,26 @@ void TAlarm::loop() {
         return; // No valid alarm.
     }
 
-      tone(TONE_PIN, g_currentAlarmMelody[0], DURATION_STAGE_TRANSITIONS_MS);
+      // tone(TONE_PIN, g_currentAlarmMelody[0], DURATION_STAGE_TRANSITIONS_MS);
   }
 
   // Determine if next note in song should be played.
-  uint32_t now = millis();
-  if ((g_lastStageTransitionMs != 0) &&
-      (now > (g_lastStageTransitionMs + DURATION_STAGE_TRANSITIONS_MS))) {
-    g_toneStage++;
-    TPitch nextNote = g_currentAlarmMelody[g_toneStage];
-    if (nextNote == END) {
-      // Start at beginning of song again.
-      g_toneStage = 0;
-      nextNote = g_currentAlarmMelody[0];
-    }
+  // uint32_t now = millis();
+  // if ((g_lastStageTransitionMs != 0) &&
+  //     (now > (g_lastStageTransitionMs + DURATION_STAGE_TRANSITIONS_MS))) {
+  //   g_toneStage++;
+  //   TPitch nextNote = g_currentAlarmMelody[g_toneStage];
+  //   if (nextNote == END) {
+  //     // Start at beginning of song again.
+  //     g_toneStage = 0;
+  //     nextNote = g_currentAlarmMelody[0];
+  //   }
 
-    tone(TONE_PIN, nextNote, DURATION_STAGE_TRANSITIONS_MS);
-    g_lastStageTransitionMs = now;
-  } else {
-    // Stay on same note.
-  }
+  //   tone(TONE_PIN, nextNote, DURATION_STAGE_TRANSITIONS_MS);
+  //   g_lastStageTransitionMs = now;
+  // } else {
+  //   // Stay on same note.
+  // }
 }
 
 void TAlarm::raise(TAlarmKind alarmKind) {
@@ -69,7 +69,7 @@ void TAlarm::reset(TAlarmKind alarmKind) {
   g_highestPriorityAlarm = NUMBER_ALARMS;
 }
 
-TAlarm::TAlarm() : TModule() {}
+TAlarm::TAlarm() : TModule(TModule::kALARM)  {}
 
 TAlarm& TAlarm::singleton() {
   if (!g_singleton) {

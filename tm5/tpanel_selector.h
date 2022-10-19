@@ -18,7 +18,7 @@ class TPanelSelector : TModule {
   void loop();
 
   // From TModule.
-  const char* name() { return "TPanelSelector"; }
+  const char* name() { return "PS"; }
 
   // From TModule.
   void setup();

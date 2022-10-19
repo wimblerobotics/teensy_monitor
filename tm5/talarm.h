@@ -16,7 +16,7 @@ class TAlarm : TModule {
   void loop();
 
   // From TModule.
-  virtual const char* name() { return "TAlarm"; }
+  virtual const char* name() { return "!!"; }
 
   // Raise the alarm.
   void raise(TAlarmKind alarmKind);
@@ -129,8 +129,8 @@ class TAlarm : TModule {
   // Milliseconds to play each note.
   static const uint32_t DURATION_STAGE_TRANSITIONS_MS = 1000;
 
-  // GPIO pin of the speaker
-  static const uint8_t TONE_PIN = 23;
+  // // GPIO pin of the speaker
+  // static const uint8_t TONE_PIN = 23;
 
   // Private constructor.
   TAlarm();

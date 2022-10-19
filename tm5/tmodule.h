@@ -1,21 +1,23 @@
 #pragma once
 
-#include "Arduino.h"
 #include <stdint.h>
+
+#include "Arduino.h"
 
 /**
  * Base class for a kind of module which:
  *  - Needs to be setup once via a call to setup().
  *  - Needs to be invoked once per "processing cycle" via a call to loop().
- *  - Needs performance statistics gathered about performance during loop execution.
+ *  - Needs performance statistics gathered about performance during loop
+ * execution.
  *  - Needs periodic, summary performance statistics reported.
- * 
+ *
  * Usage:
  * Each module exists as a singleton. Somewhere, modules are
  * brought into existence by calling, typically, their
  * singleton() method. As each module comes into existence,
  * This TModule class keeps a list of them, in creation order.
- * 
+ *
  * After all modules are brought into existence, you call the
  * doSetup() method to invoke the setup() method for all registered
  * modules. Then in the main processing loop, you invoke the
@@ -26,24 +28,23 @@
 class TModule {
  public:
   // A list of all possible modules.
+  // Used only to definitely define NUMBER_MODULES.
   typedef enum MODULE {
-    ALARM,
-    ALERT,
-    MOTOR_CURRENT,
-    PANEL_SELECTOR,
-    RELAY,
-    ROBOCLAW,
-    ROS_CLIENT,
-    SD,
-    SERVER,
-    SONAR,
-    TEMPERATURE,
-    TIME_OF_FLIGHT,
-    NUMBER_MODULES // The number of all possible modules.
+    kALARM,
+    kALERT,
+    kMICRO_ROS,
+    kMOTOR_CURRENT,
+    kPANEL_SELECTOR,
+    kRELAY,
+    kROBOCLAW,
+    kSONAR,
+    kTEMPERATURE,
+    kTIME_OF_FLIGHT,
+    kNumberModules  // The number of all possible modules.
   } MODULE;
 
   // Call loop() for all registered modules.
-  static void doLoop();
+  static void DoLoop();
 
   // Call setup() for all registered modules.
   static void doSetup();
@@ -60,31 +61,33 @@ class TModule {
   static void getStatistics(char* outString, size_t outStringSize);
 
  protected:
-  TModule();
+  TModule(MODULE moduleKind);
 
  private:
+  TModule();
+
   // Define slots for gathering statistics for the module.
   typedef enum SLOT {
-    MIN,
-    MAX,
-    SUM,
-    NUMBER_SLOTS, // Number of slots to reserve for statistics.
-    NUMBER_READINGS = 1'000 // Number of statistical readings to gather before generating a summary report.
+    kMin,
+    kMax,
+    kSum,
+    kNumberSlots,            // Number of slots to reserve for statistics.
+    kNumberReadings = 1'000  // Number of statistical readings to gather before
+                             // generating a summary report.
   } SLOT;
 
-  // Reset the statistics for a module.
-  static void resetReadings();
+  // Number of times DoLoop() was called.
+  static uint32_t total_do_loop_count_;
 
   // A list of all registered modules.
-  static TModule* g_allModules[];
+  static TModule* all_modules_[];
 
-  // Index to next entry in the list of all registered modules.
-  static uint8_t g_nextModuleNumber;
-  
   // Index to the next statistic reading for the module.
-  static int g_nextReadingNumber;
+  int loop_calls_between_get_statistics_calls;
 
   // Statistics gathered for all registered modules.
-  static float g_readings[NUMBER_MODULES][NUMBER_SLOTS];
+  float duration_stats_[kNumberSlots];
 
+  // // Singleton instance.
+  // static TModule* singleton_;
 };

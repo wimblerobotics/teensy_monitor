@@ -10,6 +10,7 @@
 #include <sensor_msgs/msg/range.h>
 #include <stdio.h>
 
+#include "trelay.h"
 #include "troboclaw.h"
 
 #define ignore_result(x) \
@@ -106,6 +107,14 @@ void TMicroRos::publishSonar(uint8_t frame_id, float range) {
   }
 }
 
+// int64_t TMicroRos::getTime() {
+//   if (rmw_uros_epoch_synchronized()) {
+//     return rmw_uros_epoch_nanos();
+//   } else {
+//     return 0;
+//   }
+// }
+
 void TMicroRos::publishTof(uint8_t frame_id, float range) {
   if (g_singleton->state_ == AGENT_CONNECTED) {
     if (rmw_uros_epoch_synchronized()) {
@@ -138,6 +147,7 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
 void TMicroRos::setup() {
   set_microros_transports();
   state_ = WAITING_AGENT;
+  start_time_ = micros();
 }
 
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
@@ -148,8 +158,8 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     char stats[MAXSIZE];
     TModule::getStatistics(stats, MAXSIZE);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "\nLbat: %5.3f, Mbat: %5.3f, EncM1: %ld, EncM2: "
-             "%ld Error: %lX\n%s",
+             "{\"rc\":{\"L+\":%-2.1f,\"M_\":%-2.1f,\"E1\":%-ld,\"E2\":"
+             "%-ld,\"Er\":%-lX},\"t\":%-s}",
              TRoboClaw::singleton().getBatteryLogic(),
              TRoboClaw::singleton().getBatteryMain(),
              TRoboClaw::singleton().getM1Encoder(),
@@ -191,14 +201,13 @@ void TMicroRos::twist_callback(const void *twist_msg) {
         fabs(m2_quad_pulses_per_second *
              g_singleton->max_seconds_uncommanded_travel_);
     TRoboClaw::singleton().doMixedSpeedAccelDist(
-        g_singleton->accel_quad_pulses_per_second_,
-        m1_quad_pulses_per_second, m1_max_distance,
-        m2_quad_pulses_per_second, m2_max_distance);
+        g_singleton->accel_quad_pulses_per_second_, m1_quad_pulses_per_second,
+        m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
   }
 }
 
 TMicroRos::TMicroRos()
-    : TModule(),
+    : TModule(TModule::kMICRO_ROS),
       accel_quad_pulses_per_second_(1000),
       max_angular_velocity_(0.07),
       max_linear_velocity_(0.3),
@@ -230,8 +239,8 @@ bool TMicroRos::create_entities() {
 
   // create publishers.
   RCCHECK(rclc_publisher_init_best_effort(
-      &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg,
-      String), "teensy_stats"));
+      &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+      "teensy_stats"));
 
   RCCHECK(rclc_publisher_init_best_effort(
       &sonar_publisher_, &node_,
@@ -249,8 +258,7 @@ bool TMicroRos::create_entities() {
   // Create timer,
   const unsigned int timer_timeout = 1000;
   RCCHECK(rclc_timer_init_default(&timer_, &support_,
-                                  RCL_MS_TO_NS(timer_timeout),
-                                  timer_callback));
+                                  RCL_MS_TO_NS(timer_timeout), timer_callback));
 
   // Create executor
   executor_ = rclc_executor_get_zero_initialized_executor();
@@ -284,4 +292,9 @@ TMicroRos &TMicroRos::singleton() {
   return *g_singleton;
 }
 
+uint32_t TMicroRos::getStartTimeUs() { return start_time_; }
+
+uint32_t TMicroRos::getDurationSinceStartTimeUs(){return micros() - start_time_;}
+
+uint32_t TMicroRos::start_time_;
 TMicroRos *TMicroRos::g_singleton = nullptr;

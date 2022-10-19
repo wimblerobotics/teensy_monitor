@@ -3,7 +3,9 @@
 #include "ton_off_button.h"
 #include "tproximity_panel.h"
 
-TPanelSelector::TPanelSelector() { g_selectedPanel = PROXIMITY_PANEL; }
+TPanelSelector::TPanelSelector() : TModule(TModule::kPANEL_SELECTOR) {
+  g_selectedPanel = PROXIMITY_PANEL;
+}
 
 void TPanelSelector::colorizeAlertIcon(uint16_t color) {
   g_tc.fillRect(270, 190, 50, 50, color);

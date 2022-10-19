@@ -70,7 +70,7 @@ class TRoboClaw : TModule {
   void loop();
 
   // From TModule.
-  virtual const char* name() { return "TRoboClaw"; }
+  virtual const char* name() { return "RC"; }
 
   void resetEncoders();
   void setM1PID(float p, float i, float d, uint32_t qpps);

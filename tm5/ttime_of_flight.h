@@ -27,7 +27,7 @@ class TTimeOfFlight : TModule {
   void loop();
 
   // From TModule.‰
-  const char* name() { return "TTimeOfFlight"; }
+  const char* name() { return "TF"; }
 
   // From TModule.‰
   void setup();

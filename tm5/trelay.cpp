@@ -119,7 +119,7 @@ void TRelay::setup() {
   g_deviceSetTimeMs[MOTOR_ESTOP] = 0;
 }
 
-TRelay::TRelay() {}
+TRelay::TRelay() : TModule(TModule::kRELAY) {}
 
 TRelay& TRelay::singleton() {
   if (!g_singleton) {
