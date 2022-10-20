@@ -19,19 +19,19 @@ void TSonar::commonInterruptHandler(uint8_t PIN, long& endTime, long& startTime,
     case LOW:
       endTime = micros();
       g_valuesMm[SONAR_INDEX] = (endTime - startTime) * g_TimeToMmScaler;
-      g_valuesMmHistory[PIN][averageIndex++] = g_valuesMm[SONAR_INDEX];
+      g_valuesMmHistory[SONAR_INDEX][averageIndex++] = g_valuesMm[SONAR_INDEX];
       if (averageIndex >= NUMBER_READINGS_TO_AVERAGE) {
         averageIndex = 0;
       }
 
       int averageSum = 0;
       for (size_t i = 0; i < NUMBER_READINGS_TO_AVERAGE; i++) {
-        averageSum += g_valuesMmHistory[PIN][i];
+        averageSum += g_valuesMmHistory[SONAR_INDEX][i];
       }
 
-      g_averageValueM[PIN] = (averageSum * 0.001) / NUMBER_READINGS_TO_AVERAGE;
+      g_averageValueM[SONAR_INDEX] = (averageSum * 0.001) / NUMBER_READINGS_TO_AVERAGE;
 
-      TMicroRos::publishSonar(0, g_averageValueM[PIN]);
+      TMicroRos::publishSonar(0, g_averageValueM[SONAR_INDEX]);
       break;
   }
 }

@@ -30,7 +30,7 @@ class TSonar : TModule {
   void loop();
 
   // From TModule.‰
-  const char* name() { return "SO"; }
+  const char* name() { return "Sonr"; }
 
   // From TModule.‰
   void setup();

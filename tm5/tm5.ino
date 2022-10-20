@@ -24,7 +24,7 @@ TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
 //#####TSd& sd = TSd::singleton();
-// TSonar& sonar = TSonar::singleton();
+TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
 
