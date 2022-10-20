@@ -7,21 +7,21 @@
 
 class TTimeOfFlight : TModule {
  public:
-  typedef enum TIMEOFFLIGHT {
-    UPPER_LEFT_FORWARDS,
-    UPPER_RIGHT_FORWARDS,
-    UPPER_LEFT_SIDEWAYS,
-    UPPER_RIGHT_SIDEWAYS,
-    LEFT_LEFT_SIDEWAYS,
-    LOWER_RIGHT_SIDEWAYS,
-    LOWER_LEFT_BACKWARDS,
-    LOWER_RIGHT_BACKWARDS,
-    NUMBER_TIME_OF_FLIGHT  // Number of time-of-flight devices.
-  } TIMEOFFLIGHT;
+  typedef enum TimeOfFlightEnum {
+    kUpperLeftForwards,
+    kUpperRightForwards,
+    kUpperLeftSideways,
+    kUpperRightSideways,
+    kLeftLeftSideways,
+    kLowerRightSideways,
+    kLowerLeftBackwards,
+    kLowerRightBackwards,
+    kNumberTimeOfFlightDevices  // Number of time-of-flight devices.
+  } TimeOfFlightEnum;
 
   // Get the sensed distance for the device. A value of < 0 => no sensor at that
   // index.
-  int getValueMm(TIMEOFFLIGHT device);
+  int GetValueMm(TimeOfFlightEnum device);
 
   // Singleton constructor.
   static TTimeOfFlight& singleton();
@@ -37,29 +37,32 @@ class TTimeOfFlight : TModule {
   void setup();
 
  private:
+  // Number of readings to average.
+  enum MiscConstantsEnum { kNumberReadingsToAverage = 4 };
+
   // Should motors be put in e-stop if collision is imminent?
-  static const bool doStopMotorsOnCollisionThreat = false;
+  static const bool kDoStopMotorsOnCollisionThreat = false;
 
   // Private constructor.
   TTimeOfFlight();
 
   // Select a time-of-flight device through the multiplexer.
-  void selectTimeOfFlightSensor(TIMEOFFLIGHT device);
+  void SelectTimeOfFlightSensor(TimeOfFlightEnum device);
 
   // Address of I2C multiplexer for time-of-flight devices.
-  static const uint8_t I2C_MULTIPLEXER_ADDRESS = 0x70;
+  static const uint8_t kI2cMultiplexerAddress = 0x70;
 
   // Last sensed distance for each time-of-flight device.
-  static int g_cachedValue[NUMBER_TIME_OF_FLIGHT];
+  static int g_cached_value_mm_[kNumberTimeOfFlightDevices];
 
   // Device hardware handle for each time-of-flight device.
-  static VL53L0X* g_sensor[NUMBER_TIME_OF_FLIGHT];
+  static VL53L0X* g_sensor_[kNumberTimeOfFlightDevices];
 
   // Singleton instance.
-  static TTimeOfFlight* g_singleton;
+  static TTimeOfFlight* g_singleton_;
 
   // Minimum detection distance before an alert is raised
-  static const int ALERT_DISTANCE_MM = 3 * 25.4;
+  static const int kAlertDistanceMm = 3 * 25.4;
 
   static const int16_t kTimingBudgetMs = 33;
 };
