@@ -12,23 +12,24 @@ class TAlarm : TModule {
     NUMBER_ALARMS  // Number of possible alarm kinds.
   } TAlarmKind;
 
-  // From TModule.
-  void loop();
-
-  // From TModule.
-  virtual const char* name() { return "Alrm"; }
-
   // Raise the alarm.
   void raise(TAlarmKind alarmKind);
 
   // Reset the alarm.
   void reset(TAlarmKind alarmKind);
 
-  // From TModule.
-  void setup();
-
   // Singleton constructor.
   static TAlarm& singleton();
+
+ protected:
+  // From TModule.
+  void loop();
+
+  // From TModule.
+  virtual const char* name() { return "Alrm"; }
+
+  // From TModule.
+  void setup();
 
  private:
   // Possible notes to be played for an alarm.
@@ -148,7 +149,8 @@ class TAlarm : TModule {
   // The current, highest priority alarm.
   static TAlarmKind g_highestPriorityAlarm;
 
-  // Time at start of playing current alarm note. Zero => no alarm is being signaled.
+  // Time at start of playing current alarm note. Zero => no alarm is being
+  // signaled.
   static uint32_t g_lastStageTransitionMs;
 
   // Singleton instance.

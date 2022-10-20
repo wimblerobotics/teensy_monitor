@@ -37,23 +37,23 @@ void TMicroRos::loop() {
 }
 
 void TMicroRos::publishSonar(uint8_t frame_id, float range) {
-  // g_singleton->sonar_range_msg_.header.stamp.nanosec =
-  //     (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
-  // g_singleton->sonar_range_msg_.header.stamp.sec =
-  //     (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
+  g_singleton->sonar_range_msg_.header.stamp.nanosec =
+      (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
+  g_singleton->sonar_range_msg_.header.stamp.sec =
+      (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
 
-  // snprintf(g_singleton->sonar_range_msg_.header.frame_id.data,
-  //          g_singleton->sonar_range_msg_.header.frame_id.capacity,
-  //          "sonar_%1d", frame_id);
-  // g_singleton->sonar_range_msg_.header.frame_id.size =
-  //     strlen(g_singleton->sonar_range_msg_.header.frame_id.data);
-  // g_singleton->sonar_range_msg_.radiation_type = 0;
-  // g_singleton->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
-  // g_singleton->sonar_range_msg_.max_range = 2.0;
-  // g_singleton->sonar_range_msg_.min_range = 0.0254;
-  // g_singleton->sonar_range_msg_.range = range;
-  // ignore_result(rcl_publish(&g_singleton->sonar_publisher_,
-  //                           &g_singleton->sonar_range_msg_, nullptr));
+  snprintf(g_singleton->sonar_range_msg_.header.frame_id.data,
+           g_singleton->sonar_range_msg_.header.frame_id.capacity,
+           "sonar_%1d", frame_id);
+  g_singleton->sonar_range_msg_.header.frame_id.size =
+      strlen(g_singleton->sonar_range_msg_.header.frame_id.data);
+  g_singleton->sonar_range_msg_.radiation_type = 0;
+  g_singleton->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
+  g_singleton->sonar_range_msg_.max_range = 2.0;
+  g_singleton->sonar_range_msg_.min_range = 0.0254;
+  g_singleton->sonar_range_msg_.range = range;
+  ignore_result(rcl_publish(&g_singleton->sonar_publisher_,
+                            &g_singleton->sonar_range_msg_, nullptr));
 }
 
 void TMicroRos::publishTof(uint8_t frame_id, float range) {
@@ -90,7 +90,7 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     // uint32_t error = TRoboClaw::singleton().getError();
     const size_t MAXSIZE = 512;
     char stats[MAXSIZE];
-    TModule::getStatistics(stats, MAXSIZE);
+    TModule::GetStatistics(stats, MAXSIZE);
     // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
     //          "{\"C\":{\"Logi\":%-2.1f,\"Motr\":%-2.1f,\"EncL\":%-ld,\"EncR\":"
     //          "%-ld,\"Er\":%-lX},\"P\":%-s}",

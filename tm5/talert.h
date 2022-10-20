@@ -25,23 +25,24 @@
 //     NUMER_ALERT_SOURCES // Number of alert sources.
 //   } TAlertSource;
 
-//   // From TModule.
-//   void loop();
-
-//   // From TModule.
-//   const char* name() { return "!"; }
-
 //   // Set the alert.
 //   void set(TAlertSource alert);
-
-//   // From TModule.
-//   void setup();
 
 //   // Singleton constructor.
 //   static TAlert& singleton();
 
 //   // Unset the alert.
 //   void reset(TAlertSource alert);
+
+//  protected:
+//   // From TModule.
+//   void loop();
+
+//   // From TModule.
+//   const char* name() { return "!"; }
+
+//   // From TModule.
+//   void setup();
 
 //  private:
 //   // Private constructor.

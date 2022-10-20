@@ -66,18 +66,9 @@ class TRoboClaw : TModule {
   // Get the speed of motor 2 in encoder pulses/second.
   int32_t getM2Speed();
 
-  // From TModule.
-  void loop();
-
-  // From TModule.
-  virtual const char* name() { return "Robo"; }
-
   void resetEncoders();
   void setM1PID(float p, float i, float d, uint32_t qpps);
   void setM2PID(float p, float i, float d, uint32_t qpps);
-
-  // From TModule.
-  void setup();
 
   // Singleton constructor.
   static TRoboClaw& singleton();
@@ -92,6 +83,16 @@ class TRoboClaw : TModule {
     SPEED_M2,
     VERSION
   } TSTATE;
+
+ protected:
+  // From TModule.
+  void loop();
+
+  // From TModule.
+  virtual const char* name() { return "Robo"; }
+
+  // From TModule.
+  void setup();
 
  private:
   static const int DEVICE_ADDRESS = 0x80;

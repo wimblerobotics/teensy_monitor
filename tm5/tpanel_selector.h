@@ -14,6 +14,10 @@ class TPanelSelector : TModule {
   // Which panel is currently active.
   TPanel activePanel() { return g_selectedPanel; }
 
+  // Singleton instance.
+  static TPanelSelector& singleton();
+
+ protected:
   // From TModule.
   void loop();
 
@@ -22,9 +26,6 @@ class TPanelSelector : TModule {
 
   // From TModule.
   void setup();
-
-  // Singleton instance.
-  static TPanelSelector& singleton();
 
  private:
   // Private constructor.
@@ -45,6 +46,7 @@ class TPanelSelector : TModule {
   // Touchscreen display device.
   static TControlDisplay& g_tc;
 
-  // Duration (ms) between alert/background color changes when alert is flashing.
+  // Duration (ms) between alert/background color changes when alert is
+  // flashing.
   static const int ALERT_ALTERNATING_FLASH_DURATION_MS = 500;
 };

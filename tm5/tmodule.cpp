@@ -12,7 +12,7 @@ TModule::TModule(TModule::MODULE moduleKind) {
   }
 }
 
-void TModule::getStatistics(char* outString, size_t outStringSize) {
+void TModule::GetStatistics(char* outString, size_t outStringSize) {
   static uint32_t statTimingStart = micros();
   char statList[2048];
 
@@ -25,11 +25,10 @@ void TModule::getStatistics(char* outString, size_t outStringSize) {
       char temp[MAXLEN];
       temp[0] = '\0';
       snprintf(temp, MAXLEN,
-               "{\"n\":\"%-s\",\"MnMxAvSu\":[%-2.1f,%-2.1f,%-2.1f]},",
+               "{\"n\":\"%-s\",\"MnMxAv\":[%-2.1f,%-2.1f,%-2.1f]},",
                all_modules_[i]->name(), module->duration_stats_[kMin],
                module->duration_stats_[kMax],
-               module->duration_stats_[kSum] / total_do_loop_count_,
-               module->duration_stats_[kSum]);
+               module->duration_stats_[kSum] / total_do_loop_count_);
       strcat(statList, temp);
       module->loop_calls_between_get_statistics_calls = 0;
       module->duration_stats_[kMin] = 10'000'000.0;

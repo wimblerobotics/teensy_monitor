@@ -23,6 +23,10 @@ class TTimeOfFlight : TModule {
   // index.
   int getValueMm(TIMEOFFLIGHT device);
 
+  // Singleton constructor.
+  static TTimeOfFlight& singleton();
+
+ protected:
   // From TModule.‰
   void loop();
 
@@ -32,11 +36,7 @@ class TTimeOfFlight : TModule {
   // From TModule.‰
   void setup();
 
-  // Singleton constructor.
-  static TTimeOfFlight& singleton();
-
  private:
-
   // Should motors be put in e-stop if collision is imminent?
   static const bool doStopMotorsOnCollisionThreat = false;
 

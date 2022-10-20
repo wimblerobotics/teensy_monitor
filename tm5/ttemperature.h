@@ -15,6 +15,10 @@ class TTemperature : TModule {
 
   int16_t getValueTenthsC(TEMPERATURE device);
 
+  // Singleton constructor.
+  static TTemperature& singleton();
+
+ protected:
   // From TModule.
   void loop();
 
@@ -23,9 +27,6 @@ class TTemperature : TModule {
 
   // From TModule.
   void setup();
-
-  // Singleton constructor.
-  static TTemperature& singleton();
 
  private:
   // GPIO addresses of temperature sensors.

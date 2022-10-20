@@ -23,6 +23,9 @@
  * modules. Then in the main processing loop, you invoke the
  * doLoop() method to invoked the loop() method for all registered
  * modules.
+ * 
+ * Periodically, some agent calls GetStatistics() to get a string showing
+ * execution performance of all the registered modules.
  */
 
 class TModule {
@@ -49,6 +52,11 @@ class TModule {
   // Call setup() for all registered modules.
   static void DoSetup();
 
+  static void GetStatistics(char* outString, size_t outStringSize);
+
+ protected:
+  TModule(MODULE moduleKind);
+
   // Perform regular, cyclic work for the module.
   virtual void loop() = 0;
 
@@ -57,11 +65,6 @@ class TModule {
 
   // Perform one-time setup for the module.
   virtual void setup() = 0;
-
-  static void getStatistics(char* outString, size_t outStringSize);
-
- protected:
-  TModule(MODULE moduleKind);
 
  private:
   TModule();

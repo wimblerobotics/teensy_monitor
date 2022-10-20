@@ -13,6 +13,10 @@ class TMotorCurrent : TModule {
   // Get the average motor current value.
   int getValueMa(MOTOR index);
 
+  // Singleton constructor.
+  static TMotorCurrent& singleton();
+
+ protected:
   // From TModule.‰
   void loop();
 
@@ -21,9 +25,6 @@ class TMotorCurrent : TModule {
 
   // From TModule.
   void setup();
-
-  // Singleton constructor.
-  static TMotorCurrent& singleton();
 
  private:
   // GPIO pins for current sensors.

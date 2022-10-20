@@ -16,16 +16,16 @@
 #include "ttime_of_flight.h"
 
 // Initialize all TModule instances in any required order.
-// TAlarm& alarm = TAlarm::singleton();
+TAlarm& alarm = TAlarm::singleton();
 // TAlert& alert = TAlert::singleton();
 TMicroRos& microRos = TMicroRos::singleton();
-// TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
+TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 // TPanelSelector& panelSelector = TPanelSelector::singleton();
-// TRelay& relay = TRelay::singleton();
+TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
 //#####TSd& sd = TSd::singleton();
 // TSonar& sonar = TSonar::singleton();
-// TTemperature& temperature = TTemperature::singleton();
+TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
 
 // WDT_T4<WDT3> wdt;

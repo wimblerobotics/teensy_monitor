@@ -19,54 +19,9 @@ int TTimeOfFlight::getValueMm(TIMEOFFLIGHT device) {
       g_cachedValue[device] =
           g_sensor[device]->readReg16Bit(VL53L0X::RESULT_RANGE_STATUS + 10);
       g_sensor[device]->writeReg(VL53L0X::SYSTEM_INTERRUPT_CLEAR, 0x01);
-      TMicroRos::publishTof((uint8_t)device,
-                            g_cachedValue[device] * 0.001);
+      TMicroRos::publishTof((uint8_t)device, g_cachedValue[device] * 0.001);
     }
   }
-
-  // if ((g_sensor[device]->readReg(VL53L0X::RESULT_INTERRUPT_STATUS) & 0x07)
-  // !=
-  //     0) {
-  //   g_cachedValue[device] =
-  //   g_sensor[device]->readRangeContinuousMillimeters();
-  // }
-
-  // // Compute the minimum time between device requests to read the distance.
-  // // This is found by dividing the device timing budget by the number of
-  // active
-  // // sensors.
-  // uint8_t number_active_sensors = 0;
-  // for (size_t i = 0; i < NUMBER_TIME_OF_FLIGHT; i++) {
-  //   if (g_sensor[i] != nullptr) {
-  //     number_active_sensors++;
-  //   }
-  // }
-
-  // uint16_t period_between_device_reads_ms =
-  //     kTimingBudgetMs / number_active_sensors;
-
-  // // Get the sensor values only once every give number of milli seconds.
-  // static uint8_t lastSensedIndex = 0;
-  // static unsigned long lastWallTime = millis();
-  // unsigned long currentWallTime = millis();
-  // unsigned long durationSinceLastSense = currentWallTime - lastWallTime;
-
-  // if (durationSinceLastSense > period_between_device_reads_ms) {
-  //   if (g_sensor[lastSensedIndex] != nullptr) {
-  //
-  //     g_cachedValue[lastSensedIndex] =
-  //         g_sensor[lastSensedIndex]->readRangeContinuousMillimeters();
-  //     TMicroRos::publishTof(lastSensedIndex,
-  //                           g_cachedValue[lastSensedIndex] * 0.001);
-  //   }
-
-  //   lastSensedIndex += 1;
-  //   if (lastSensedIndex >= NUMBER_TIME_OF_FLIGHT) {
-  //     lastSensedIndex = 0;
-  //   }
-
-  //   lastWallTime = currentWallTime;
-  // }
 
   if (g_sensor[device]) {
     return g_cachedValue[device];
@@ -84,7 +39,7 @@ void TTimeOfFlight::loop() {
 
   static uint8_t next_sensor_to_read = 0;
 
-  int mm = getValueMm(static_cast<TIMEOFFLIGHT>(next_sensor_to_read++));
+  (void)getValueMm(static_cast<TIMEOFFLIGHT>(next_sensor_to_read++));
   if (next_sensor_to_read >= NUMBER_TIME_OF_FLIGHT) {
     next_sensor_to_read = 0;
   }

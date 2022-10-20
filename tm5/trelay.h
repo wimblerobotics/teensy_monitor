@@ -1,9 +1,9 @@
 /**
  * MIT License
  * Copyright 2021 by Michael Wimble
- * 
+ *
  * Control an 8-channel relay board.
-*/
+ */
 
 #pragma once
 
@@ -27,33 +27,34 @@ class TRelay : TModule {
   // Is in the power-on state?
   bool isPoweredOn(TRelayDevice device);
 
-  // From TModule.
-  void loop();
-
-  // From TModule.
-  const char* name() { return "Rlay"; }
-
   // Power the relay on.
   void powerOff(TRelayDevice device);
 
   // Power the relay off.
   void powerOn(TRelayDevice device);
 
-  // From TModule.
-  void setup();
-
   // Singleton constructor.
   static TRelay& singleton();
+
+ protected:
+  // From TModule.
+  void loop();
+
+  // From TModule.
+  const char* name() { return "Rlay"; }
+
+  // From TModule.
+  void setup();
 
  private:
   // GPIO pins to control the relays.
   typedef enum {
     INTEL_ON_OFF_PIN = 0,
     INTEL_RESET_PIN = 1,
-    MOTOR_ON_OFF_PIN = 5, //###
+    MOTOR_ON_OFF_PIN = 5,  //###
     NVIDIA_ON_OFF_PIN = 3,
     NVIDIA_RESET_PIN = 4,
-    MOTOR_ESTOP_PIN = 2 //#####
+    MOTOR_ESTOP_PIN = 2  //#####
   } TPinNumbers;
 
   // How long (in milliseconds) to trip the relay to simulate a reset push.

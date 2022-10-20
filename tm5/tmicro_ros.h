@@ -15,6 +15,21 @@
 
 class TMicroRos : TModule {
  public:
+  static void publishSonar(uint8_t frame_id, float range);
+  static void publishTof(uint8_t frame_id, float range);
+
+  // Singleton constructor.
+  static TMicroRos& singleton();
+
+ protected:
+ private:
+  // Private constructor.
+  TMicroRos();
+
+  bool create_entities();
+
+  void destroy_entities();
+
   // From TModule.
   void loop();
 
@@ -24,22 +39,8 @@ class TMicroRos : TModule {
   // From TModule
   const char* name() { return "uRos"; }
 
-  static void publishSonar(uint8_t frame_id, float range);
-  static void publishTof(uint8_t frame_id, float range);
-
   // From TModule
   void setup();
-
-  // Singleton constructor.
-  static TMicroRos& singleton();
-
- private:
-  // Private constructor.
-  TMicroRos();
-
-  bool create_entities();
-
-  void destroy_entities();
 
   static void timer_callback(rcl_timer_t* timer, int64_t last_call_time);
 

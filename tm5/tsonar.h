@@ -22,6 +22,10 @@ class TSonar : TModule {
 
   float getAverageValueM(SONAR device);
 
+  // Singleton constructor.
+  static TSonar& singleton();
+
+ protected:
   // From TModule.‰
   void loop();
 
@@ -31,14 +35,9 @@ class TSonar : TModule {
   // From TModule.‰
   void setup();
 
-  // Singleton constructor.
-  static TSonar& singleton();
-
  private:
   // Number of readings to average.
-  enum MISC_CONSTANTS {
-    NUMBER_READINGS_TO_AVERAGE = 4
-  };
+  enum MISC_CONSTANTS { NUMBER_READINGS_TO_AVERAGE = 4 };
 
   // Should motors be put in e-stop if collision is imminent?
   static const bool doStopMotorsOnCollisionThreat = false;
