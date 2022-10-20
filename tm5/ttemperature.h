@@ -19,7 +19,7 @@ class TTemperature : TModule {
   void loop();
 
   // From TModule.
-  const char* name() { return "TM"; }
+  const char* name() { return "Temp"; }
 
   // From TModule.
   void setup();

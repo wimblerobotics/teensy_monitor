@@ -16,7 +16,7 @@ class TAlarm : TModule {
   void loop();
 
   // From TModule.
-  virtual const char* name() { return "!!"; }
+  virtual const char* name() { return "Alrm"; }
 
   // Raise the alarm.
   void raise(TAlarmKind alarmKind);

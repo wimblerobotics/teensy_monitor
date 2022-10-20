@@ -47,7 +47,7 @@ class TModule {
   static void DoLoop();
 
   // Call setup() for all registered modules.
-  static void doSetup();
+  static void DoSetup();
 
   // Perform regular, cyclic work for the module.
   virtual void loop() = 0;

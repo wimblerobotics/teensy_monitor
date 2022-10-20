@@ -21,14 +21,8 @@ class TMicroRos : TModule {
   // // Get ROS time in nano seconds.
   // static int64_t getTime();
 
-  // Get Arduino interntal time (micro seconds) when start() was called.
-  static uint32_t getStartTimeUs();
-
-  // Get Arduino duration (micro seconds) since start() was called.
-  static uint32_t getDurationSinceStartTimeUs();
-
   // From TModule
-  const char* name() { return "MR"; }
+  const char* name() { return "uRos"; }
 
   static void publishSonar(uint8_t frame_id, float range);
   static void publishTof(uint8_t frame_id, float range);
@@ -40,13 +34,6 @@ class TMicroRos : TModule {
   static TMicroRos& singleton();
 
  private:
-  enum states {
-    WAITING_AGENT,
-    AGENT_AVAILABLE,
-    AGENT_CONNECTED,
-    AGENT_DISCONNECTED
-  } state_;
-
   // Private constructor.
   TMicroRos();
 
@@ -83,9 +70,6 @@ class TMicroRos : TModule {
   int32_t quad_pulses_per_meter_;
   double wheel_radius_;
   double wheel_separation_;
-
-  // static int64_t start_ros_time;
-  static uint32_t start_time_;
 
   // Singleton instance.
   static TMicroRos* g_singleton;

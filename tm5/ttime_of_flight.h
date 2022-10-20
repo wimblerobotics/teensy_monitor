@@ -27,7 +27,7 @@ class TTimeOfFlight : TModule {
   void loop();
 
   // From TModule.‰
-  const char* name() { return "TF"; }
+  const char* name() { return "ToFl"; }
 
   // From TModule.‰
   void setup();
@@ -60,4 +60,6 @@ class TTimeOfFlight : TModule {
 
   // Minimum detection distance before an alert is raised
   static const int ALERT_DISTANCE_MM = 3 * 25.4;
+
+  static const int16_t kTimingBudgetMs = 33;
 };

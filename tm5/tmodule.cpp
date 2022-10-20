@@ -4,12 +4,6 @@
 #include <stdint.h>
 #define DO_TIMING true
 
-// TModule::TModule() : total_do_loop_count_(0) {
-//   for (size_t i = 0; i < kNumberModules; i++) {
-//     all_modules_[i] = nullptr;
-//   }
-// }
-
 TModule::TModule(TModule::MODULE moduleKind) {
   all_modules_[moduleKind] = this;
   loop_calls_between_get_statistics_calls = 0;
@@ -31,12 +25,11 @@ void TModule::getStatistics(char* outString, size_t outStringSize) {
       char temp[MAXLEN];
       temp[0] = '\0';
       snprintf(temp, MAXLEN,
-               "{\"n\":\"%-s\",\"v\":[%-2.1f,%-2.1f,%-2.1f,%-d]},",
+               "{\"n\":\"%-s\",\"MnMxAvSu\":[%-2.1f,%-2.1f,%-2.1f]},",
                all_modules_[i]->name(), module->duration_stats_[kMin],
                module->duration_stats_[kMax],
-               module->duration_stats_[kSum] /
-                   module->loop_calls_between_get_statistics_calls,
-               module->loop_calls_between_get_statistics_calls);
+               module->duration_stats_[kSum] / total_do_loop_count_,
+               module->duration_stats_[kSum]);
       strcat(statList, temp);
       module->loop_calls_between_get_statistics_calls = 0;
       module->duration_stats_[kMin] = 10'000'000.0;
@@ -45,13 +38,13 @@ void TModule::getStatistics(char* outString, size_t outStringSize) {
     }
   }
 
-  // remove trailing comma from previous list.
+  // Remove trailing comma from previous list.
   if (strlen(statList) > 0) {
     statList[strlen(statList) - 1] = '\0';
   }
 
   snprintf(outString, outStringSize,
-           "{\"loops\":%-ld,\"Ms\":%-2.1f,\"m\":[%-s]}",
+           "{\"loops\":%-ld,\"Ms\":%-2.1f,\"mdls\":[%-s]}",
            total_do_loop_count_, ((micros() * 1.0) - statTimingStart) / 1000.0,
            statList);
   statTimingStart = micros();
@@ -82,7 +75,7 @@ void TModule::DoLoop() {
   total_do_loop_count_++;
 }
 
-void TModule::doSetup() {
+void TModule::DoSetup() {
   for (int i = 0; i < kNumberModules; i++) {
     if (all_modules_[i] != nullptr) {
       all_modules_[i]->setup();

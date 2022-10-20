@@ -17,7 +17,7 @@ class TMotorCurrent : TModule {
   void loop();
 
   // From TModule.
-  const char* name() { return "MC"; }
+  const char* name() { return "Amps"; }
 
   // From TModule.
   void setup();
