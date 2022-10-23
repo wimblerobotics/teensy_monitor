@@ -59,7 +59,7 @@ class TMicroRos : TModule {
   rcl_publisher_t sonar_publisher_;
   sensor_msgs__msg__Range sonar_range_msg_;
 
-  rcl_publisher_t tof_publisher_;
+  rcl_publisher_t tof_publisher_[8];
   sensor_msgs__msg__Range tof_range_msg_;
 
   geometry_msgs__msg__Twist twist_msg_;

@@ -13,12 +13,33 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
   }
 
   SelectTimeOfFlightSensor(device);
+
+  // Read the device if a new reading is ready.
   if ((g_sensor_[device]->readReg(VL53L0X::RESULT_INTERRUPT_STATUS) & 0x07) !=
       0) {
     {
+      // Read the device range value(mm).
       g_cached_value_mm_[device] =
           g_sensor_[device]->readReg16Bit(VL53L0X::RESULT_RANGE_STATUS + 10);
+
+      // Clear the interrupt.
       g_sensor_[device]->writeReg(VL53L0X::SYSTEM_INTERRUPT_CLEAR, 0x01);
+
+      // Compute the running average of readings.
+      g_valuesMmHistory_[device][g_valuesMmHistoryIndex_[device]] =
+          g_cached_value_mm_[device];
+      g_valuesMmHistoryIndex_[device] += 1;
+      if (g_valuesMmHistoryIndex_[device] >= kNumberReadingsToAverage) {
+        g_valuesMmHistoryIndex_[device] = 0;
+      }
+
+      int averageSum = 0;
+      for (size_t i = 0; i < kNumberReadingsToAverage; i++) {
+        averageSum += g_valuesMmHistory_[device][i];
+      }
+
+      // Post the new result.
+      //g_cached_value_mm_[device] = averageSum / kNumberReadingsToAverage;
       TMicroRos::publishTof((uint8_t)device, g_cached_value_mm_[device] * 0.001);
     }
   }
@@ -83,8 +104,16 @@ TTimeOfFlight::TTimeOfFlight() : TModule(TModule::kTIME_OF_FLIGHT) {
   pinMode(8, OUTPUT);
   digitalWrite(8, HIGH);
 
-  for (int i = 0; i < kNumberTimeOfFlightDevices; i++) {
+  for (size_t i = 0; i < kNumberTimeOfFlightDevices; i++) {
     g_cached_value_mm_[i] = -1;
+  }
+
+  for (size_t i = 0; i < kNumberTimeOfFlightDevices; i++) {
+    for (size_t j = 0; j < kNumberReadingsToAverage; j++) {
+      g_valuesMmHistory_[i][j] = 0.0;
+    }
+
+    g_valuesMmHistoryIndex_[i] = 0;
   }
 }
 
@@ -98,5 +127,11 @@ TTimeOfFlight &TTimeOfFlight::singleton() {
 
 TTimeOfFlight *TTimeOfFlight::g_singleton_ = nullptr;
 
-int TTimeOfFlight::g_cached_value_mm_[TTimeOfFlight::kNumberTimeOfFlightDevices];
+int TTimeOfFlight::g_cached_value_mm_
+    [TTimeOfFlight::kNumberTimeOfFlightDevices];
 VL53L0X *TTimeOfFlight::g_sensor_[TTimeOfFlight::kNumberTimeOfFlightDevices];
+
+int TTimeOfFlight::g_valuesMmHistory_[TTimeOfFlight::kNumberTimeOfFlightDevices]
+                                     [TTimeOfFlight::kNumberReadingsToAverage];
+
+int TTimeOfFlight::g_valuesMmHistoryIndex_[kNumberTimeOfFlightDevices];

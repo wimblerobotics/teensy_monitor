@@ -55,6 +55,12 @@ class TTimeOfFlight : TModule {
   // Last sensed distance for each time-of-flight device.
   static int g_cached_value_mm_[kNumberTimeOfFlightDevices];
 
+  // Round-robin  history of last value readings per device.
+  static int g_valuesMmHistory_[kNumberTimeOfFlightDevices][kNumberReadingsToAverage];
+
+// Round-robin index into g_valuesMmHistory per device.
+  static int g_valuesMmHistoryIndex_[kNumberTimeOfFlightDevices];
+
   // Device hardware handle for each time-of-flight device.
   static VL53L0X* g_sensor_[kNumberTimeOfFlightDevices];
 

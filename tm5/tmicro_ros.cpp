@@ -43,8 +43,8 @@ void TMicroRos::publishSonar(uint8_t frame_id, float range) {
       (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
 
   snprintf(g_singleton->sonar_range_msg_.header.frame_id.data,
-           g_singleton->sonar_range_msg_.header.frame_id.capacity,
-           "sonar_%1d", frame_id);
+           g_singleton->sonar_range_msg_.header.frame_id.capacity, "sonar_%1d",
+           frame_id);
   g_singleton->sonar_range_msg_.header.frame_id.size =
       strlen(g_singleton->sonar_range_msg_.header.frame_id.data);
   g_singleton->sonar_range_msg_.radiation_type = 0;
@@ -74,7 +74,7 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
   g_singleton->tof_range_msg_.radiation_type =
       sensor_msgs__msg__Range__ULTRASOUND;
   g_singleton->tof_range_msg_.range = range;
-  ignore_result(rcl_publish(&g_singleton->tof_publisher_,
+  ignore_result(rcl_publish(&g_singleton->tof_publisher_[frame_id],
                             &g_singleton->tof_range_msg_, nullptr));
 }
 
@@ -184,9 +184,13 @@ bool TMicroRos::create_entities() {
       &sonar_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), "sonarSensor"));
 
-  RCCHECK(rclc_publisher_init_best_effort(
-      &tof_publisher_, &node_,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), "tofSensor"));
+  for (size_t i = 0; i < 8; i++) {
+    char topic_name[16];
+    sprintf(topic_name, "tof%-1dSensor", i);
+    RCCHECK(rclc_publisher_init_best_effort(
+        &tof_publisher_[i], &node_,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
+  }
 
   // Create subscribers.
   RCCHECK(rclc_subscription_init_default(
@@ -215,7 +219,9 @@ void TMicroRos::destroy_entities() {
 
   ignore_result(rcl_publisher_fini(&publisher_, &node_));
   ignore_result(rcl_publisher_fini(&sonar_publisher_, &node_));
-  ignore_result(rcl_publisher_fini(&tof_publisher_, &node_));
+  for (size_t i = 0; i < 8; i++) {
+    ignore_result(rcl_publisher_fini(&tof_publisher_[i], &node_));
+  }
   ignore_result(rcl_timer_fini(&timer_));
   ignore_result(rclc_executor_fini(&executor_));
   ignore_result(rcl_node_fini(&node_));
