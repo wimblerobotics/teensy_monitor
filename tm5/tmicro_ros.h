@@ -15,13 +15,25 @@
 
 class TMicroRos : TModule {
  public:
+  // Called by SONAR sensor handler to publish a reading.
   static void publishSonar(uint8_t frame_id, float range);
+
+  // Called by Time of Flight sensor handler to publish a reading.
   static void publishTof(uint8_t frame_id, float range);
 
   // Singleton constructor.
   static TMicroRos& singleton();
 
  protected:
+  // From TModule.
+  void loop();
+
+  // From TModule
+  const char* name() { return "uRos"; }
+
+  // From TModule
+  void setup();
+
  private:
   // Private constructor.
   TMicroRos();
@@ -30,22 +42,14 @@ class TMicroRos : TModule {
 
   void destroy_entities();
 
-  // From TModule.
-  void loop();
 
-  // // Get ROS time in nano seconds.
-  // static int64_t getTime();
-
-  // From TModule
-  const char* name() { return "uRos"; }
-
-  // From TModule
-  void setup();
-
+  // Regular maintenance, publish stats, etc.
   static void timer_callback(rcl_timer_t* timer, int64_t last_call_time);
 
+  // Handler for cmd_vel messages.
   static void twist_callback(const void* msg);
 
+  // Micro-ROS variables
   rcl_allocator_t allocator_;
   rcl_subscription_t cmd_vel_subscriber_;
   rclc_executor_t executor_;
@@ -55,15 +59,15 @@ class TMicroRos : TModule {
   rcl_publisher_t publisher_;
   rclc_support_t support_;
   rcl_timer_t timer_;
-
   rcl_publisher_t sonar_publisher_;
-  sensor_msgs__msg__Range sonar_range_msg_;
-
   rcl_publisher_t tof_publisher_[8];
-  sensor_msgs__msg__Range tof_range_msg_;
 
+  // ROS messages, allocated once.
+  sensor_msgs__msg__Range sonar_range_msg_;
+  sensor_msgs__msg__Range tof_range_msg_;
   geometry_msgs__msg__Twist twist_msg_;
 
+  // Motor driver configuration values.
   int32_t accel_quad_pulses_per_second_;
   double max_angular_velocity_;
   double max_linear_velocity_;
