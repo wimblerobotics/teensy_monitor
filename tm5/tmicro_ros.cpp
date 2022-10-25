@@ -87,15 +87,15 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   rmw_uros_sync_session(1000);
   if (timer != NULL) {
-    // const size_t MAXSIZE = 512;
-    // char stats[MAXSIZE];
-    // TModule::GetStatistics(stats, MAXSIZE);
-    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    //         "{\"Stats\": %s}", stats);
-    // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
-    // ignore_result(
-    //     rcl_publish(&g_singleton->teensy_stats_publisher_,
-    //     &g_singleton->msg_, nullptr));
+    const size_t MAXSIZE = 512;
+    char stats[MAXSIZE];
+    TModule::GetStatistics(stats, MAXSIZE);
+    snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+            "{\"Stats\": %s}", stats);
+    g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+    ignore_result(
+        rcl_publish(&g_singleton->teensy_stats_publisher_,
+        &g_singleton->msg_, nullptr));
 
     // uint32_t error = TRoboClaw::singleton().getError();
     // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
