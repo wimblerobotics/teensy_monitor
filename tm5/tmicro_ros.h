@@ -56,10 +56,11 @@ class TMicroRos : TModule {
   bool micro_ros_init_successful_;
   std_msgs__msg__String msg_;
   rcl_node_t node_;
-  rcl_publisher_t publisher_;
+  rcl_publisher_t roboclaw_status_publisher_;
+  rcl_publisher_t teensy_stats_publisher_;
   rclc_support_t support_;
   rcl_timer_t timer_;
-  rcl_publisher_t sonar_publisher_;
+  rcl_publisher_t sonar_publisher_[4];
   rcl_publisher_t tof_publisher_[8];
 
   // ROS messages, allocated once.

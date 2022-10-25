@@ -52,7 +52,7 @@ void TMicroRos::publishSonar(uint8_t frame_id, float range) {
   g_singleton->sonar_range_msg_.max_range = 2.0;
   g_singleton->sonar_range_msg_.min_range = 0.0254;
   g_singleton->sonar_range_msg_.range = range;
-  ignore_result(rcl_publish(&g_singleton->sonar_publisher_,
+  ignore_result(rcl_publish(&g_singleton->sonar_publisher_[frame_id],
                             &g_singleton->sonar_range_msg_, nullptr));
 }
 
@@ -85,26 +85,32 @@ void TMicroRos::setup() {
 
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
-  // rmw_uros_sync_session(1000);
+  rmw_uros_sync_session(1000);
   if (timer != NULL) {
-    // uint32_t error = TRoboClaw::singleton().getError();
-    const size_t MAXSIZE = 512;
-    char stats[MAXSIZE];
-    TModule::GetStatistics(stats, MAXSIZE);
+    // const size_t MAXSIZE = 512;
+    // char stats[MAXSIZE];
+    // TModule::GetStatistics(stats, MAXSIZE);
     // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-    //          "{\"C\":{\"Logi\":%-2.1f,\"Motr\":%-2.1f,\"EncL\":%-ld,\"EncR\":"
-    //          "%-ld,\"Er\":%-lX},\"P\":%-s}",
+    //         "{\"Stats\": %s}", stats);
+    // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+    // ignore_result(
+    //     rcl_publish(&g_singleton->teensy_stats_publisher_,
+    //     &g_singleton->msg_, nullptr));
+
+    // uint32_t error = TRoboClaw::singleton().getError();
+    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+    //          "{\"LogicVoltage\":%-2.1f,\"MotorVoltage\":%-2.1f,\"Encoder_Left\":%-ld,\"Encoder_Right\":"
+    //          "%-ld,\"Errror\":%-lX}",
     //          0.0,//TRoboClaw::singleton().getBatteryLogic(),
     //          0.0,//TRoboClaw::singleton().getBatteryMain(),
     //          0,//TRoboClaw::singleton().getM1Encoder(),
     //          0,//TRoboClaw::singleton().getM2Encoder(),
-    //           0,//error,
-    //           stats);
-    snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "{\"Stats\": %s}", stats);
-    g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
-    ignore_result(
-        rcl_publish(&g_singleton->publisher_, &g_singleton->msg_, nullptr));
+    //           0//error
+    //           );
+    // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+    // ignore_result(
+    //     rcl_publish(&g_singleton->roboclaw_status_publisher_,
+    //     &g_singleton->msg_, nullptr));
   }
 }
 
@@ -176,18 +182,27 @@ bool TMicroRos::create_entities() {
   RCCHECK(rclc_node_init_default(&node_, "teensy_node", "", &support_));
 
   // create publishers.
-  RCCHECK(rclc_publisher_init_best_effort(
-      &publisher_, &node_, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "teensy_stats"));
+  // RCCHECK(rclc_publisher_init_best_effort(
+  //     &roboclaw_status_publisher_, &node_,
+  //     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+  //     "roboclaw_status"));
 
   RCCHECK(rclc_publisher_init_best_effort(
-      &sonar_publisher_, &node_,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), "sonarSensor"));
+      &teensy_stats_publisher_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "teensy_stats"));
+
+  for (size_t i = 0; i < 4; i++) {
+    char topic_name[16];
+    sprintf(topic_name, "sonar%-1dSensor", i);
+    RCCHECK(rclc_publisher_init_best_effort(
+        &sonar_publisher_[i], &node_,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
+  }
 
   for (size_t i = 0; i < 8; i++) {
     char topic_name[16];
     sprintf(topic_name, "tof%-1dSensor", i);
-    RCCHECK(rclc_publisher_init_best_effort(
+    RCCHECK(rclc_publisher_init_default(
         &tof_publisher_[i], &node_,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
   }
@@ -217,8 +232,11 @@ void TMicroRos::destroy_entities() {
   ignore_result(
       rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0));
 
-  ignore_result(rcl_publisher_fini(&publisher_, &node_));
-  ignore_result(rcl_publisher_fini(&sonar_publisher_, &node_));
+  // ignore_result(rcl_publisher_fini(&roboclaw_status_publisher_, &node_));
+  ignore_result(rcl_publisher_fini(&teensy_stats_publisher_, &node_));
+  for (size_t i = 0; i < 4; i++) {
+    ignore_result(rcl_publisher_fini(&sonar_publisher_[i], &node_));
+  }
   for (size_t i = 0; i < 8; i++) {
     ignore_result(rcl_publisher_fini(&tof_publisher_[i], &node_));
   }

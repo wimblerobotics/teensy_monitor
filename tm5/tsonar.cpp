@@ -31,7 +31,7 @@ void TSonar::commonInterruptHandler(uint8_t PIN, long& endTime, long& startTime,
 
       g_averageValueM[SONAR_INDEX] = (averageSum * 0.001) / NUMBER_READINGS_TO_AVERAGE;
 
-      TMicroRos::publishSonar(0, g_averageValueM[SONAR_INDEX]);
+      TMicroRos::publishSonar(SONAR_INDEX, g_averageValueM[SONAR_INDEX]);
       break;
   }
 }
