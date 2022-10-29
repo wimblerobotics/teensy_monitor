@@ -36,6 +36,14 @@ void TMicroRos::loop() {
   }
 }
 
+void TMicroRos::publishDiagnostic(const char *msg) {
+  snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity, "%s",
+           msg);
+  g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+  ignore_result(rcl_publish(&g_singleton->diagnostics_publisher_,
+                            &g_singleton->msg_, nullptr));
+}
+
 void TMicroRos::publishSonar(uint8_t frame_id, float range) {
   g_singleton->sonar_range_msg_.header.stamp.nanosec =
       (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
@@ -91,14 +99,14 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     char stats[MAXSIZE];
     TModule::GetStatistics(stats, MAXSIZE);
     snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-            "{\"Stats\": %s}", stats);
+             "{\"Stats\": %s}", stats);
     g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
-    ignore_result(
-        rcl_publish(&g_singleton->teensy_stats_publisher_,
-        &g_singleton->msg_, nullptr));
+    ignore_result(rcl_publish(&g_singleton->teensy_stats_publisher_,
+                              &g_singleton->msg_, nullptr));
 
     // uint32_t error = TRoboClaw::singleton().getError();
-    // snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
+    // snprintf(g_singleton->msg_.data.data,
+    // g_singleton->msg_.data.capacity,
     //          "{\"LogicVoltage\":%-2.1f,\"MotorVoltage\":%-2.1f,\"Encoder_Left\":%-ld,\"Encoder_Right\":"
     //          "%-ld,\"Errror\":%-lX}",
     //          0.0,//TRoboClaw::singleton().getBatteryLogic(),
@@ -186,6 +194,11 @@ bool TMicroRos::create_entities() {
   //     &roboclaw_status_publisher_, &node_,
   //     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
   //     "roboclaw_status"));
+
+  RCCHECK(rclc_publisher_init_best_effort(
+      &diagnostics_publisher_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+      "teensy_diagnostics"));
 
   RCCHECK(rclc_publisher_init_best_effort(
       &teensy_stats_publisher_, &node_,

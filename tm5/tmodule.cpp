@@ -2,6 +2,9 @@
 
 #include <Arduino.h>
 #include <stdint.h>
+
+#include "tmicro_ros.h"
+
 #define DO_TIMING true
 
 TModule::TModule(TModule::MODULE moduleKind) {
@@ -55,6 +58,12 @@ void TModule::DoLoop() {
     if (all_modules_[i] != nullptr) {
       TModule* module = all_modules_[i];
       uint32_t start = micros();
+      // char diagnostic[128];
+      // snprintf(diagnostic, sizeof(diagnostic), "info TModule::DoLoop name: %s",
+      //          all_modules_[i]->name());
+      // TMicroRos::singleton().publishDiagnostic(diagnostic);
+
+
       all_modules_[i]->loop();
 
       float duration = ((micros() * 1.0) - start) / 1000.0;

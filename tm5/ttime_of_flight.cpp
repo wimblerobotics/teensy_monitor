@@ -8,7 +8,19 @@
 #include "tmicro_ros.h"
 
 int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
+  char diagnostic[128];
   if (device >= kNumberTimeOfFlightDevices) {
+    snprintf(diagnostic, sizeof(diagnostic),
+             "ERROR TTimeOfFlight::GetValueMm out of range device: %d", device);
+    TMicroRos::singleton().publishDiagnostic(diagnostic);
+    return -1;
+  }
+
+  if (g_sensor_[device] == nullptr) {
+    snprintf(diagnostic, sizeof(diagnostic),
+             "ERROR TTimeOfFlight::GetValueMm DEVICE NOT INITIALIZD device: %d",
+             device);
+    TMicroRos::singleton().publishDiagnostic(diagnostic);
     return -1;
   }
 
@@ -39,8 +51,9 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
       }
 
       // Post the new result.
-      //g_cached_value_mm_[device] = averageSum / kNumberReadingsToAverage;
-      TMicroRos::publishTof((uint8_t)device, g_cached_value_mm_[device] * 0.001);
+      // g_cached_value_mm_[device] = averageSum / kNumberReadingsToAverage;
+      TMicroRos::publishTof((uint8_t)device,
+                            g_cached_value_mm_[device] * 0.001);
     }
   }
 
@@ -85,17 +98,24 @@ void TTimeOfFlight::SelectTimeOfFlightSensor(TimeOfFlightEnum device) {
 
 void TTimeOfFlight::setup() {
   uint8_t numberSensorsFound = 0;
-  for (uint8_t i = 0; i < kNumberTimeOfFlightDevices; i++) {
-    SelectTimeOfFlightSensor(static_cast<TimeOfFlightEnum>(i));
+  for (uint8_t device = 0; device < kNumberTimeOfFlightDevices; device++) {
+    SelectTimeOfFlightSensor(static_cast<TimeOfFlightEnum>(device));
     VL53L0X *sensor = new VL53L0X();
     sensor->setTimeout(500);
+    char diagnostic[128];
     if (sensor->init()) {
-      g_sensor_[i] = sensor;
+      g_sensor_[device] = sensor;
       numberSensorsFound++;
       sensor->setMeasurementTimingBudget(kTimingBudgetMs * 1000);
       sensor->startContinuous();
+      snprintf(diagnostic, sizeof(diagnostic),
+               "info TTimeOfFlight::setup success device: %d", device);
+      TMicroRos::singleton().publishDiagnostic(diagnostic);
     } else {
-      g_sensor_[i] = nullptr;
+      snprintf(diagnostic, sizeof(diagnostic),
+               "ERROR TTimeOfFlight::setup FAIL device: %d", device);
+      TMicroRos::singleton().publishDiagnostic(diagnostic);
+      g_sensor_[device] = nullptr;
     }
   }
 }

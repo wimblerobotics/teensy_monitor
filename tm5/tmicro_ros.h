@@ -15,6 +15,8 @@
 
 class TMicroRos : TModule {
  public:
+  static void publishDiagnostic(const char* msg);
+
   // Called by SONAR sensor handler to publish a reading.
   static void publishSonar(uint8_t frame_id, float range);
 
@@ -52,13 +54,14 @@ class TMicroRos : TModule {
   // Micro-ROS variables
   rcl_allocator_t allocator_;
   rcl_subscription_t cmd_vel_subscriber_;
+  rcl_publisher_t diagnostics_publisher_;
   rclc_executor_t executor_;
   bool micro_ros_init_successful_;
   std_msgs__msg__String msg_;
   rcl_node_t node_;
   rcl_publisher_t roboclaw_status_publisher_;
-  rcl_publisher_t teensy_stats_publisher_;
   rclc_support_t support_;
+  rcl_publisher_t teensy_stats_publisher_;
   rcl_timer_t timer_;
   rcl_publisher_t sonar_publisher_[4];
   rcl_publisher_t tof_publisher_[8];
