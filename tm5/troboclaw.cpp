@@ -4,6 +4,8 @@
 
 #include "Arduino.h"
 #include "RoboClaw.h"
+#include "tmicro_ros.h"
+#include "trelay.h"
 
 #define HWSERIAL Serial6
 
@@ -73,9 +75,7 @@ void TRoboClaw::getEncoderM2() {
   }
 }
 
-uint32_t TRoboClaw::getError() {
-  return g_roboclaw.ReadError(DEVICE_ADDRESS);
-}
+uint32_t TRoboClaw::getError() { return g_roboclaw.ReadError(DEVICE_ADDRESS); }
 
 void TRoboClaw::getLogicBattery() {
   bool valid;
@@ -182,6 +182,16 @@ void TRoboClaw::setM2PID(float p, float i, float d, uint32_t qpps) {
 }
 
 void TRoboClaw::loop() {
+  static const float kEncoderCountFaultThresholdPerSecond = 1900.0;
+  static const uint32_t kMaxAllowedConsecutiveEncoderFaults = uint32_t(
+      1566.0 * 0.1);  // Pulses/meter * max-allowed-fault-distance-in-meters.
+  static uint32_t last_m1_encoder_time_ms = millis();
+  static uint32_t last_m2_encoder_time_ms = millis();
+  static int32_t last_m1_encoder_value = g_encoder_m1;
+  static int32_t last_m2_encoder_value = g_encoder_m2;
+  static uint32_t consecutive_m1_encoder_faults = 0;
+  static uint32_t consecutive_m1_loops = 0;
+  static uint32_t consecutive_m2_encoder_faults = 0;
   switch (g_state) {
     case VERSION:
       getVersion();
@@ -195,9 +205,43 @@ void TRoboClaw::loop() {
       getSpeedM2();
       break;
 
-    case ENCODER_M1:
+    case ENCODER_M1: {
       getEncoderM1();
-      break;
+      uint32_t now_ms = millis();
+      float duration = ((now_ms * 1.0) - last_m1_encoder_time_ms) / 1000.0;
+      float encoder_diff_per_second =
+          abs(g_encoder_m1 - last_m1_encoder_value) / duration;
+      if (encoder_diff_per_second > kEncoderCountFaultThresholdPerSecond) {
+        consecutive_m1_loops += 1;
+        consecutive_m1_encoder_faults +=
+            abs(g_encoder_m1 - last_m1_encoder_value);
+        if (consecutive_m1_encoder_faults >
+            kMaxAllowedConsecutiveEncoderFaults) {
+          TRelay::singleton().powerOn(TRelay::MOTOR_ESTOP);
+          char msg[512];
+          snprintf(
+              msg, sizeof(msg),
+              "ERROR TRoboClaw::Loop RUNAWAY M1 duration: %-2.3f, last "
+              "encoder: %ld, current encoder: %ld, diff: %ld, "
+              "encoder_diff_per_second: %-2.3f "
+              "consecutive_m1_encoder_faults: %ld, consecutive_m1_loops: %ld",
+              duration, last_m1_encoder_value, g_encoder_m1,
+              abs(g_encoder_m1 - last_m1_encoder_value),
+              encoder_diff_per_second, consecutive_m1_encoder_faults,
+              consecutive_m1_loops);
+          TMicroRos::singleton().publishDiagnostic(msg);
+          consecutive_m1_encoder_faults = 0;
+          consecutive_m1_loops = 0;
+        }
+      } else {
+        consecutive_m1_encoder_faults = 0;
+        consecutive_m1_loops = 0;
+        TRelay::singleton().powerOff(TRelay::MOTOR_ESTOP);  // ###
+      }
+
+      last_m1_encoder_value = g_encoder_m1;
+      last_m1_encoder_time_ms = now_ms;
+    } break;
 
     case ENCODER_M2:
       getEncoderM2();
@@ -235,7 +279,11 @@ void TRoboClaw::reconnect() {
   g_speed_m2 = 0;
 }
 
-void TRoboClaw::setup() { reconnect(); }
+void TRoboClaw::setup() {
+  reconnect();
+  getEncoderM1();
+  getEncoderM2();
+}
 
 TRoboClaw::TRoboClaw()
     : TModule(TModule::kROBOCLAW),

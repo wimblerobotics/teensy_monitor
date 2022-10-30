@@ -38,11 +38,12 @@ void TMicroRos::loop() {
 }
 
 void TMicroRos::publishDiagnostic(const char *msg) {
-  snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity, "%s",
-           msg);
-  g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+  snprintf(g_singleton->string_msg_.data.data,
+           g_singleton->string_msg_.data.capacity, "%s", msg);
+  g_singleton->string_msg_.data.size =
+      strlen(g_singleton->string_msg_.data.data);
   ignore_result(rcl_publish(&g_singleton->diagnostics_publisher_,
-                            &g_singleton->msg_, nullptr));
+                            &g_singleton->string_msg_, nullptr));
 }
 
 void TMicroRos::publishSonar(uint8_t frame_id, float range) {
@@ -75,7 +76,8 @@ void TMicroRos::publishTemperature(const char *frame_id, float temperature) {
            frame_id);
   g_singleton->temperature_msg_.temperature = temperature;
   g_singleton->temperature_msg_.variance = 0;
-  ignore_result(rcl_publish(&g_singleton->temperature_publisher_, &g_singleton->temperature_msg_, nullptr));
+  ignore_result(rcl_publish(&g_singleton->temperature_publisher_,
+                            &g_singleton->temperature_msg_, nullptr));
 }
 
 void TMicroRos::publishTof(uint8_t frame_id, float range) {
@@ -112,27 +114,30 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     const size_t MAXSIZE = 512;
     char stats[MAXSIZE];
     TModule::GetStatistics(stats, MAXSIZE);
-    snprintf(g_singleton->msg_.data.data, g_singleton->msg_.data.capacity,
-             "{\"Stats\": %s}", stats);
-    g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
+    snprintf(g_singleton->string_msg_.data.data,
+             g_singleton->string_msg_.data.capacity, "{\"Stats\": %s}", stats);
+    g_singleton->string_msg_.data.size =
+        strlen(g_singleton->string_msg_.data.data);
     ignore_result(rcl_publish(&g_singleton->teensy_stats_publisher_,
-                              &g_singleton->msg_, nullptr));
+                              &g_singleton->string_msg_, nullptr));
 
-    // uint32_t error = TRoboClaw::singleton().getError();
-    // snprintf(g_singleton->msg_.data.data,
-    // g_singleton->msg_.data.capacity,
-    //          "{\"LogicVoltage\":%-2.1f,\"MotorVoltage\":%-2.1f,\"Encoder_Left\":%-ld,\"Encoder_Right\":"
-    //          "%-ld,\"Errror\":%-lX}",
-    //          0.0,//TRoboClaw::singleton().getBatteryLogic(),
-    //          0.0,//TRoboClaw::singleton().getBatteryMain(),
-    //          0,//TRoboClaw::singleton().getM1Encoder(),
-    //          0,//TRoboClaw::singleton().getM2Encoder(),
-    //           0//error
-    //           );
-    // g_singleton->msg_.data.size = strlen(g_singleton->msg_.data.data);
-    // ignore_result(
-    //     rcl_publish(&g_singleton->roboclaw_status_publisher_,
-    //     &g_singleton->msg_, nullptr));
+    uint32_t error = TRoboClaw::singleton().getError();
+    snprintf(g_singleton->string_msg_.data.data,
+             g_singleton->string_msg_.data.capacity,
+             "{\"LogicVoltage\":%-2.1f,\"MotorVoltage\":%-2.1f,\"Encoder_"
+             "Left\":%-ld,\"Encoder_Right\":"
+             "%-ld,\"LeftMotorCurrent\":%-2.1f,\"RightMotorCurrent\":%-2.1f,"
+             "\"Errror\":%-lX}",
+             TRoboClaw::singleton().getBatteryLogic(),
+             TRoboClaw::singleton().getBatteryMain(),
+             TRoboClaw::singleton().getM1Encoder(),
+             TRoboClaw::singleton().getM2Encoder(),
+             TRoboClaw::singleton().getM1Current(),
+             TRoboClaw::singleton().getM2Current(), error);
+    g_singleton->string_msg_.data.size =
+        strlen(g_singleton->string_msg_.data.data);
+    ignore_result(rcl_publish(&g_singleton->roboclaw_status_publisher_,
+                              &g_singleton->string_msg_, nullptr));
   }
 }
 
@@ -181,17 +186,21 @@ TMicroRos::TMicroRos()
       quad_pulses_per_meter_(1566),
       wheel_radius_(0.10169),
       wheel_separation_(0.345) {
-  msg_.data.capacity = 512;
-  msg_.data.data = (char *)malloc(msg_.data.capacity * sizeof(char));
-  msg_.data.size = 0;
+  string_msg_.data.capacity = 512;
+  string_msg_.data.data =
+      (char *)malloc(string_msg_.data.capacity * sizeof(char));
+  string_msg_.data.size = 0;
+
   sonar_range_msg_.header.frame_id.capacity = 32;
   sonar_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
   sonar_range_msg_.header.frame_id.size = 0;
+
   temperature_msg_.header.frame_id.capacity = 32;
   temperature_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
   temperature_msg_.header.frame_id.size = 0;
+
   tof_range_msg_.header.frame_id.capacity = 32;
   tof_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
@@ -208,10 +217,9 @@ bool TMicroRos::create_entities() {
   RCCHECK(rclc_node_init_default(&node_, "teensy_node", "", &support_));
 
   // create publishers.
-  // RCCHECK(rclc_publisher_init_best_effort(
-  //     &roboclaw_status_publisher_, &node_,
-  //     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-  //     "roboclaw_status"));
+  RCCHECK(rclc_publisher_init_best_effort(
+      &roboclaw_status_publisher_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "roboclaw_status"));
 
   RCCHECK(rclc_publisher_init_best_effort(
       &diagnostics_publisher_, &node_,
