@@ -36,9 +36,13 @@ class TTemperature : TModule {
   TTemperature();
 
   // Last temperature sensor readings.
-  static int16_t g_left_motor_temperature_tenthsC;
-  static int16_t g_right_motor_temperature_tenthsC;
+  static int16_t g_left_motor_temperature_tenthsC_;
+  static int16_t g_right_motor_temperature_tenthsC_;
+
+  static const uint8_t kNumberReadingsToAverage = 50;
+  static float g_averages_[2][kNumberReadingsToAverage];
+  static size_t g_next_average_index_;
 
   // Singleton instance.
-  static TTemperature* g_singleton;
+  static TTemperature* g_singleton_;
 };
