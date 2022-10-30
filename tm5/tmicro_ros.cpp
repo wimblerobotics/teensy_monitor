@@ -8,6 +8,7 @@
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/range.h>
+#include <sensor_msgs/msg/temperature.h>
 #include <stdio.h>
 
 #include "trelay.h"
@@ -62,6 +63,19 @@ void TMicroRos::publishSonar(uint8_t frame_id, float range) {
   g_singleton->sonar_range_msg_.range = range;
   ignore_result(rcl_publish(&g_singleton->sonar_publisher_[frame_id],
                             &g_singleton->sonar_range_msg_, nullptr));
+}
+
+void TMicroRos::publishTemperature(const char *frame_id, float temperature) {
+  g_singleton->temperature_msg_.header.stamp.nanosec =
+      (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
+  g_singleton->temperature_msg_.header.stamp.sec =
+      (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
+  snprintf(g_singleton->temperature_msg_.header.frame_id.data,
+           g_singleton->temperature_msg_.header.frame_id.capacity, "%s",
+           frame_id);
+  g_singleton->temperature_msg_.temperature = temperature;
+  g_singleton->temperature_msg_.variance = 0;
+  ignore_result(rcl_publish(&g_singleton->temperature_publisher_, &g_singleton->temperature_msg_, nullptr));
 }
 
 void TMicroRos::publishTof(uint8_t frame_id, float range) {
@@ -174,6 +188,10 @@ TMicroRos::TMicroRos()
   sonar_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
   sonar_range_msg_.header.frame_id.size = 0;
+  temperature_msg_.header.frame_id.capacity = 32;
+  temperature_msg_.header.frame_id.data =
+      (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
+  temperature_msg_.header.frame_id.size = 0;
   tof_range_msg_.header.frame_id.capacity = 32;
   tof_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
@@ -211,6 +229,11 @@ bool TMicroRos::create_entities() {
         &sonar_publisher_[i], &node_,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
   }
+
+  RCCHECK(rclc_publisher_init_best_effort(
+      &temperature_publisher_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
+      "temperature"));
 
   for (size_t i = 0; i < 8; i++) {
     char topic_name[16];
@@ -250,9 +273,12 @@ void TMicroRos::destroy_entities() {
   for (size_t i = 0; i < 4; i++) {
     ignore_result(rcl_publisher_fini(&sonar_publisher_[i], &node_));
   }
+
+  ignore_result(rcl_publisher_fini(&temperature_publisher_, &node_));
   for (size_t i = 0; i < 8; i++) {
     ignore_result(rcl_publisher_fini(&tof_publisher_[i], &node_));
   }
+
   ignore_result(rcl_timer_fini(&timer_));
   ignore_result(rclc_executor_fini(&executor_));
   ignore_result(rcl_node_fini(&node_));

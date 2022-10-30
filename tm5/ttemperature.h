@@ -36,8 +36,8 @@ class TTemperature : TModule {
   TTemperature();
 
   // Last temperature sensor readings.
-  static int16_t g_analog0Value;
-  static int16_t g_analog1Value;
+  static int16_t g_left_motor_temperature_tenthsC;
+  static int16_t g_right_motor_temperature_tenthsC;
 
   // Singleton instance.
   static TTemperature* g_singleton;

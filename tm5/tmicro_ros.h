@@ -9,6 +9,7 @@
 #include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/range.h>
 #include <std_msgs/msg/string.h>
+#include <sensor_msgs/msg/temperature.h>
 #include <stdio.h>
 
 #include "tmodule.h"
@@ -19,6 +20,9 @@ class TMicroRos : TModule {
 
   // Called by SONAR sensor handler to publish a reading.
   static void publishSonar(uint8_t frame_id, float range);
+
+  // Called by SONAR sensor handler to publish a reading.
+  static void publishTemperature(const char* frame_id, float temperature);
 
   // Called by Time of Flight sensor handler to publish a reading.
   static void publishTof(uint8_t frame_id, float range);
@@ -64,10 +68,12 @@ class TMicroRos : TModule {
   rcl_publisher_t teensy_stats_publisher_;
   rcl_timer_t timer_;
   rcl_publisher_t sonar_publisher_[4];
+  rcl_publisher_t temperature_publisher_;
   rcl_publisher_t tof_publisher_[8];
 
   // ROS messages, allocated once.
   sensor_msgs__msg__Range sonar_range_msg_;
+  sensor_msgs__msg__Temperature temperature_msg_;
   sensor_msgs__msg__Range tof_range_msg_;
   geometry_msgs__msg__Twist twist_msg_;
 
