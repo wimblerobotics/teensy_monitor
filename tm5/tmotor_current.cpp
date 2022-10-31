@@ -2,6 +2,7 @@
 #include <Adafruit_INA260.h>
 
 #include "tmotor_current.h"
+#include "tmicro_ros.h"
 
 TMotorCurrent::TMotorCurrent() : TModule(TModule::kMOTOR_CURRENT) {
   for (int8_t i = 0; i < AVERAGE_COUNT; i++) {
@@ -20,6 +21,9 @@ int TMotorCurrent::getValueMa(MOTOR index) {
 void TMotorCurrent::loop() {
   if (g_haveLeftMotorSensor) {
     g_leftMotorCurrentMaReadings[g_nextMotorCurrentIndex] = g_leftINA260.readCurrent();
+    char msg[512];
+    snprintf(msg, sizeof(msg), "LCurrent: %-2.3f", g_leftMotorCurrentMaReadings[g_nextMotorCurrentIndex]);
+    TMicroRos::singleton().publishDiagnostic(msg);
   } else {
     g_leftMotorCurrentMaReadings[g_nextMotorCurrentIndex] = 0;
   }
@@ -51,11 +55,11 @@ void TMotorCurrent::setup() {
   g_haveLeftMotorSensor = g_leftINA260.begin(LEFT_MOTOR__ADDRESS);
   g_haveRightMotorSensor = g_rightINA260.begin(RIGHT_MOTOR_ADDRESS);
   if (!g_haveLeftMotorSensor) {
-    Serial.println("No left motor current sensor");
+    TMicroRos::singleton().publishDiagnostic("ERROR TMotorCurrent::setup no left motor current sensor");
   }
 
   if (!g_haveRightMotorSensor) {
-    Serial.println("No right motor current sensor");
+    TMicroRos::singleton().publishDiagnostic("ERROR TMotorCurrent::setup no right motor current sensor");
   }
 }
 

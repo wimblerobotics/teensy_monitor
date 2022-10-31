@@ -46,7 +46,8 @@ void TRoboClaw::getCurrents() {
   int16_t currentM2;
   bool valid = g_roboclaw.ReadCurrents(DEVICE_ADDRESS, currentM1, currentM2);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getCurrents] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getCurrents] fail");
     reconnect();
     g_state = VERSION;
   } else {
@@ -61,7 +62,8 @@ void TRoboClaw::getEncoderM1() {
   uint8_t status;
   int32_t value = g_roboclaw.ReadEncM1(DEVICE_ADDRESS, &status, &valid);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getEncoderM1] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getEncoderM1] fail");
     reconnect();
     g_state = VERSION;
   } else {
@@ -75,7 +77,8 @@ void TRoboClaw::getEncoderM2() {
   uint8_t status;
   int32_t value = g_roboclaw.ReadEncM2(DEVICE_ADDRESS, &status, &valid);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getEncoderM2] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getEncoderM2] fail");
     reconnect();
     g_state = VERSION;
   } else {
@@ -91,7 +94,8 @@ void TRoboClaw::getLogicBattery() {
   int16_t voltage;
   voltage = g_roboclaw.ReadLogicBatteryVoltage(DEVICE_ADDRESS, &valid);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getLogicBattery] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getLogicBattery] fail");
     reconnect();
     g_state = VERSION;
   } else {
@@ -117,7 +121,8 @@ void TRoboClaw::getMainBattery() {
   int16_t voltage;
   voltage = g_roboclaw.ReadMainBatteryVoltage(DEVICE_ADDRESS, &valid);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getMainBattery] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getMainBattery] fail");
     reconnect();
     g_state = VERSION;
   } else {
@@ -131,7 +136,8 @@ void TRoboClaw::getSpeedM1() {
   uint8_t status;
   uint32_t speed = g_roboclaw.ReadSpeedM1(DEVICE_ADDRESS, &status, &valid);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getSpeedM1] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getSpeedM1] fail");
     reconnect();
     g_speed_m1 = std::numeric_limits<uint32_t>::min();
     g_state = VERSION;
@@ -146,7 +152,8 @@ void TRoboClaw::getSpeedM2() {
   uint8_t status;
   int32_t speed = g_roboclaw.ReadSpeedM2(DEVICE_ADDRESS, &status, &valid);
   if (!valid) {
-    // Serial.print("[TRoboClaw::getSpeed2] fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getSpeed2] fail");
     reconnect();
     g_speed_m2 = std::numeric_limits<uint32_t>::min();
     g_state = VERSION;
@@ -161,19 +168,23 @@ void TRoboClaw::getVersion() {
   version[0] = '\0';
 
   if (g_roboclaw.ReadVersion(DEVICE_ADDRESS, version)) {
+    char msg[512];
     if (strcmp(version, DEVICE_VERSION) != 0) {
-      // Serial.print("[TRoboClaw::getVersion] version mismatch, found: '");
-      // Serial.print(version);
-      // Serial.println("'");
+      snprintf(msg, sizeof(msg),
+               "ERROR [TRoboClaw::getVersion] version mismatch, found: '%s'",
+               version);
+      TMicroRos::singleton().publishDiagnostic(msg);
       reconnect();
     } else {
-      // Serial.print("[TRoboClaw::getVersion] version match: '");
-      // Serial.print(version);
-      // Serial.println("'");
+      snprintf(msg, sizeof(msg),
+               "info [TRoboClaw::getVersion] version match, found: '%s'",
+               version);
+      TMicroRos::singleton().publishDiagnostic(msg);
       g_state = SPEED_M1;
     }
   } else {
-    // Serial.println("[TRoboClaw::getVersion fail");
+    TMicroRos::singleton().publishDiagnostic(
+        "ERROR [TRoboClaw::getVersion fail");
     reconnect();
     g_state = VERSION;
   }
