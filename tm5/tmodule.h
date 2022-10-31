@@ -33,9 +33,9 @@ class TModule {
   // A list of all possible modules.
   // Used only to definitely define NUMBER_MODULES.
   typedef enum MODULE {
+    kMICRO_ROS, // Make this the first module as it is used for diagnostic reporting.
     kALARM,
     kALERT,
-    kMICRO_ROS,
     kMOTOR_CURRENT,
     kPANEL_SELECTOR,
     kRELAY,

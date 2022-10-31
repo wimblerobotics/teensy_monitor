@@ -151,11 +151,18 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
 }
 
 void TMicroRos::setup() {
-  set_microros_transports();
-  state_ = kWaitingAgent;
+  static bool is_setup = false;
+  if (!is_setup) {
+    set_microros_transports();
+    state_ = kWaitingAgent;
+    while (state_ != kAgentConnected) {
+      loop();
+    }
 
-  TRoboClaw::singleton().setM1PID(7.26239, 1.36838, 00, 2437);
-  TRoboClaw::singleton().setM2PID(7.26239, 1.36838, 00, 2437);
+    TRoboClaw::singleton().setM1PID(7.26239, 1.36838, 00, 2437);
+    TRoboClaw::singleton().setM2PID(7.26239, 1.36838, 00, 2437);
+    is_setup = true;
+  }
 }
 
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {

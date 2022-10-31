@@ -97,24 +97,28 @@ void TTimeOfFlight::SelectTimeOfFlightSensor(TimeOfFlightEnum device) {
 }
 
 void TTimeOfFlight::setup() {
-  uint8_t numberSensorsFound = 0;
+  char msg[128];
   for (uint8_t device = 0; device < kNumberTimeOfFlightDevices; device++) {
-    SelectTimeOfFlightSensor(static_cast<TimeOfFlightEnum>(device));
-    VL53L0X *sensor = new VL53L0X();
-    sensor->setTimeout(500);
-    char diagnostic[128];
-    if (sensor->init()) {
-      g_sensor_[device] = sensor;
-      numberSensorsFound++;
-      sensor->setMeasurementTimingBudget(kTimingBudgetMs * 1000);
-      sensor->startContinuous();
-      snprintf(diagnostic, sizeof(diagnostic),
-               "info TTimeOfFlight::setup success device: %d", device);
-      TMicroRos::singleton().publishDiagnostic(diagnostic);
-    } else {
-      snprintf(diagnostic, sizeof(diagnostic),
-               "ERROR TTimeOfFlight::setup FAIL device: %d", device);
-      TMicroRos::singleton().publishDiagnostic(diagnostic);
+    int retry_count = 0;
+    bool success = false;
+    while (!success && (++retry_count <= 4)) {
+      SelectTimeOfFlightSensor(static_cast<TimeOfFlightEnum>(device));
+      VL53L0X *sensor = new VL53L0X();
+      sensor->setTimeout(500);
+      if (sensor->init()) {
+        g_sensor_[device] = sensor;
+        sensor->setMeasurementTimingBudget(kTimingBudgetMs * 1000);
+        sensor->startContinuous();
+        snprintf(msg, sizeof(msg),
+                 "info TTimeOfFlight::setup success device: %d", device);
+        TMicroRos::singleton().publishDiagnostic(msg);
+        success = true;
+      }
+    }
+    if (!success) {
+      snprintf(msg, sizeof(msg), "ERROR TTimeOfFlight::setup FAIL device: %d",
+               device);
+      TMicroRos::singleton().publishDiagnostic(msg);
       g_sensor_[device] = nullptr;
     }
   }
@@ -126,6 +130,7 @@ TTimeOfFlight::TTimeOfFlight() : TModule(TModule::kTIME_OF_FLIGHT) {
 
   for (size_t i = 0; i < kNumberTimeOfFlightDevices; i++) {
     g_cached_value_mm_[i] = -1;
+    g_sensor_[i] = nullptr;
   }
 
   for (size_t i = 0; i < kNumberTimeOfFlightDevices; i++) {
