@@ -105,6 +105,9 @@ void TMicroRos::publishTof(uint8_t frame_id, float range) {
 void TMicroRos::setup() {
   set_microros_transports();
   create_entities();
+
+  TRoboClaw::singleton().setM1PID(7.26239, 1.36838, 00, 2437);
+  TRoboClaw::singleton().setM2PID(7.26239, 1.36838, 00, 2437);
 }
 
 void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
@@ -124,16 +127,19 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     uint32_t error = TRoboClaw::singleton().getError();
     snprintf(g_singleton->string_msg_.data.data,
              g_singleton->string_msg_.data.capacity,
-             "{\"LogicVoltage\":%-2.1f,\"MotorVoltage\":%-2.1f,\"Encoder_"
+             "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
              "Left\":%-ld,\"Encoder_Right\":"
-             "%-ld,\"LeftMotorCurrent\":%-2.1f,\"RightMotorCurrent\":%-2.1f,"
+             "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
+             "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
              "\"Errror\":%-lX}",
              TRoboClaw::singleton().getBatteryLogic(),
              TRoboClaw::singleton().getBatteryMain(),
              TRoboClaw::singleton().getM1Encoder(),
              TRoboClaw::singleton().getM2Encoder(),
              TRoboClaw::singleton().getM1Current(),
-             TRoboClaw::singleton().getM2Current(), error);
+             TRoboClaw::singleton().getM2Current(),
+             TRoboClaw::singleton().getM1Speed(),
+             TRoboClaw::singleton().getM2Speed(), error);
     g_singleton->string_msg_.data.size =
         strlen(g_singleton->string_msg_.data.data);
     ignore_result(rcl_publish(&g_singleton->roboclaw_status_publisher_,

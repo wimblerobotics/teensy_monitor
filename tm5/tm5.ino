@@ -19,7 +19,7 @@
 TAlarm& alarm = TAlarm::singleton();
 // TAlert& alert = TAlert::singleton();
 TMicroRos& microRos = TMicroRos::singleton();
-TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
+//####TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 // TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();

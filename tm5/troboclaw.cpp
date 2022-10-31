@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include <limits>
+
 #include "Arduino.h"
 #include "RoboClaw.h"
 #include "tmicro_ros.h"
@@ -98,13 +100,13 @@ void TRoboClaw::getLogicBattery() {
   }
 }
 
-float TRoboClaw::getM1Current() { return g_current_m1 / 1000.0; }
+float TRoboClaw::getM1Current() { return g_current_m1 / 100.0; }
 
 int32_t TRoboClaw::getM1Encoder() { return g_encoder_m1; }
 
 int32_t TRoboClaw::getM1Speed() { return g_speed_m1; }
 
-float TRoboClaw::getM2Current() { return g_current_m2 / 1000.0; }
+float TRoboClaw::getM2Current() { return g_current_m2 / 100.0; }
 
 int32_t TRoboClaw::getM2Encoder() { return g_encoder_m2; }
 
@@ -131,6 +133,7 @@ void TRoboClaw::getSpeedM1() {
   if (!valid) {
     // Serial.print("[TRoboClaw::getSpeedM1] fail");
     reconnect();
+    g_speed_m1 = std::numeric_limits<uint32_t>::min();
     g_state = VERSION;
   } else {
     g_speed_m1 = speed;
@@ -145,6 +148,7 @@ void TRoboClaw::getSpeedM2() {
   if (!valid) {
     // Serial.print("[TRoboClaw::getSpeed2] fail");
     reconnect();
+    g_speed_m2 = std::numeric_limits<uint32_t>::min();
     g_state = VERSION;
   } else {
     g_speed_m2 = speed;
