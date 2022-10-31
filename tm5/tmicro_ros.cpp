@@ -48,7 +48,7 @@ void TMicroRos::loop() {
 
     case kAgentConnected: {
       static int64_t last_time = uxr_millis();
-      if ((uxr_millis() - last_time) > 500) {
+      if ((uxr_millis() - last_time) > 10) {
         state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1))
                      ? kAgentConnected
                      : kAgentDisconnected;
