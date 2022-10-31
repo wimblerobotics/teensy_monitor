@@ -23,6 +23,13 @@ void TRoboClaw::doMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
                                       uint32_t m1_max_distance,
                                       int32_t m2_quad_pulses_per_second,
                                       uint32_t m2_max_distance) {
+  char msg[512];
+  snprintf(msg, sizeof(msg),
+           "accel_qpps: %ld, m1_qpps: %ld, m1_max_dist: %ld, m2_qpps: %ld, "
+           "m2_max_dist: %ld",
+           accel_quad_pulses_per_second, m1_quad_pulses_per_second,
+           m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
+  TMicroRos::singleton().publishDiagnostic(msg);
   g_roboclaw.SpeedAccelDistanceM1M2(
       DEVICE_ADDRESS, accel_quad_pulses_per_second, m1_quad_pulses_per_second,
       m1_max_distance, m2_quad_pulses_per_second, m2_max_distance, 1);
@@ -181,17 +188,103 @@ void TRoboClaw::setM2PID(float p, float i, float d, uint32_t qpps) {
   g_roboclaw.SetM2VelocityPID(DEVICE_ADDRESS, p, i, d, qpps);
 }
 
-void TRoboClaw::loop() {
+void TRoboClaw::checkForRunaway(TRoboClaw::WhichMotor whichMotor) {
   static const float kEncoderCountFaultThresholdPerSecond = 1900.0;
   static const uint32_t kMaxAllowedConsecutiveEncoderFaults = uint32_t(
-      1566.0 * 0.1);  // Pulses/meter * max-allowed-fault-distance-in-meters.
-  static uint32_t last_m1_encoder_time_ms = millis();
-  static uint32_t last_m2_encoder_time_ms = millis();
-  static int32_t last_m1_encoder_value = g_encoder_m1;
-  static int32_t last_m2_encoder_value = g_encoder_m2;
-  static uint32_t consecutive_m1_encoder_faults = 0;
-  static uint32_t consecutive_m1_loops = 0;
-  static uint32_t consecutive_m2_encoder_faults = 0;
+      1566.0 * 0.1);  // Pulses/meter * <max-allowed-fault-distance-in-meters>.
+  static uint32_t last_checked_m1_encoder_time_ms = millis();
+  static uint32_t last_checked_m2_encoder_time_ms = millis();
+
+  static int32_t last_checked_m1_encoder_value = g_encoder_m1;
+  static int32_t last_checked_m2_encoder_value = g_encoder_m2;
+
+  static uint32_t accumulated_m1_encoder_diffs = 0;
+  static uint32_t accumulated_m2_encoder_diffs = 0;
+
+  static bool is_setup = false;
+
+  float duration_since_last_runaway_check_for_encoder = 0;
+  float encoder_diff_per_second = 0;
+  bool runaway_fault = false;
+
+  const char* motor_name;
+
+  if (!is_setup) {
+    last_checked_m1_encoder_value = g_encoder_m1;
+    last_checked_m2_encoder_value = g_encoder_m2;
+    is_setup = true;
+  }
+
+  uint32_t now_ms = millis();
+  switch (whichMotor) {
+    case kLEFT_MOTOR:
+      duration_since_last_runaway_check_for_encoder =
+          ((now_ms * 1.0) - last_checked_m1_encoder_time_ms) / 1000.0;
+      encoder_diff_per_second =
+          abs(g_encoder_m1 - last_checked_m1_encoder_value) /
+          duration_since_last_runaway_check_for_encoder;
+      motor_name = "M1";
+      break;
+    case kRIGHT_MOTOR:
+      duration_since_last_runaway_check_for_encoder =
+          ((now_ms * 1.0) - last_checked_m2_encoder_time_ms) / 1000.0;
+      encoder_diff_per_second =
+          abs(g_encoder_m2 - last_checked_m2_encoder_value) /
+          duration_since_last_runaway_check_for_encoder;
+      motor_name = "M2";
+      break;
+  }
+
+  if (encoder_diff_per_second > kEncoderCountFaultThresholdPerSecond) {
+    // The encodeers are spinning too fast.
+    // A fault is triggered only if the robot travels at least a certain
+    // distance at this high speed.
+    if (whichMotor == kLEFT_MOTOR) {
+      accumulated_m1_encoder_diffs +=
+          abs(g_encoder_m1 - last_checked_m1_encoder_value);
+      runaway_fault =
+          accumulated_m1_encoder_diffs > kMaxAllowedConsecutiveEncoderFaults;
+    } else {
+      accumulated_m2_encoder_diffs +=
+          abs(g_encoder_m2 - last_checked_m2_encoder_value);
+      runaway_fault =
+          accumulated_m2_encoder_diffs > kMaxAllowedConsecutiveEncoderFaults;
+    }
+
+    if (runaway_fault) {
+      TRelay::singleton().powerOn(TRelay::MOTOR_ESTOP);  // E-stop the motors.
+      char msg[512];
+      snprintf(msg, sizeof(msg),
+               "ERROR TRoboClaw::Loop RUNAWAY for motor: %s, "
+               "duration_since_last_runaway_check_for_encoder: %-2.3f",
+               motor_name, duration_since_last_runaway_check_for_encoder);
+      TMicroRos::singleton().publishDiagnostic(msg);
+      if (whichMotor == kLEFT_MOTOR) {
+        accumulated_m1_encoder_diffs = 0;
+      } else {
+        accumulated_m2_encoder_diffs = 0;
+      }
+    }
+  } else {
+    // The motors are not spinning too fast now.
+    if (whichMotor == kLEFT_MOTOR) {
+      accumulated_m1_encoder_diffs = 0;
+    } else {
+      accumulated_m2_encoder_diffs = 0;
+    }
+    // TRelay::singleton().powerOff(TRelay::MOTOR_ESTOP);  // ###
+  }
+
+  if (whichMotor == kLEFT_MOTOR) {
+    last_checked_m1_encoder_value = g_encoder_m1;
+    last_checked_m1_encoder_time_ms = now_ms;
+  } else {
+    last_checked_m2_encoder_value = g_encoder_m2;
+    last_checked_m2_encoder_time_ms = now_ms;
+  }
+}
+
+void TRoboClaw::loop() {
   switch (g_state) {
     case VERSION:
       getVersion();
@@ -205,46 +298,14 @@ void TRoboClaw::loop() {
       getSpeedM2();
       break;
 
-    case ENCODER_M1: {
+    case ENCODER_M1:
       getEncoderM1();
-      uint32_t now_ms = millis();
-      float duration = ((now_ms * 1.0) - last_m1_encoder_time_ms) / 1000.0;
-      float encoder_diff_per_second =
-          abs(g_encoder_m1 - last_m1_encoder_value) / duration;
-      if (encoder_diff_per_second > kEncoderCountFaultThresholdPerSecond) {
-        consecutive_m1_loops += 1;
-        consecutive_m1_encoder_faults +=
-            abs(g_encoder_m1 - last_m1_encoder_value);
-        if (consecutive_m1_encoder_faults >
-            kMaxAllowedConsecutiveEncoderFaults) {
-          TRelay::singleton().powerOn(TRelay::MOTOR_ESTOP);
-          char msg[512];
-          snprintf(
-              msg, sizeof(msg),
-              "ERROR TRoboClaw::Loop RUNAWAY M1 duration: %-2.3f, last "
-              "encoder: %ld, current encoder: %ld, diff: %ld, "
-              "encoder_diff_per_second: %-2.3f "
-              "consecutive_m1_encoder_faults: %ld, consecutive_m1_loops: %ld",
-              duration, last_m1_encoder_value, g_encoder_m1,
-              abs(g_encoder_m1 - last_m1_encoder_value),
-              encoder_diff_per_second, consecutive_m1_encoder_faults,
-              consecutive_m1_loops);
-          TMicroRos::singleton().publishDiagnostic(msg);
-          consecutive_m1_encoder_faults = 0;
-          consecutive_m1_loops = 0;
-        }
-      } else {
-        consecutive_m1_encoder_faults = 0;
-        consecutive_m1_loops = 0;
-        TRelay::singleton().powerOff(TRelay::MOTOR_ESTOP);  // ###
-      }
-
-      last_m1_encoder_value = g_encoder_m1;
-      last_m1_encoder_time_ms = now_ms;
-    } break;
+      checkForRunaway(kLEFT_MOTOR);
+      break;
 
     case ENCODER_M2:
       getEncoderM2();
+      checkForRunaway(kRIGHT_MOTOR);
       break;
 
     case CURRENTS:

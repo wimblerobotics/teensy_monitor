@@ -95,12 +95,20 @@ class TRoboClaw : TModule {
   void setup();
 
  private:
+  enum WhichMotor {
+    kLEFT_MOTOR,
+    kRIGHT_MOTOR
+  };
+
   static const int DEVICE_ADDRESS = 0x80;
 
   static const char* DEVICE_VERSION;
 
   // Private constructor.
   TRoboClaw();
+
+  // Check for runaway condition and shutdown motors.
+  void checkForRunaway(WhichMotor whichMotor);
 
   // Get current for motor 1 and 2;
   void getCurrents();

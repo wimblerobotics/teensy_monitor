@@ -19,7 +19,7 @@ class TRelay : TModule {
     INTEL_RESET,
     MOTOR_POWER,
     NVIDIA_POWER,
-    NVIDIA_RESET,
+    UNUSED,
     MOTOR_ESTOP,
     NUMBER_DEVICES  // Number of relays on the board
   } TRelayDevice;
@@ -51,10 +51,10 @@ class TRelay : TModule {
   typedef enum {
     INTEL_ON_OFF_PIN = 0,
     INTEL_RESET_PIN = 1,
-    MOTOR_ON_OFF_PIN = 5,  //###
+    MOTOR_ON_OFF_PIN = 2,
     NVIDIA_ON_OFF_PIN = 3,
-    NVIDIA_RESET_PIN = 4,
-    MOTOR_ESTOP_PIN = 2  //#####
+    UNUSED_PIN = 4,
+    MOTOR_ESTOP_PIN = 5
   } TPinNumbers;
 
   // How long (in milliseconds) to trip the relay to simulate a reset push.

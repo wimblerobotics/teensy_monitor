@@ -16,12 +16,6 @@ void TRelay::loop() {
     digitalWrite(INTEL_RESET_PIN, LOW);
     g_deviceSetTimeMs[INTEL_RESET] = 0;
   }
-
-  if (g_deviceSetTimeMs[NVIDIA_RESET] &&
-      (now > (g_deviceSetTimeMs[NVIDIA_RESET] + RESET_DURATION_MS))) {
-    digitalWrite(NVIDIA_RESET_PIN, LOW);
-    g_deviceSetTimeMs[NVIDIA_RESET] = 0;
-  }
 }
 
 void TRelay::powerOff(TRelay::TRelayDevice device) {
@@ -41,10 +35,6 @@ void TRelay::powerOff(TRelay::TRelayDevice device) {
 
     case NVIDIA_POWER:
       digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
-      break;
-
-    case NVIDIA_RESET:
-      digitalWrite(NVIDIA_RESET_PIN, LOW);
       break;
 
     case MOTOR_ESTOP:
@@ -78,10 +68,6 @@ void TRelay::powerOn(TRelay::TRelayDevice device) {
       digitalWrite(NVIDIA_ON_OFF_PIN, HIGH);
       break;
 
-    case NVIDIA_RESET:
-      digitalWrite(NVIDIA_RESET_PIN, HIGH);
-      break;
-
     case MOTOR_ESTOP:
       digitalWrite(MOTOR_ESTOP_PIN, HIGH);
       break;
@@ -109,10 +95,6 @@ void TRelay::setup() {
   pinMode(NVIDIA_ON_OFF_PIN, OUTPUT);
   digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
   g_deviceSetTimeMs[NVIDIA_POWER] = millis();
-
-  pinMode(NVIDIA_RESET_PIN, OUTPUT);
-  digitalWrite(NVIDIA_RESET_PIN, LOW);
-  g_deviceSetTimeMs[NVIDIA_RESET] = 0;
 
   pinMode(MOTOR_ESTOP_PIN, OUTPUT);
   digitalWrite(MOTOR_ESTOP_PIN, LOW);
