@@ -41,6 +41,13 @@ class TMicroRos : TModule {
   void setup();
 
  private:
+  enum State {
+    kWaitingAgent,
+    kAgentAvailable,
+    kAgentConnected,
+    kAgentDisconnected
+  } state_;
+  
   // Private constructor.
   TMicroRos();
 
