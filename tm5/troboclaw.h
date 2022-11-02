@@ -110,6 +110,9 @@ class TRoboClaw : TModule {
   // Check for runaway condition and shutdown motors.
   void checkForRunaway(WhichMotor whichMotor);
 
+  // Check for motor stall.
+  void checkForMotorStall();
+
   // Get current for motor 1 and 2;
   void getCurrents();
 
@@ -138,8 +141,8 @@ class TRoboClaw : TModule {
   void reconnect();
 
   // Motor currents.
-  int16_t g_current_m1;
-  int16_t g_current_m2;
+  int16_t g_current_m1_10ma_;
+  int16_t g_current_m2_10ma_;
 
   // Motor encoders.
   int32_t g_encoder_m1;

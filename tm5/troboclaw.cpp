@@ -11,6 +11,42 @@
 
 #define HWSERIAL Serial6
 
+void TRoboClaw::checkForMotorStall() {
+  static const float kStallCurrentThreshold = 10.0;  // Stall current (AMPS).
+  static const uint32_t kMaxAllowedConsecutiveStallFaults = 5;
+
+  static uint32_t consecutiveStallFaultsLeftMotor = 0;
+  static uint32_t consecutiveStallFaultsRightMotor = 0;
+
+  if (abs(getM1Current()) > kStallCurrentThreshold) {
+    consecutiveStallFaultsLeftMotor += 1;
+  } else {
+    consecutiveStallFaultsLeftMotor = 0;
+  }
+
+  if (abs(getM2Current()) > kStallCurrentThreshold) {
+    consecutiveStallFaultsRightMotor += 1;
+  } else {
+    consecutiveStallFaultsRightMotor = 0;
+  }
+
+  bool left_motor_stalled =
+      consecutiveStallFaultsLeftMotor > kMaxAllowedConsecutiveStallFaults;
+  bool right_motor_stalled =
+      consecutiveStallFaultsRightMotor > kMaxAllowedConsecutiveStallFaults;
+  if (left_motor_stalled || right_motor_stalled) {
+    if (left_motor_stalled) {
+      TMicroRos::singleton().publishDiagnostic(
+          "ERROR TRoboClaw::Loop STALL for M1 (left) motor");
+    } else {
+      TMicroRos::singleton().publishDiagnostic(
+          "ERROR TRoboClaw::Loop STALL for M2 (right) motor");
+    }
+
+    TRelay::singleton().powerOn(TRelay::MOTOR_ESTOP);  // E-stop the motors.
+  }
+}
+
 void TRoboClaw::doMixedSpeedDist(int32_t m1_quad_pulses_per_second,
                                  int32_t m1_max_distance,
                                  int32_t m2_quad_pulses_per_second,
@@ -51,8 +87,8 @@ void TRoboClaw::getCurrents() {
     reconnect();
     g_state = VERSION;
   } else {
-    g_current_m1 = currentM1;
-    g_current_m2 = currentM2;
+    g_current_m1_10ma_ = currentM1;
+    g_current_m2_10ma_ = currentM2;
     g_state = LOGIC_BATTERY;
   }
 }
@@ -104,13 +140,13 @@ void TRoboClaw::getLogicBattery() {
   }
 }
 
-float TRoboClaw::getM1Current() { return g_current_m1 / 100.0; }
+float TRoboClaw::getM1Current() { return g_current_m1_10ma_ / 100.0; }
 
 int32_t TRoboClaw::getM1Encoder() { return g_encoder_m1; }
 
 int32_t TRoboClaw::getM1Speed() { return g_speed_m1; }
 
-float TRoboClaw::getM2Current() { return g_current_m2 / 100.0; }
+float TRoboClaw::getM2Current() { return g_current_m2_10ma_ / 100.0; }
 
 int32_t TRoboClaw::getM2Encoder() { return g_encoder_m2; }
 
@@ -329,6 +365,7 @@ void TRoboClaw::loop() {
 
     case CURRENTS:
       getCurrents();
+      checkForMotorStall();
       break;
 
     case LOGIC_BATTERY:
@@ -346,8 +383,8 @@ void TRoboClaw::loop() {
 }
 
 void TRoboClaw::reconnect() {
-  g_current_m1 = 0;
-  g_current_m2 = 0;
+  g_current_m1_10ma_ = 0;
+  g_current_m2_10ma_ = 0;
   g_encoder_m1 = 0;
   g_encoder_m2 = 0;
   g_logic_battery = 0;
@@ -367,8 +404,8 @@ void TRoboClaw::setup() {
 
 TRoboClaw::TRoboClaw()
     : TModule(TModule::kROBOCLAW),
-      g_current_m1(0),
-      g_current_m2(0),
+      g_current_m1_10ma_(0),
+      g_current_m2_10ma_(0),
       g_encoder_m1(0),
       g_encoder_m2(0),
       g_logic_battery(0),
