@@ -164,10 +164,11 @@ void TRoboClaw::getSpeedM2() {
 }
 
 void TRoboClaw::getVersion() {
-  char version[32];
+  static char version[32];
   version[0] = '\0';
+  static bool version_matched = false;
 
-  if (g_roboclaw.ReadVersion(DEVICE_ADDRESS, version)) {
+  if (!version_matched && g_roboclaw.ReadVersion(DEVICE_ADDRESS, version)) {
     char msg[512];
     if (strcmp(version, DEVICE_VERSION) != 0) {
       snprintf(msg, sizeof(msg),
@@ -181,12 +182,15 @@ void TRoboClaw::getVersion() {
                version);
       TMicroRos::singleton().publishDiagnostic(msg);
       g_state = SPEED_M1;
+      version_matched = true;
     }
-  } else {
+  } else if (!version_matched) {
     TMicroRos::singleton().publishDiagnostic(
         "ERROR [TRoboClaw::getVersion fail");
     reconnect();
     g_state = VERSION;
+  } else {
+    g_state = SPEED_M1;
   }
 }
 
