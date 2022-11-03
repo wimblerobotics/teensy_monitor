@@ -41,7 +41,7 @@ class TPanelSelector : TModule {
   static TPanel g_selectedPanel;
 
   // Singleton instance.
-  static TPanelSelector* g_singleton;
+  static TPanelSelector* g_singleton_;
 
   // Touchscreen display device.
   static TControlDisplay& g_tc;

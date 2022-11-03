@@ -7,13 +7,13 @@
 class TTemperature : TModule {
  public:
   // Which temperature sensor.
-  typedef enum TEMPERATURE {
-    LEFT,
-    RIGHT,
-    NUMBER_TEMPERATURES  // Number of temperature sensors.
-  } TEMPERATURE;
+  typedef enum Temperature {
+    kLeft,
+    kRight,
+    kNumberTemperatures  // Number of temperature sensors.
+  } Temperature;
 
-  int16_t getValueTenthsC(TEMPERATURE device);
+  int16_t GetValueTenthsC(Temperature device);
 
   // Singleton constructor.
   static TTemperature& singleton();
@@ -30,7 +30,7 @@ class TTemperature : TModule {
 
  private:
   // GPIO addresses of temperature sensors.
-  enum { ANALOG_0_PIN = 26, ANALOG_1_PIN = 27 };
+  enum { kAnalog0Pin = 26, kAnalog1Pin = 27 };
 
   // Private constructor.
   TTemperature();
@@ -39,8 +39,8 @@ class TTemperature : TModule {
   static int16_t g_left_motor_temperature_tenthsC_;
   static int16_t g_right_motor_temperature_tenthsC_;
 
-  static const uint8_t kNumberReadingsToAverage = 50;
-  static float g_averages_[2][kNumberReadingsToAverage];
+  static const uint8_t kNumberReadingsToAverage_ = 50;
+  static float g_averages_[2][kNumberReadingsToAverage_];
   static size_t g_next_average_index_;
 
   // Singleton instance.

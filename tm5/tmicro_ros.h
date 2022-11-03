@@ -8,24 +8,24 @@
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/range.h>
-#include <std_msgs/msg/string.h>
 #include <sensor_msgs/msg/temperature.h>
+#include <std_msgs/msg/string.h>
 #include <stdio.h>
 
 #include "tmodule.h"
 
 class TMicroRos : TModule {
  public:
-  static void publishDiagnostic(const char* msg);
+  static void PublishDiagnostic(const char* msg);
 
   // Called by SONAR sensor handler to publish a reading.
-  static void publishSonar(uint8_t frame_id, float range);
+  static void PublishSonar(uint8_t frame_id, float range);
 
   // Called by SONAR sensor handler to publish a reading.
-  static void publishTemperature(const char* frame_id, float temperature);
+  static void PublishTemperature(const char* frame_id, float temperature);
 
   // Called by Time of Flight sensor handler to publish a reading.
-  static void publishTof(uint8_t frame_id, float range);
+  static void PublishTof(uint8_t frame_id, float range);
 
   // Singleton constructor.
   static TMicroRos& singleton();
@@ -47,20 +47,19 @@ class TMicroRos : TModule {
     kAgentConnected,
     kAgentDisconnected
   } state_;
-  
+
   // Private constructor.
   TMicroRos();
 
-  bool create_entities();
+  bool CreateEntities();
 
-  void destroy_entities();
-
+  void DestroyEntities();
 
   // Regular maintenance, publish stats, etc.
-  static void timer_callback(rcl_timer_t* timer, int64_t last_call_time);
+  static void TimerCallback(rcl_timer_t* timer, int64_t last_call_time);
 
   // Handler for cmd_vel messages.
-  static void twist_callback(const void* msg);
+  static void TwistCallback(const void* msg);
 
   // Micro-ROS variables
   rcl_allocator_t allocator_;
@@ -96,5 +95,5 @@ class TMicroRos : TModule {
   double wheel_separation_;
 
   // Singleton instance.
-  static TMicroRos* g_singleton;
+  static TMicroRos* g_singleton_;
 };

@@ -33,7 +33,7 @@ class TProximityPanel {
 
   static uint32_t g_lastDisplayUpdateTime;
 
-  static TProximityPanel* g_singleton;
+  static TProximityPanel* g_singleton_;
 
   static TControlDisplay& g_tc;
 
@@ -69,7 +69,7 @@ class TProximityPanel {
       SONAR_SECOND_LINE_Y + TEXT_SIZE_3_HEIGHT;
   static const uint16_t SONAR_FOURTH_LINE_Y =
       SONAR_THIRD_LINE_Y + TEXT_SIZE_3_HEIGHT;
-  static const int SONAR_BOX_POSITIONS[TSonar::NUMBER_SONARS][2];
+  static const int SONAR_BOX_POSITIONS[TSonar::kNumberSonars][2];
 
   static const uint16_t MOTOR_SECOND_LINE_Y =
       SONAR_FOURTH_LINE_Y + (TEXT_SIZE_3_HEIGHT * 2) + BORDER_PAD - 4;
@@ -81,6 +81,6 @@ class TProximityPanel {
       TEMP_TITLE_Y + TEXT_SIZE_3_HEIGHT;
   static const uint16_t TEMP_THIRD_LINE_Y =
       TEMP_SECOND_LINE_Y + TEXT_SIZE_3_HEIGHT;
-  static const int TEMP_BOX_POSITIONS[TTemperature::NUMBER_TEMPERATURES][2];
+  static const int TEMP_BOX_POSITIONS[TTemperature::kNumberTemperatures][2];
 
 };

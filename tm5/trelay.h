@@ -15,23 +15,23 @@ class TRelay : TModule {
  public:
   // The purpose of each relay (in order on the board)
   typedef enum {
-    INTEL_POWER,
-    INTEL_RESET,
-    MOTOR_POWER,
-    NVIDIA_POWER,
-    UNUSED,
-    MOTOR_ESTOP,
-    NUMBER_DEVICES  // Number of relays on the board
+    kUnused0,
+    kUnused1,
+    kUnused2,
+    kUnused3,
+    kUnused4,
+    kMotorEStop,
+    kNumberDevices  // Number of relays on the board
   } TRelayDevice;
 
   // Is in the power-on state?
-  bool isPoweredOn(TRelayDevice device);
+  bool IsPoweredOn(TRelayDevice device);
 
   // Power the relay on.
-  void powerOff(TRelayDevice device);
+  void PowerOff(TRelayDevice device);
 
   // Power the relay off.
-  void powerOn(TRelayDevice device);
+  void PowerOn(TRelayDevice device);
 
   // Singleton constructor.
   static TRelay& singleton();
@@ -49,16 +49,16 @@ class TRelay : TModule {
  private:
   // GPIO pins to control the relays.
   typedef enum {
-    INTEL_ON_OFF_PIN = 0,
-    INTEL_RESET_PIN = 1,
-    MOTOR_ON_OFF_PIN = 2,
-    NVIDIA_ON_OFF_PIN = 3,
-    UNUSED_PIN = 4,
-    MOTOR_ESTOP_PIN = 5
+    kUnused0Pin = 0,
+    kUnused1Pin = 1,
+    kUnused2Pin = 2,
+    kUnused3Pin = 3,
+    kUnused4Pin = 4,
+    kMotorEStopPin = 5
   } TPinNumbers;
 
   // How long (in milliseconds) to trip the relay to simulate a reset push.
-  static const uint32_t RESET_DURATION_MS = 1000;
+  static const uint32_t kResetDurationMs = 1000;
 
   // Private constructor.
   TRelay();
@@ -66,8 +66,8 @@ class TRelay : TModule {
   // A non-zero value indicates the relay is powered-on.
   // Relays which are momentary switches will use the value here to
   // determine when to reset the relay.
-  static uint32_t g_deviceSetTimeMs[NUMBER_DEVICES];
+  static uint32_t g_device_set_time_ms_[kNumberDevices];
 
   // Singleton instance.
-  static TRelay* g_singleton;
+  static TRelay* g_singleton_;
 };

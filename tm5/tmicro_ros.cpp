@@ -38,11 +38,11 @@ void TMicroRos::loop() {
     } break;
 
     case kAgentAvailable:
-      if (create_entities()) {
+      if (CreateEntities()) {
         state_ = kAgentConnected;
       } else {
         state_ = kWaitingAgent;
-        destroy_entities();
+        DestroyEntities();
       }
       break;
 
@@ -60,7 +60,7 @@ void TMicroRos::loop() {
     } break;
 
     case kAgentDisconnected:
-      destroy_entities();
+      DestroyEntities();
       state_ = kWaitingAgent;
       break;
 
@@ -77,76 +77,76 @@ void TMicroRos::loop() {
   }
 }
 
-void TMicroRos::publishDiagnostic(const char *msg) {
+void TMicroRos::PublishDiagnostic(const char *msg) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    snprintf(g_singleton->string_msg_.data.data,
-             g_singleton->string_msg_.data.capacity, "%s", msg);
-    g_singleton->string_msg_.data.size =
-        strlen(g_singleton->string_msg_.data.data);
-    ignore_result(rcl_publish(&g_singleton->diagnostics_publisher_,
-                              &g_singleton->string_msg_, nullptr));
+    snprintf(g_singleton_->string_msg_.data.data,
+             g_singleton_->string_msg_.data.capacity, "%s", msg);
+    g_singleton_->string_msg_.data.size =
+        strlen(g_singleton_->string_msg_.data.data);
+    ignore_result(rcl_publish(&g_singleton_->diagnostics_publisher_,
+                              &g_singleton_->string_msg_, nullptr));
   }
 }
 
-void TMicroRos::publishSonar(uint8_t frame_id, float range) {
+void TMicroRos::PublishSonar(uint8_t frame_id, float range) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    g_singleton->sonar_range_msg_.header.stamp.nanosec =
+    g_singleton_->sonar_range_msg_.header.stamp.nanosec =
         (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
-    g_singleton->sonar_range_msg_.header.stamp.sec =
+    g_singleton_->sonar_range_msg_.header.stamp.sec =
         (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
 
-    snprintf(g_singleton->sonar_range_msg_.header.frame_id.data,
-             g_singleton->sonar_range_msg_.header.frame_id.capacity,
+    snprintf(g_singleton_->sonar_range_msg_.header.frame_id.data,
+             g_singleton_->sonar_range_msg_.header.frame_id.capacity,
              "sonar_%1d", frame_id);
-    g_singleton->sonar_range_msg_.header.frame_id.size =
-        strlen(g_singleton->sonar_range_msg_.header.frame_id.data);
-    g_singleton->sonar_range_msg_.radiation_type = 0;
-    g_singleton->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
-    g_singleton->sonar_range_msg_.max_range = 2.0;
-    g_singleton->sonar_range_msg_.min_range = 0.0254;
-    g_singleton->sonar_range_msg_.range = range;
-    ignore_result(rcl_publish(&g_singleton->sonar_publisher_[frame_id],
-                              &g_singleton->sonar_range_msg_, nullptr));
+    g_singleton_->sonar_range_msg_.header.frame_id.size =
+        strlen(g_singleton_->sonar_range_msg_.header.frame_id.data);
+    g_singleton_->sonar_range_msg_.radiation_type = 0;
+    g_singleton_->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
+    g_singleton_->sonar_range_msg_.max_range = 2.0;
+    g_singleton_->sonar_range_msg_.min_range = 0.0254;
+    g_singleton_->sonar_range_msg_.range = range;
+    ignore_result(rcl_publish(&g_singleton_->sonar_publisher_[frame_id],
+                              &g_singleton_->sonar_range_msg_, nullptr));
   }
 }
 
-void TMicroRos::publishTemperature(const char *frame_id, float temperature) {
+void TMicroRos::PublishTemperature(const char *frame_id, float temperature) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    g_singleton->temperature_msg_.header.stamp.nanosec =
+    g_singleton_->temperature_msg_.header.stamp.nanosec =
         (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
-    g_singleton->temperature_msg_.header.stamp.sec =
+    g_singleton_->temperature_msg_.header.stamp.sec =
         (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
-    snprintf(g_singleton->temperature_msg_.header.frame_id.data,
-             g_singleton->temperature_msg_.header.frame_id.capacity, "%s",
+    snprintf(g_singleton_->temperature_msg_.header.frame_id.data,
+             g_singleton_->temperature_msg_.header.frame_id.capacity, "%s",
              frame_id);
-    g_singleton->temperature_msg_.temperature = temperature;
-    g_singleton->temperature_msg_.variance = 0;
-    ignore_result(rcl_publish(&g_singleton->temperature_publisher_,
-                              &g_singleton->temperature_msg_, nullptr));
+    g_singleton_->temperature_msg_.temperature = temperature;
+    g_singleton_->temperature_msg_.variance = 0;
+    ignore_result(rcl_publish(&g_singleton_->temperature_publisher_,
+                              &g_singleton_->temperature_msg_, nullptr));
   }
 }
 
-void TMicroRos::publishTof(uint8_t frame_id, float range) {
+void TMicroRos::PublishTof(uint8_t frame_id, float range) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    g_singleton->tof_range_msg_.header.stamp.nanosec =
+    g_singleton_->tof_range_msg_.header.stamp.nanosec =
         (int32_t)(rmw_uros_epoch_nanos() % 1000000000);
-    g_singleton->tof_range_msg_.header.stamp.sec =
+    g_singleton_->tof_range_msg_.header.stamp.sec =
         (int32_t)(rmw_uros_epoch_nanos() / 1000000000);
 
-    snprintf(g_singleton->tof_range_msg_.header.frame_id.data,
-             g_singleton->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
+    snprintf(g_singleton_->tof_range_msg_.header.frame_id.data,
+             g_singleton_->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
              frame_id);
-    g_singleton->tof_range_msg_.header.frame_id.size =
-        strlen(g_singleton->tof_range_msg_.header.frame_id.data);
-    g_singleton->tof_range_msg_.radiation_type = 0;
-    g_singleton->tof_range_msg_.field_of_view = 0.436332;  // 25 degrees
-    g_singleton->tof_range_msg_.max_range = 2.0;
-    g_singleton->tof_range_msg_.min_range = 0.0254;
-    g_singleton->tof_range_msg_.radiation_type =
+    g_singleton_->tof_range_msg_.header.frame_id.size =
+        strlen(g_singleton_->tof_range_msg_.header.frame_id.data);
+    g_singleton_->tof_range_msg_.radiation_type = 0;
+    g_singleton_->tof_range_msg_.field_of_view = 0.436332;  // 25 degrees
+    g_singleton_->tof_range_msg_.max_range = 2.0;
+    g_singleton_->tof_range_msg_.min_range = 0.0254;
+    g_singleton_->tof_range_msg_.radiation_type =
         sensor_msgs__msg__Range__ULTRASOUND;
-    g_singleton->tof_range_msg_.range = range;
-    ignore_result(rcl_publish(&g_singleton->tof_publisher_[frame_id],
-                              &g_singleton->tof_range_msg_, nullptr));
+    g_singleton_->tof_range_msg_.range = range;
+    ignore_result(rcl_publish(&g_singleton_->tof_publisher_[frame_id],
+                              &g_singleton_->tof_range_msg_, nullptr));
   }
 }
 
@@ -159,13 +159,13 @@ void TMicroRos::setup() {
       loop();
     }
 
-    TRoboClaw::singleton().setM1PID(7.26239, 1.36838, 00, 2437);
-    TRoboClaw::singleton().setM2PID(7.26239, 1.36838, 00, 2437);
+    TRoboClaw::singleton().SetM1PID(7.26239, 1.36838, 00, 2437);
+    TRoboClaw::singleton().SetM2PID(7.26239, 1.36838, 00, 2437);
     is_setup = true;
   }
 }
 
-void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+void TMicroRos::TimerCallback(rcl_timer_t *timer, int64_t last_call_time) {
   (void)last_call_time;
   if (TMicroRos::singleton().state_ == kAgentConnected) {
     rmw_uros_sync_session(1000);
@@ -173,78 +173,78 @@ void TMicroRos::timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
       const size_t MAXSIZE = 512;
       char stats[MAXSIZE];
       TModule::GetStatistics(stats, MAXSIZE);
-      snprintf(g_singleton->string_msg_.data.data,
-               g_singleton->string_msg_.data.capacity, "{\"Stats\": %s}",
+      snprintf(g_singleton_->string_msg_.data.data,
+               g_singleton_->string_msg_.data.capacity, "{\"Stats\": %s}",
                stats);
-      g_singleton->string_msg_.data.size =
-          strlen(g_singleton->string_msg_.data.data);
-      ignore_result(rcl_publish(&g_singleton->teensy_stats_publisher_,
-                                &g_singleton->string_msg_, nullptr));
+      g_singleton_->string_msg_.data.size =
+          strlen(g_singleton_->string_msg_.data.data);
+      ignore_result(rcl_publish(&g_singleton_->teensy_stats_publisher_,
+                                &g_singleton_->string_msg_, nullptr));
 
       uint32_t error = TRoboClaw::singleton().getError();
-      snprintf(g_singleton->string_msg_.data.data,
-               g_singleton->string_msg_.data.capacity,
+      snprintf(g_singleton_->string_msg_.data.data,
+               g_singleton_->string_msg_.data.capacity,
                "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
                "Left\":%-ld,\"Encoder_Right\":"
                "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
                "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
                "\"Errror\":%-lX}",
-               TRoboClaw::singleton().getBatteryLogic(),
-               TRoboClaw::singleton().getBatteryMain(),
-               TRoboClaw::singleton().getM1Encoder(),
-               TRoboClaw::singleton().getM2Encoder(),
-               TRoboClaw::singleton().getM1Current(),
-               TRoboClaw::singleton().getM2Current(),
-               TRoboClaw::singleton().getM1Speed(),
-               TRoboClaw::singleton().getM2Speed(), error);
-      g_singleton->string_msg_.data.size =
-          strlen(g_singleton->string_msg_.data.data);
-      ignore_result(rcl_publish(&g_singleton->roboclaw_status_publisher_,
-                                &g_singleton->string_msg_, nullptr));
+               TRoboClaw::singleton().GetBatteryLogic(),
+               TRoboClaw::singleton().GetBatteryMain(),
+               TRoboClaw::singleton().GetM1Encoder(),
+               TRoboClaw::singleton().GetM2Encoder(),
+               TRoboClaw::singleton().GetM1Current(),
+               TRoboClaw::singleton().GetM2Current(),
+               TRoboClaw::singleton().GetM1Speed(),
+               TRoboClaw::singleton().GetM2Speed(), error);
+      g_singleton_->string_msg_.data.size =
+          strlen(g_singleton_->string_msg_.data.data);
+      ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
+                                &g_singleton_->string_msg_, nullptr));
     }
   }
 }
 
-void TMicroRos::twist_callback(const void *twist_msg) {
+void TMicroRos::TwistCallback(const void *twist_msg) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
     const geometry_msgs__msg__Twist *msg =
         (const geometry_msgs__msg__Twist *)twist_msg;
 
     double x_velocity =
-        min(max((float)msg->linear.x, -g_singleton->max_linear_velocity_),
-            g_singleton->max_linear_velocity_);
+        min(max((float)msg->linear.x, -g_singleton_->max_linear_velocity_),
+            g_singleton_->max_linear_velocity_);
     double yaw_velocity =
-        min(max((float)msg->angular.z, -g_singleton->max_angular_velocity_),
-            g_singleton->max_angular_velocity_);
+        min(max((float)msg->angular.z, -g_singleton_->max_angular_velocity_),
+            g_singleton_->max_angular_velocity_);
     if ((msg->linear.x == 0) && (msg->angular.z == 0)) {
-      TRoboClaw::singleton().doMixedSpeedDist(0, 0, 0, 0);
+      TRoboClaw::singleton().DoMixedSpeedDist(0, 0, 0, 0);
     } else if ((fabs(x_velocity) > 0.01) || (fabs(yaw_velocity) > 0.01)) {
       const double m1_desired_velocity =
-          x_velocity - (yaw_velocity * g_singleton->wheel_separation_ / 2.0) /
-                           g_singleton->wheel_radius_;
+          x_velocity - (yaw_velocity * g_singleton_->wheel_separation_ / 2.0) /
+                           g_singleton_->wheel_radius_;
       const double m2_desired_velocity =
-          x_velocity + (yaw_velocity * g_singleton->wheel_separation_ / 2.0) /
-                           g_singleton->wheel_radius_;
+          x_velocity + (yaw_velocity * g_singleton_->wheel_separation_ / 2.0) /
+                           g_singleton_->wheel_radius_;
 
       const int32_t m1_quad_pulses_per_second =
-          m1_desired_velocity * g_singleton->quad_pulses_per_meter_;
+          m1_desired_velocity * g_singleton_->quad_pulses_per_meter_;
       const int32_t m2_quad_pulses_per_second =
-          m2_desired_velocity * g_singleton->quad_pulses_per_meter_;
+          m2_desired_velocity * g_singleton_->quad_pulses_per_meter_;
       const int32_t m1_max_distance =
           fabs(m1_quad_pulses_per_second *
-               g_singleton->max_seconds_uncommanded_travel_);
+               g_singleton_->max_seconds_uncommanded_travel_);
       const int32_t m2_max_distance =
           fabs(m2_quad_pulses_per_second *
-               g_singleton->max_seconds_uncommanded_travel_);
-      TRoboClaw::singleton().doMixedSpeedAccelDist(
-          g_singleton->accel_quad_pulses_per_second_, m1_quad_pulses_per_second,
+               g_singleton_->max_seconds_uncommanded_travel_);
+      TRoboClaw::singleton().DoMixedSpeedAccelDist(
+          g_singleton_->accel_quad_pulses_per_second_, m1_quad_pulses_per_second,
           m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
     }
   }
 }
 
 TMicroRos::TMicroRos()
-    : TModule(TModule::kMICRO_ROS),
+    : TModule(TModule::kMicroRos),
       accel_quad_pulses_per_second_(1000),
       max_angular_velocity_(0.07),
       max_linear_velocity_(0.3),
@@ -273,7 +273,7 @@ TMicroRos::TMicroRos()
   tof_range_msg_.header.frame_id.size = 0;
 }
 
-bool TMicroRos::create_entities() {
+bool TMicroRos::CreateEntities() {
   allocator_ = rcl_get_default_allocator();
 
   // create init_options
@@ -325,19 +325,19 @@ bool TMicroRos::create_entities() {
   // Create timer,
   const unsigned int timer_timeout_ns = 1'000'000'000;
   RCCHECK(rclc_timer_init_default(&timer_, &support_, timer_timeout_ns,
-                                  timer_callback));
+                                  TimerCallback));
 
   // Create executor
   executor_ = rclc_executor_get_zero_initialized_executor();
   RCCHECK(rclc_executor_init(&executor_, &support_.context, 2, &allocator_));
   RCCHECK(rclc_executor_add_timer(&executor_, &timer_));
   RCCHECK(rclc_executor_add_subscription(&executor_, &cmd_vel_subscriber_,
-                                         &twist_msg_, &twist_callback,
+                                         &twist_msg_, &TwistCallback,
                                          ON_NEW_DATA));
   return true;
 }
 
-void TMicroRos::destroy_entities() {
+void TMicroRos::DestroyEntities() {
   rmw_context_t *rmw_context = rcl_context_get_rmw_context(&support_.context);
   ignore_result(
       rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0));
@@ -360,11 +360,11 @@ void TMicroRos::destroy_entities() {
 }
 
 TMicroRos &TMicroRos::singleton() {
-  if (!g_singleton) {
-    g_singleton = new TMicroRos();
+  if (!g_singleton_) {
+    g_singleton_ = new TMicroRos();
   }
 
-  return *g_singleton;
+  return *g_singleton_;
 }
 
-TMicroRos *TMicroRos::g_singleton = nullptr;
+TMicroRos *TMicroRos::g_singleton_ = nullptr;

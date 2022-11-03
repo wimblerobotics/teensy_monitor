@@ -32,19 +32,17 @@ class TModule {
  public:
   // A list of all possible modules.
   // Used only to definitely define NUMBER_MODULES.
-  typedef enum MODULE {
-    kMICRO_ROS, // Make this the first module as it is used for diagnostic reporting.
-    kALARM,
-    kALERT,
-    kMOTOR_CURRENT,
-    kPANEL_SELECTOR,
-    kRELAY,
-    kROBOCLAW,
-    kSONAR,
-    kTEMPERATURE,
-    kTIME_OF_FLIGHT,
+  typedef enum Module {
+    kMicroRos, // Make this the first module as it is used for diagnostic reporting.
+    kMotorCurrent,
+    kPanelSelector,
+    kRelay,
+    kRoboClaw,
+    kSonar,
+    kTemperature,
+    kTimeOfFlight,
     kNumberModules  // The number of all possible modules.
-  } MODULE;
+  } Module;
 
   // Call loop() for all registered modules.
   static void DoLoop();
@@ -55,7 +53,7 @@ class TModule {
   static void GetStatistics(char* outString, size_t outStringSize);
 
  protected:
-  TModule(MODULE moduleKind);
+  TModule(Module moduleKind);
 
   // Perform regular, cyclic work for the module.
   virtual void loop() = 0;
@@ -70,14 +68,14 @@ class TModule {
   TModule();
 
   // Define slots for gathering statistics for the module.
-  typedef enum SLOT {
+  typedef enum Slot {
     kMin,
     kMax,
     kSum,
     kNumberSlots,            // Number of slots to reserve for statistics.
     kNumberReadings = 1'000  // Number of statistical readings to gather before
                              // generating a summary report.
-  } SLOT;
+  } Slot;
 
   // Number of times DoLoop() was called.
   static uint32_t total_do_loop_count_;
@@ -86,11 +84,8 @@ class TModule {
   static TModule* all_modules_[];
 
   // Index to the next statistic reading for the module.
-  int loop_calls_between_get_statistics_calls;
+  int loop_calls_between_get_statistics_calls_;
 
   // Statistics gathered for all registered modules.
   float duration_stats_[kNumberSlots];
-
-  // // Singleton instance.
-  // static TModule* singleton_;
 };

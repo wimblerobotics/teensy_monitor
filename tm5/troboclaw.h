@@ -27,62 +27,62 @@
 
 class TRoboClaw : TModule {
  public:
-  void doMixedSpeedDist(int32_t m1_quad_pulses_per_second,
+  void DoMixedSpeedDist(int32_t m1_quad_pulses_per_second,
                         int32_t m1_max_distance,
                         int32_t m2_quad_pulses_per_second,
                         int32_t m2_max_distance);
 
-  void doMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
+  void DoMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
                              int32_t m1_quad_pulses_per_second,
                              uint32_t m1_max_distance,
                              int32_t m2_quad_pulses_per_second,
                              uint32_t m2_max_distance);
 
   // Get the logic battery voltage.
-  float getBatteryLogic();
+  float GetBatteryLogic();
 
   // Get the main battery voltage.
-  float getBatteryMain();
+  float GetBatteryMain();
 
   uint32_t getError();
 
   // Get the motor current (amps) for motor 1. This is
   // always a positive number.
-  float getM1Current();
+  float GetM1Current();
 
   // Get the encoder counts for motor 1.
-  int32_t getM1Encoder();
+  int32_t GetM1Encoder();
 
   // Get the speed of motor 1 in encoder pulses/second.
-  int32_t getM1Speed();
+  int32_t GetM1Speed();
 
   // Get the motor current (amps) for motor 2. This is
   // always a positive number.
-  float getM2Current();
+  float GetM2Current();
 
   // Get the encoder counts for motor 1.
-  int32_t getM2Encoder();
+  int32_t GetM2Encoder();
 
   // Get the speed of motor 2 in encoder pulses/second.
-  int32_t getM2Speed();
+  int32_t GetM2Speed();
 
-  void resetEncoders();
-  void setM1PID(float p, float i, float d, uint32_t qpps);
-  void setM2PID(float p, float i, float d, uint32_t qpps);
+  void ResetEncoders();
+  void SetM1PID(float p, float i, float d, uint32_t qpps);
+  void SetM2PID(float p, float i, float d, uint32_t qpps);
 
   // Singleton constructor.
   static TRoboClaw& singleton();
 
-  typedef enum TSTATE {
-    CURRENTS,
-    ENCODER_M1,
-    ENCODER_M2,
-    LOGIC_BATTERY,
-    MAIN_BATTERY,
-    SPEED_M1,
-    SPEED_M2,
-    VERSION
-  } TSTATE;
+  typedef enum State {
+    kCurrents,
+    kEncoderM1,
+    kEncoderM2,
+    kLogicBattery,
+    kMainBattery,
+    kSpeedM1,
+    kSpeedM2,
+    kVersion
+  } State;
 
  protected:
   // From TModule.
@@ -96,71 +96,71 @@ class TRoboClaw : TModule {
 
  private:
   enum WhichMotor {
-    kLEFT_MOTOR,
-    kRIGHT_MOTOR
+    kLeftMotor,
+    kRightMotor
   };
 
-  static const int DEVICE_ADDRESS = 0x80;
+  static const int kDeviceAddress = 0x80;
 
-  static const char* DEVICE_VERSION;
+  static const char* kDeviceVersion;
 
   // Private constructor.
   TRoboClaw();
 
   // Check for runaway condition and shutdown motors.
-  void checkForRunaway(WhichMotor whichMotor);
+  void CheckForRunaway(WhichMotor which_motor);
 
   // Check for motor stall.
-  void checkForMotorStall();
+  void CheckForMotorStall();
 
   // Get current for motor 1 and 2;
-  void getCurrents();
+  void GetCurrents();
 
   // Get encoder value for motor 1;
-  void getEncoderM1();
+  void GetEncoderM1();
 
   // Get encoder value for motor 2;
-  void getEncoderM2();
+  void GetEncoderM2();
 
   // Get logic battery voltage;
-  void getLogicBattery();
+  void GetLogicBattery();
 
   // Get main battery voltage;
-  void getMainBattery();
+  void GetMainBattery();
 
   // Get speed for motor 1;
-  void getSpeedM1();
+  void GetSpeedM1();
 
   // Get speed for motor 2;
-  void getSpeedM2();
+  void GetSpeedM2();
 
   // Get device version string;
-  void getVersion();
+  void GetVersion();
 
   // Reestablish connection to device.
-  void reconnect();
+  void Reconnect();
 
   // Motor currents.
   int16_t g_current_m1_10ma_;
   int16_t g_current_m2_10ma_;
 
   // Motor encoders.
-  int32_t g_encoder_m1;
-  int32_t g_encoder_m2;
+  int32_t g_encoder_m1_;
+  int32_t g_encoder_m2_;
 
   // Battery voltages;
-  int16_t g_logic_battery;
-  int16_t g_main_battery;
+  int16_t g_logic_battery_;
+  int16_t g_main_battery_;
 
-  static RoboClaw g_roboclaw;
+  static RoboClaw g_roboclaw_;
 
   // Singleton instance.
-  static TRoboClaw* g_singleton;
+  static TRoboClaw* g_singleton_;
 
   // Motor speeds.
-  int32_t g_speed_m1;
-  int32_t g_speed_m2;
+  int32_t g_speed_m1_;
+  int32_t g_speed_m2_;
 
   // State machine state.
-  static TSTATE g_state;
+  static State g_state_;
 };

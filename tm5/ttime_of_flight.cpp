@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include <stdint.h>
 
-#include "talert.h"
 #include "tmicro_ros.h"
 
 int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
@@ -12,15 +11,15 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
   if (device >= kNumberTimeOfFlightDevices) {
     snprintf(diagnostic, sizeof(diagnostic),
              "ERROR TTimeOfFlight::GetValueMm out of range device: %d", device);
-    TMicroRos::singleton().publishDiagnostic(diagnostic);
+    TMicroRos::singleton().PublishDiagnostic(diagnostic);
     return -1;
   }
 
   if (g_sensor_[device] == nullptr) {
     snprintf(diagnostic, sizeof(diagnostic),
-             "ERROR TTimeOfFlight::GetValueMm DEVICE NOT INITIALIZD device: %d",
+             "ERROR TTimeOfFlight::GetValueMm DEVICE NOT INITIALIZED device: %d",
              device);
-    TMicroRos::singleton().publishDiagnostic(diagnostic);
+    TMicroRos::singleton().PublishDiagnostic(diagnostic);
     return -1;
   }
 
@@ -52,7 +51,7 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
 
       // Post the new result.
       // g_cached_value_mm_[device] = averageSum / kNumberReadingsToAverage;
-      TMicroRos::publishTof((uint8_t)device,
+      TMicroRos::PublishTof((uint8_t)device,
                             g_cached_value_mm_[device] * 0.001);
     }
   }
@@ -65,27 +64,12 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
 }
 
 void TTimeOfFlight::loop() {
-  // static const TAlert::TAlertSource map[] = {
-  //     TAlert::TOF_UPPER_LEFT_FORWARD,  TAlert::TOF_UPPER_RIGHT_FORWARD,
-  //     TAlert::TOF_UPPER_LEFT_SIDEWAY,  TAlert::TOF_UPPER_RIGHT_SIDEWAY,
-  //     TAlert::TOF_LOWER_LEFT_SIDEWAY,  TAlert::TOF_LOWER_RIGHT_SIDEWAY,
-  //     TAlert::TOF_LOWER_LEFT_BACKWARD, TAlert::TOF_LOWER_RIGHT_BACKWARD};
-
   static uint8_t next_sensor_to_read = 0;
 
   (void)GetValueMm(static_cast<TimeOfFlightEnum>(next_sensor_to_read++));
   if (next_sensor_to_read >= kNumberTimeOfFlightDevices) {
     next_sensor_to_read = 0;
   }
-  // for (uint8_t i = 0; i < NUMBER_TIME_OF_FLIGHT/2; i++) {
-  //   int mm = getValueMm(static_cast<TIMEOFFLIGHT>(i));
-  //   if (kDoStopMotorsOnCollisionThreat && (mm != -1) &&
-  //       (mm < kAlertDistanceMm)) {
-  //     // TAlert::singleton().set(map[i]);
-  //   } else {
-  //     // TAlert::singleton().reset(map[i]);
-  //   }
-  // }
 }
 
 void TTimeOfFlight::SelectTimeOfFlightSensor(TimeOfFlightEnum device) {
@@ -111,20 +95,20 @@ void TTimeOfFlight::setup() {
         sensor->startContinuous();
         snprintf(msg, sizeof(msg),
                  "info TTimeOfFlight::setup success device: %d", device);
-        TMicroRos::singleton().publishDiagnostic(msg);
+        TMicroRos::singleton().PublishDiagnostic(msg);
         success = true;
       }
     }
     if (!success) {
       snprintf(msg, sizeof(msg), "ERROR TTimeOfFlight::setup FAIL device: %d",
                device);
-      TMicroRos::singleton().publishDiagnostic(msg);
+      TMicroRos::singleton().PublishDiagnostic(msg);
       g_sensor_[device] = nullptr;
     }
   }
 }
 
-TTimeOfFlight::TTimeOfFlight() : TModule(TModule::kTIME_OF_FLIGHT) {
+TTimeOfFlight::TTimeOfFlight() : TModule(TModule::kTimeOfFlight) {
   pinMode(8, OUTPUT);
   digitalWrite(8, HIGH);
 

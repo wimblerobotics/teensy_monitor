@@ -8,19 +8,19 @@
 class TSonar : TModule {
  public:
   // Which SONAR sensor.
-  typedef enum SONAR {
-    FRONT,
-    RIGHT,
-    BACK,
-    LEFT,
-    NUMBER_SONARS  // Number of SONAR sensors.
-  } SONAR;
+  typedef enum Sonar {
+    kFront,
+    kRight,
+    kBack,
+    kLeft,
+    kNumberSonars  // Number of SONAR sensors.
+  } Sonar;
 
   // Get sensed range for device. A value of < 0 => no sensor 'device' detected
   // during setup.
-  int getValueMm(SONAR device);
+  int GetValueMm(Sonar device);
 
-  float getAverageValueM(SONAR device);
+  float GetAverageValueM(Sonar device);
 
   // Singleton constructor.
   static TSonar& singleton();
@@ -37,65 +37,59 @@ class TSonar : TModule {
 
  private:
   // Number of readings to average.
-  enum MISC_CONSTANTS { NUMBER_READINGS_TO_AVERAGE = 4 };
-
-  // Should motors be put in e-stop if collision is imminent?
-  static const bool doStopMotorsOnCollisionThreat = false;
+  enum MiscConstants { kNumberReadingsToAverage = 4 };
 
   // Private constructor.
   TSonar();
 
   // Common interrupt handler.
-  static void commonInterruptHandler(uint8_t PIN, long& endTime,
-                                     long& startTime, uint8_t& averageIndex,
-                                     size_t SONAR_INDEX);
+  static void CommonInterruptHandler(uint8_t pin, long& end_time,
+                                     long& start_time, uint8_t& average_index,
+                                     size_t sonar_index);
 
   // Interrupt handler for device echo..
-  static void echo0InterruptHandler();
-  static void echo1InterruptHandler();
-  static void echo2InterruptHandler();
-  static void echo3InterruptHandler();
-  static void timerInterruptHandler();
+  static void Echo0InterruptHandler();
+  static void Echo1InterruptHandler();
+  static void Echo2InterruptHandler();
+  static void Echo3InterruptHandler();
+  static void TimerInterruptHandler();
 
   // Next device being handled in the round-robin processing.
-  static uint8_t g_nextSensorIndex;
+  static uint8_t g_next_sensor_index_;
 
   // Singleton instance.
-  static TSonar* g_singleton;
+  static TSonar* g_singleton_;
 
   // Last captured sensed distance for each SONAR device.
-  static int g_valuesMm[NUMBER_SONARS];
+  static int g_values_mm_[kNumberSonars];
 
-  static int g_valuesMmHistory[NUMBER_SONARS][NUMBER_READINGS_TO_AVERAGE];
+  static int g_values_mm_history_[kNumberSonars][kNumberReadingsToAverage];
 
-  static float g_averageValueM[NUMBER_SONARS];
-
-  // Minimum detection distance before an alert is raised
-  static const int ALERT_DISTANCE_MM = 3 * 25.4;
+  static float g_average_value_m_[kNumberSonars];
 
   // GPIO pins for controlling the SONAR sensors.
   enum {
-    PIN_ECHO0 = 35,
-    PIN_TRIGGER0 = 34,
-    PIN_ECHO1 = 37,
-    PIN_TRIGGER1 = 36,
-    PIN_ECHO2 = 41,
-    PIN_TRIGGER2 = 40,
-    PIN_ECHO3 = 15,
-    PIN_TRIGGER3 = 14
+    kPinEcho0 = 35,
+    kPinTrigger0 = 34,
+    kPinEcho1 = 37,
+    kPinTrigger1 = 36,
+    kPinEcho2 = 41,
+    kPinTrigger2 = 40,
+    kPinEcho3 = 15,
+    kPinTrigger3 = 14
   };
 
   // Microseconds per timer interrupt.
-  static const uint16_t TIMER_PERIOD_USEC = 20;
+  static const uint16_t kTimerPeriodUSec = 20;
 
   // Desired milliseconds to wait between a low pulse and the next high pulse.
-  static const uint16_t TIMER_SAMPLING_PERIOD_MSEC = 10;
+  static const uint16_t kTimerSamplingPeriodMSec = 10;
 
   // Timer interrupts to expire before a low pulse to high pulse transition is
   // taken..
-  static const uint16_t TIMER_COUNTS_PER_SAMPLING_PERIOD =
-      (TIMER_SAMPLING_PERIOD_MSEC * 1000) / TIMER_PERIOD_USEC;
+  static const uint16_t kTimerCountsPerSamplingPeriod =
+      (kTimerSamplingPeriodMSec * 1000) / kTimerPeriodUSec;
 
   // For converting SONAR echo time to millimeters.
-  static const float g_TimeToMmScaler;
+  static const float g_time_to_mm_scaler_;
 };

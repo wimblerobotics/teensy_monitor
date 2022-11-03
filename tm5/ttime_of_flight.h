@@ -58,7 +58,7 @@ class TTimeOfFlight : TModule {
   // Round-robin  history of last value readings per device.
   static int g_valuesMmHistory_[kNumberTimeOfFlightDevices][kNumberReadingsToAverage];
 
-// Round-robin index into g_valuesMmHistory per device.
+// Round-robin index into g_values_mm_history_ per device.
   static int g_valuesMmHistoryIndex_[kNumberTimeOfFlightDevices];
 
   // Device hardware handle for each time-of-flight device.
@@ -66,9 +66,6 @@ class TTimeOfFlight : TModule {
 
   // Singleton instance.
   static TTimeOfFlight* g_singleton_;
-
-  // Minimum detection distance before an alert is raised
-  static const int kAlertDistanceMm = 3 * 25.4;
 
   static const int16_t kTimingBudgetMs = 33;
 };

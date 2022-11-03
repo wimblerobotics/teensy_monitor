@@ -7,9 +7,9 @@
 
 #define DO_TIMING true
 
-TModule::TModule(TModule::MODULE moduleKind) {
+TModule::TModule(TModule::Module moduleKind) {
   all_modules_[moduleKind] = this;
-  loop_calls_between_get_statistics_calls = 0;
+  loop_calls_between_get_statistics_calls_ = 0;
   for (size_t i = 0; i < kNumberSlots; i++) {
     duration_stats_[i] = 0.0;
   }
@@ -33,7 +33,7 @@ void TModule::GetStatistics(char* outString, size_t outStringSize) {
                module->duration_stats_[kMax],
                module->duration_stats_[kSum] / total_do_loop_count_);
       strcat(statList, temp);
-      module->loop_calls_between_get_statistics_calls = 0;
+      module->loop_calls_between_get_statistics_calls_ = 0;
       module->duration_stats_[kMin] = 10'000'000.0;
       module->duration_stats_[kMax] = -10'000'000.0;
       module->duration_stats_[kSum] = 0.0;
@@ -58,15 +58,10 @@ void TModule::DoLoop() {
     if (all_modules_[i] != nullptr) {
       TModule* module = all_modules_[i];
       uint32_t start = micros();
-      // char diagnostic[128];
-      // snprintf(diagnostic, sizeof(diagnostic), "info TModule::DoLoop name: %s",
-      //          all_modules_[i]->name());
-      // TMicroRos::singleton().publishDiagnostic(diagnostic);
-
 
       all_modules_[i]->loop();
 
-      float duration = ((micros() * 1.0) - start) / 1000.0;
+      float duration = (micros() - start) / 1000.0;
       module->duration_stats_[kSum] += duration;
       if (duration < module->duration_stats_[kMin]) {
         module->duration_stats_[kMin] = duration;
@@ -76,7 +71,7 @@ void TModule::DoLoop() {
         module->duration_stats_[kMax] = duration;
       }
 
-      module->loop_calls_between_get_statistics_calls++;
+      module->loop_calls_between_get_statistics_calls_++;
     }
   }
 
@@ -93,6 +88,6 @@ void TModule::DoSetup() {
 
 TModule* TModule::all_modules_[TModule::kNumberModules + 1] = {
     nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr};
+    nullptr, nullptr, nullptr};
 
 uint32_t TModule::total_do_loop_count_ = 0;

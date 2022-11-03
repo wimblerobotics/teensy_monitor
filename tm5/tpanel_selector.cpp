@@ -3,7 +3,7 @@
 #include "ton_off_button.h"
 #include "tproximity_panel.h"
 
-TPanelSelector::TPanelSelector() : TModule(TModule::kPANEL_SELECTOR) {
+TPanelSelector::TPanelSelector() : TModule(TModule::kPanelSelector) {
   g_selectedPanel = PROXIMITY_PANEL;
 }
 
@@ -64,16 +64,16 @@ void TPanelSelector::setup() {
 }
 
 TPanelSelector &TPanelSelector::singleton() {
-  if (!g_singleton) {
-    g_singleton = new TPanelSelector();
+  if (!g_singleton_) {
+    g_singleton_ = new TPanelSelector();
   }
 
-  return *g_singleton;
+  return *g_singleton_;
 }
 
 TPanelSelector::TPanel TPanelSelector::g_selectedPanel =
     TPanelSelector::PROXIMITY_PANEL;
 
-TPanelSelector *TPanelSelector::g_singleton = nullptr;
+TPanelSelector *TPanelSelector::g_singleton_ = nullptr;
 
 TControlDisplay &TPanelSelector::g_tc = TControlDisplay::singleton();

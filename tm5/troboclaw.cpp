@@ -11,20 +11,20 @@
 
 #define HWSERIAL Serial6
 
-void TRoboClaw::checkForMotorStall() {
+void TRoboClaw::CheckForMotorStall() {
   static const float kStallCurrentThreshold = 10.0;  // Stall current (AMPS).
   static const uint32_t kMaxAllowedConsecutiveStallFaults = 5;
 
   static uint32_t consecutiveStallFaultsLeftMotor = 0;
   static uint32_t consecutiveStallFaultsRightMotor = 0;
 
-  if (abs(getM1Current()) > kStallCurrentThreshold) {
+  if (abs(GetM1Current()) > kStallCurrentThreshold) {
     consecutiveStallFaultsLeftMotor += 1;
   } else {
     consecutiveStallFaultsLeftMotor = 0;
   }
 
-  if (abs(getM2Current()) > kStallCurrentThreshold) {
+  if (abs(GetM2Current()) > kStallCurrentThreshold) {
     consecutiveStallFaultsRightMotor += 1;
   } else {
     consecutiveStallFaultsRightMotor = 0;
@@ -36,27 +36,27 @@ void TRoboClaw::checkForMotorStall() {
       consecutiveStallFaultsRightMotor > kMaxAllowedConsecutiveStallFaults;
   if (left_motor_stalled || right_motor_stalled) {
     if (left_motor_stalled) {
-      TMicroRos::singleton().publishDiagnostic(
+      TMicroRos::singleton().PublishDiagnostic(
           "ERROR TRoboClaw::Loop STALL for M1 (left) motor");
     } else {
-      TMicroRos::singleton().publishDiagnostic(
+      TMicroRos::singleton().PublishDiagnostic(
           "ERROR TRoboClaw::Loop STALL for M2 (right) motor");
     }
 
-    TRelay::singleton().powerOn(TRelay::MOTOR_ESTOP);  // E-stop the motors.
+    TRelay::singleton().PowerOn(TRelay::kMotorEStop);  // E-stop the motors.
   }
 }
 
-void TRoboClaw::doMixedSpeedDist(int32_t m1_quad_pulses_per_second,
+void TRoboClaw::DoMixedSpeedDist(int32_t m1_quad_pulses_per_second,
                                  int32_t m1_max_distance,
                                  int32_t m2_quad_pulses_per_second,
                                  int32_t m2_max_distance) {
-  g_roboclaw.SpeedDistanceM1M2(DEVICE_ADDRESS, m1_quad_pulses_per_second,
+  g_roboclaw_.SpeedDistanceM1M2(kDeviceAddress, m1_quad_pulses_per_second,
                                m1_max_distance, m2_quad_pulses_per_second,
                                m2_max_distance, 1);
 }
 
-void TRoboClaw::doMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
+void TRoboClaw::DoMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
                                       int32_t m1_quad_pulses_per_second,
                                       uint32_t m1_max_distance,
                                       int32_t m2_quad_pulses_per_second,
@@ -67,191 +67,191 @@ void TRoboClaw::doMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
            "m2_max_dist: %ld",
            accel_quad_pulses_per_second, m1_quad_pulses_per_second,
            m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
-  TMicroRos::singleton().publishDiagnostic(msg);
-  g_roboclaw.SpeedAccelDistanceM1M2(
-      DEVICE_ADDRESS, accel_quad_pulses_per_second, m1_quad_pulses_per_second,
+  TMicroRos::singleton().PublishDiagnostic(msg);
+  g_roboclaw_.SpeedAccelDistanceM1M2(
+      kDeviceAddress, accel_quad_pulses_per_second, m1_quad_pulses_per_second,
       m1_max_distance, m2_quad_pulses_per_second, m2_max_distance, 1);
 }
 
-float TRoboClaw::getBatteryLogic() { return g_logic_battery / 10.0; }
+float TRoboClaw::GetBatteryLogic() { return g_logic_battery_ / 10.0; }
 
-float TRoboClaw::getBatteryMain() { return g_main_battery / 10.0; }
+float TRoboClaw::GetBatteryMain() { return g_main_battery_ / 10.0; }
 
-void TRoboClaw::getCurrents() {
+void TRoboClaw::GetCurrents() {
   int16_t currentM1;
   int16_t currentM2;
-  bool valid = g_roboclaw.ReadCurrents(DEVICE_ADDRESS, currentM1, currentM2);
+  bool valid = g_roboclaw_.ReadCurrents(kDeviceAddress, currentM1, currentM2);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getCurrents] fail");
-    reconnect();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetCurrents] fail");
+    Reconnect();
+    g_state_ = kVersion;
   } else {
     g_current_m1_10ma_ = currentM1;
     g_current_m2_10ma_ = currentM2;
-    g_state = LOGIC_BATTERY;
+    g_state_ = kLogicBattery;
   }
 }
 
-void TRoboClaw::getEncoderM1() {
+void TRoboClaw::GetEncoderM1() {
   bool valid;
   uint8_t status;
-  int32_t value = g_roboclaw.ReadEncM1(DEVICE_ADDRESS, &status, &valid);
+  int32_t value = g_roboclaw_.ReadEncM1(kDeviceAddress, &status, &valid);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getEncoderM1] fail");
-    reconnect();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetEncoderM1] fail");
+    Reconnect();
+    g_state_ = kVersion;
   } else {
-    g_encoder_m1 = value;
-    g_state = ENCODER_M2;
+    g_encoder_m1_ = value;
+    g_state_ = kEncoderM2;
   }
 }
 
-void TRoboClaw::getEncoderM2() {
+void TRoboClaw::GetEncoderM2() {
   bool valid;
   uint8_t status;
-  int32_t value = g_roboclaw.ReadEncM2(DEVICE_ADDRESS, &status, &valid);
+  int32_t value = g_roboclaw_.ReadEncM2(kDeviceAddress, &status, &valid);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getEncoderM2] fail");
-    reconnect();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetEncoderM2] fail");
+    Reconnect();
+    g_state_ = kVersion;
   } else {
-    g_encoder_m2 = value;
-    g_state = CURRENTS;
+    g_encoder_m2_ = value;
+    g_state_ = kCurrents;
   }
 }
 
-uint32_t TRoboClaw::getError() { return g_roboclaw.ReadError(DEVICE_ADDRESS); }
+uint32_t TRoboClaw::getError() { return g_roboclaw_.ReadError(kDeviceAddress); }
 
-void TRoboClaw::getLogicBattery() {
+void TRoboClaw::GetLogicBattery() {
   bool valid;
   int16_t voltage;
-  voltage = g_roboclaw.ReadLogicBatteryVoltage(DEVICE_ADDRESS, &valid);
+  voltage = g_roboclaw_.ReadLogicBatteryVoltage(kDeviceAddress, &valid);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getLogicBattery] fail");
-    reconnect();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetLogicBattery] fail");
+    Reconnect();
+    g_state_ = kVersion;
   } else {
-    g_logic_battery = voltage;
-    g_state = MAIN_BATTERY;
+    g_logic_battery_ = voltage;
+    g_state_ = kMainBattery;
   }
 }
 
-float TRoboClaw::getM1Current() { return g_current_m1_10ma_ / 100.0; }
+float TRoboClaw::GetM1Current() { return g_current_m1_10ma_ / 100.0; }
 
-int32_t TRoboClaw::getM1Encoder() { return g_encoder_m1; }
+int32_t TRoboClaw::GetM1Encoder() { return g_encoder_m1_; }
 
-int32_t TRoboClaw::getM1Speed() { return g_speed_m1; }
+int32_t TRoboClaw::GetM1Speed() { return g_speed_m1_; }
 
-float TRoboClaw::getM2Current() { return g_current_m2_10ma_ / 100.0; }
+float TRoboClaw::GetM2Current() { return g_current_m2_10ma_ / 100.0; }
 
-int32_t TRoboClaw::getM2Encoder() { return g_encoder_m2; }
+int32_t TRoboClaw::GetM2Encoder() { return g_encoder_m2_; }
 
-int32_t TRoboClaw::getM2Speed() { return g_speed_m2; }
+int32_t TRoboClaw::GetM2Speed() { return g_speed_m2_; }
 
-void TRoboClaw::getMainBattery() {
+void TRoboClaw::GetMainBattery() {
   bool valid;
   int16_t voltage;
-  voltage = g_roboclaw.ReadMainBatteryVoltage(DEVICE_ADDRESS, &valid);
+  voltage = g_roboclaw_.ReadMainBatteryVoltage(kDeviceAddress, &valid);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getMainBattery] fail");
-    reconnect();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetMainBattery] fail");
+    Reconnect();
+    g_state_ = kVersion;
   } else {
-    g_main_battery = voltage;
-    g_state = SPEED_M1;  //  Restart sequence
+    g_main_battery_ = voltage;
+    g_state_ = kSpeedM1;  //  Restart sequence
   }
 }
 
-void TRoboClaw::getSpeedM1() {
+void TRoboClaw::GetSpeedM1() {
   bool valid;
   uint8_t status;
-  uint32_t speed = g_roboclaw.ReadSpeedM1(DEVICE_ADDRESS, &status, &valid);
+  uint32_t speed = g_roboclaw_.ReadSpeedM1(kDeviceAddress, &status, &valid);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getSpeedM1] fail");
-    reconnect();
-    g_speed_m1 = std::numeric_limits<uint32_t>::min();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetSpeedM1] fail");
+    Reconnect();
+    g_speed_m1_ = std::numeric_limits<uint32_t>::min();
+    g_state_ = kVersion;
   } else {
-    g_speed_m1 = speed;
-    g_state = SPEED_M2;
+    g_speed_m1_ = speed;
+    g_state_ = kSpeedM2;
   }
 }
 
-void TRoboClaw::getSpeedM2() {
+void TRoboClaw::GetSpeedM2() {
   bool valid;
   uint8_t status;
-  int32_t speed = g_roboclaw.ReadSpeedM2(DEVICE_ADDRESS, &status, &valid);
+  int32_t speed = g_roboclaw_.ReadSpeedM2(kDeviceAddress, &status, &valid);
   if (!valid) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getSpeed2] fail");
-    reconnect();
-    g_speed_m2 = std::numeric_limits<uint32_t>::min();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetSpeedM2] fail");
+    Reconnect();
+    g_speed_m2_ = std::numeric_limits<uint32_t>::min();
+    g_state_ = kVersion;
   } else {
-    g_speed_m2 = speed;
-    g_state = ENCODER_M1;
+    g_speed_m2_ = speed;
+    g_state_ = kEncoderM1;
   }
 }
 
-void TRoboClaw::getVersion() {
+void TRoboClaw::GetVersion() {
   static char version[32];
   version[0] = '\0';
   static bool version_matched = false;
 
-  if (!version_matched && g_roboclaw.ReadVersion(DEVICE_ADDRESS, version)) {
+  if (!version_matched && g_roboclaw_.ReadVersion(kDeviceAddress, version)) {
     char msg[512];
-    if (strcmp(version, DEVICE_VERSION) != 0) {
+    if (strcmp(version, kDeviceVersion) != 0) {
       snprintf(msg, sizeof(msg),
-               "ERROR [TRoboClaw::getVersion] version mismatch, found: '%s'",
+               "ERROR [TRoboClaw::GetVersion] version mismatch, found: '%s'",
                version);
-      TMicroRos::singleton().publishDiagnostic(msg);
-      reconnect();
+      TMicroRos::singleton().PublishDiagnostic(msg);
+      Reconnect();
     } else {
       snprintf(msg, sizeof(msg),
-               "info [TRoboClaw::getVersion] version match, found: '%s'",
+               "info [TRoboClaw::GetVersion] version match, found: '%s'",
                version);
-      TMicroRos::singleton().publishDiagnostic(msg);
-      g_state = SPEED_M1;
+      TMicroRos::singleton().PublishDiagnostic(msg);
+      g_state_ = kSpeedM1;
       version_matched = true;
     }
   } else if (!version_matched) {
-    TMicroRos::singleton().publishDiagnostic(
-        "ERROR [TRoboClaw::getVersion fail");
-    reconnect();
-    g_state = VERSION;
+    TMicroRos::singleton().PublishDiagnostic(
+        "ERROR [TRoboClaw::GetVersion fail");
+    Reconnect();
+    g_state_ = kVersion;
   } else {
-    g_state = SPEED_M1;
+    g_state_ = kSpeedM1;
   }
 }
 
-void TRoboClaw::resetEncoders() {
-  g_roboclaw.SetEncM1(DEVICE_ADDRESS, 0);
-  g_roboclaw.SetEncM2(DEVICE_ADDRESS, 0);
+void TRoboClaw::ResetEncoders() {
+  g_roboclaw_.SetEncM1(kDeviceAddress, 0);
+  g_roboclaw_.SetEncM2(kDeviceAddress, 0);
 }
 
-void TRoboClaw::setM1PID(float p, float i, float d, uint32_t qpps) {
-  g_roboclaw.SetM1VelocityPID(DEVICE_ADDRESS, p, i, d, qpps);
+void TRoboClaw::SetM1PID(float p, float i, float d, uint32_t qpps) {
+  g_roboclaw_.SetM1VelocityPID(kDeviceAddress, p, i, d, qpps);
 }
 
-void TRoboClaw::setM2PID(float p, float i, float d, uint32_t qpps) {
-  g_roboclaw.SetM2VelocityPID(DEVICE_ADDRESS, p, i, d, qpps);
+void TRoboClaw::SetM2PID(float p, float i, float d, uint32_t qpps) {
+  g_roboclaw_.SetM2VelocityPID(kDeviceAddress, p, i, d, qpps);
 }
 
-void TRoboClaw::checkForRunaway(TRoboClaw::WhichMotor whichMotor) {
+void TRoboClaw::CheckForRunaway(TRoboClaw::WhichMotor whichMotor) {
   static const float kEncoderCountFaultThresholdPerSecond = 1900.0;
   static const uint32_t kMaxAllowedConsecutiveEncoderFaults = uint32_t(
       1566.0 * 0.1);  // Pulses/meter * <max-allowed-fault-distance-in-meters>.
   static uint32_t last_checked_m1_encoder_time_ms = millis();
   static uint32_t last_checked_m2_encoder_time_ms = millis();
 
-  static int32_t last_checked_m1_encoder_value = g_encoder_m1;
-  static int32_t last_checked_m2_encoder_value = g_encoder_m2;
+  static int32_t last_checked_m1_encoder_value = g_encoder_m1_;
+  static int32_t last_checked_m2_encoder_value = g_encoder_m2_;
 
   static uint32_t accumulated_m1_encoder_diffs = 0;
   static uint32_t accumulated_m2_encoder_diffs = 0;
@@ -265,26 +265,26 @@ void TRoboClaw::checkForRunaway(TRoboClaw::WhichMotor whichMotor) {
   const char* motor_name;
 
   if (!is_setup) {
-    last_checked_m1_encoder_value = g_encoder_m1;
-    last_checked_m2_encoder_value = g_encoder_m2;
+    last_checked_m1_encoder_value = g_encoder_m1_;
+    last_checked_m2_encoder_value = g_encoder_m2_;
     is_setup = true;
   }
 
   uint32_t now_ms = millis();
   switch (whichMotor) {
-    case kLEFT_MOTOR:
+    case kLeftMotor:
       duration_since_last_runaway_check_for_encoder =
           ((now_ms * 1.0) - last_checked_m1_encoder_time_ms) / 1000.0;
       encoder_diff_per_second =
-          abs(g_encoder_m1 - last_checked_m1_encoder_value) /
+          abs(g_encoder_m1_ - last_checked_m1_encoder_value) /
           duration_since_last_runaway_check_for_encoder;
       motor_name = "M1";
       break;
-    case kRIGHT_MOTOR:
+    case kRightMotor:
       duration_since_last_runaway_check_for_encoder =
           ((now_ms * 1.0) - last_checked_m2_encoder_time_ms) / 1000.0;
       encoder_diff_per_second =
-          abs(g_encoder_m2 - last_checked_m2_encoder_value) /
+          abs(g_encoder_m2_ - last_checked_m2_encoder_value) /
           duration_since_last_runaway_check_for_encoder;
       motor_name = "M2";
       break;
@@ -294,27 +294,27 @@ void TRoboClaw::checkForRunaway(TRoboClaw::WhichMotor whichMotor) {
     // The encodeers are spinning too fast.
     // A fault is triggered only if the robot travels at least a certain
     // distance at this high speed.
-    if (whichMotor == kLEFT_MOTOR) {
+    if (whichMotor == kLeftMotor) {
       accumulated_m1_encoder_diffs +=
-          abs(g_encoder_m1 - last_checked_m1_encoder_value);
+          abs(g_encoder_m1_ - last_checked_m1_encoder_value);
       runaway_fault =
           accumulated_m1_encoder_diffs > kMaxAllowedConsecutiveEncoderFaults;
     } else {
       accumulated_m2_encoder_diffs +=
-          abs(g_encoder_m2 - last_checked_m2_encoder_value);
+          abs(g_encoder_m2_ - last_checked_m2_encoder_value);
       runaway_fault =
           accumulated_m2_encoder_diffs > kMaxAllowedConsecutiveEncoderFaults;
     }
 
     if (runaway_fault) {
-      TRelay::singleton().powerOn(TRelay::MOTOR_ESTOP);  // E-stop the motors.
+      TRelay::singleton().PowerOn(TRelay::kMotorEStop);  // E-stop the motors.
       char msg[512];
       snprintf(msg, sizeof(msg),
                "ERROR TRoboClaw::Loop RUNAWAY for motor: %s, "
                "duration_since_last_runaway_check_for_encoder: %-2.3f",
                motor_name, duration_since_last_runaway_check_for_encoder);
-      TMicroRos::singleton().publishDiagnostic(msg);
-      if (whichMotor == kLEFT_MOTOR) {
+      TMicroRos::singleton().PublishDiagnostic(msg);
+      if (whichMotor == kLeftMotor) {
         accumulated_m1_encoder_diffs = 0;
       } else {
         accumulated_m2_encoder_diffs = 0;
@@ -322,111 +322,111 @@ void TRoboClaw::checkForRunaway(TRoboClaw::WhichMotor whichMotor) {
     }
   } else {
     // The motors are not spinning too fast now.
-    if (whichMotor == kLEFT_MOTOR) {
+    if (whichMotor == kLeftMotor) {
       accumulated_m1_encoder_diffs = 0;
     } else {
       accumulated_m2_encoder_diffs = 0;
     }
-    // TRelay::singleton().powerOff(TRelay::MOTOR_ESTOP);  // ###
+    // TRelay::singleton().PowerOff(TRelay::kMotorEStop);  // ###
   }
 
-  if (whichMotor == kLEFT_MOTOR) {
-    last_checked_m1_encoder_value = g_encoder_m1;
+  if (whichMotor == kLeftMotor) {
+    last_checked_m1_encoder_value = g_encoder_m1_;
     last_checked_m1_encoder_time_ms = now_ms;
   } else {
-    last_checked_m2_encoder_value = g_encoder_m2;
+    last_checked_m2_encoder_value = g_encoder_m2_;
     last_checked_m2_encoder_time_ms = now_ms;
   }
 }
 
 void TRoboClaw::loop() {
-  switch (g_state) {
-    case VERSION:
-      getVersion();
+  switch (g_state_) {
+    case kVersion:
+      GetVersion();
       break;
 
-    case SPEED_M1: {
-      getSpeedM1();
+    case kSpeedM1: {
+      GetSpeedM1();
     } break;
 
-    case SPEED_M2:
-      getSpeedM2();
+    case kSpeedM2:
+      GetSpeedM2();
       break;
 
-    case ENCODER_M1:
-      getEncoderM1();
-      checkForRunaway(kLEFT_MOTOR);
+    case kEncoderM1:
+      GetEncoderM1();
+      CheckForRunaway(kLeftMotor);
       break;
 
-    case ENCODER_M2:
-      getEncoderM2();
-      checkForRunaway(kRIGHT_MOTOR);
+    case kEncoderM2:
+      GetEncoderM2();
+      CheckForRunaway(kRightMotor);
       break;
 
-    case CURRENTS:
-      getCurrents();
-      checkForMotorStall();
+    case kCurrents:
+      GetCurrents();
+      CheckForMotorStall();
       break;
 
-    case LOGIC_BATTERY:
-      getLogicBattery();
+    case kLogicBattery:
+      GetLogicBattery();
       break;
 
-    case MAIN_BATTERY:
-      getMainBattery();
+    case kMainBattery:
+      GetMainBattery();
       break;
 
     default:
-      g_state = VERSION;
+      g_state_ = kVersion;
       break;
   }
 }
 
-void TRoboClaw::reconnect() {
+void TRoboClaw::Reconnect() {
   g_current_m1_10ma_ = 0;
   g_current_m2_10ma_ = 0;
-  g_encoder_m1 = 0;
-  g_encoder_m2 = 0;
-  g_logic_battery = 0;
-  g_main_battery = 0;
-  g_roboclaw.~RoboClaw();
-  g_roboclaw = RoboClaw(&Serial6, 10'000);
-  g_roboclaw.begin(115'200);
-  g_speed_m1 = 0;
-  g_speed_m2 = 0;
+  g_encoder_m1_ = 0;
+  g_encoder_m2_ = 0;
+  g_logic_battery_ = 0;
+  g_main_battery_ = 0;
+  g_roboclaw_.~RoboClaw();
+  g_roboclaw_ = RoboClaw(&Serial6, 10'000);
+  g_roboclaw_.begin(115'200);
+  g_speed_m1_ = 0;
+  g_speed_m2_ = 0;
 }
 
 void TRoboClaw::setup() {
-  reconnect();
-  getEncoderM1();
-  getEncoderM2();
+  Reconnect();
+  GetEncoderM1();
+  GetEncoderM2();
 }
 
 TRoboClaw::TRoboClaw()
-    : TModule(TModule::kROBOCLAW),
+    : TModule(TModule::kRoboClaw),
       g_current_m1_10ma_(0),
       g_current_m2_10ma_(0),
-      g_encoder_m1(0),
-      g_encoder_m2(0),
-      g_logic_battery(0),
-      g_main_battery(0),
-      g_speed_m1(0),
-      g_speed_m2(0) {
+      g_encoder_m1_(0),
+      g_encoder_m2_(0),
+      g_logic_battery_(0),
+      g_main_battery_(0),
+      g_speed_m1_(0),
+      g_speed_m2_(0) {
   Serial6.begin(115'200);
 }
 
 TRoboClaw& TRoboClaw::singleton() {
-  if (!g_singleton) {
-    g_singleton = new TRoboClaw();
+  if (!g_singleton_) {
+    g_singleton_ = new TRoboClaw();
   }
 
-  return *g_singleton;
+  return *g_singleton_;
 }
 
-const char* TRoboClaw::DEVICE_VERSION = "USB Roboclaw 2x15a v4.2.4\n";
+const char* TRoboClaw::kDeviceVersion = "USB Roboclaw 2x15a v4.2.4\n";
 
-RoboClaw TRoboClaw::g_roboclaw(&Serial6, 10'000);
+RoboClaw TRoboClaw::g_roboclaw_(&Serial6, 10'000);
 
-TRoboClaw* TRoboClaw::g_singleton = nullptr;
+TRoboClaw* TRoboClaw::g_singleton_ = nullptr;
 
-TRoboClaw::TSTATE TRoboClaw::g_state = TRoboClaw::VERSION;
+TRoboClaw::State TRoboClaw::g_state_ = TRoboClaw::kVersion;

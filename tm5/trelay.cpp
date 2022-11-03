@@ -3,42 +3,40 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-#include "talarm.h"
-
-bool TRelay::isPoweredOn(TRelayDevice device) {
-  return g_deviceSetTimeMs[device] != 0;
+bool TRelay::IsPoweredOn(TRelayDevice device) {
+  return g_device_set_time_ms_[device] != 0;
 }
 
 void TRelay::loop() {
-  uint32_t now = millis();
-  if (g_deviceSetTimeMs[INTEL_RESET] &&
-      (now > (g_deviceSetTimeMs[INTEL_RESET] + RESET_DURATION_MS))) {
-    digitalWrite(INTEL_RESET_PIN, LOW);
-    g_deviceSetTimeMs[INTEL_RESET] = 0;
-  }
+  // uint32_t now = millis();
+  // if (g_device_set_time_ms_[kUnused1] &&
+  //     (now > (g_device_set_time_ms_[kUnused1] + kResetDurationMs))) {
+  //   digitalWrite(kUnused1Pin, LOW);
+  //   g_device_set_time_ms_[kUnused1] = 0;
+  // }
 }
 
-void TRelay::powerOff(TRelay::TRelayDevice device) {
-  g_deviceSetTimeMs[device] = 0;
+void TRelay::PowerOff(TRelay::TRelayDevice device) {
+  g_device_set_time_ms_[device] = 0;
   switch (device) {
-    case INTEL_POWER:
-      digitalWrite(INTEL_ON_OFF_PIN, LOW);
-      break;
+    // case kUnused0:
+    //   digitalWrite(kUnused0Pin, LOW);
+    //   break;
 
-    case INTEL_RESET:
-      digitalWrite(INTEL_RESET_PIN, LOW);
-      break;
+    // case kUnused1:
+    //   digitalWrite(kUnused1Pin, LOW);
+    //   break;
 
-    case MOTOR_POWER:
-      digitalWrite(MOTOR_ON_OFF_PIN, LOW);
-      break;
+    // case kUnused2:
+    //   digitalWrite(kUnused2Pin, LOW);
+    //   break;
 
-    case NVIDIA_POWER:
-      digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
-      break;
+    // case kUnused3:
+    //   digitalWrite(kUnused3Pin, LOW);
+    //   break;
 
-    case MOTOR_ESTOP:
-      digitalWrite(MOTOR_ESTOP_PIN, LOW);
+    case kMotorEStop:
+      digitalWrite(kMotorEStopPin, LOW);
       break;
 
     default:
@@ -46,71 +44,70 @@ void TRelay::powerOff(TRelay::TRelayDevice device) {
   }
 }
 
-void TRelay::powerOn(TRelay::TRelayDevice device) {
+void TRelay::PowerOn(TRelay::TRelayDevice device) {
   switch (device) {
-    case INTEL_POWER:
-      digitalWrite(INTEL_ON_OFF_PIN, HIGH);
-      break;
+    // case kUnused0:
+    //   digitalWrite(kUnused0Pin, HIGH);
+    //   break;
 
-    case INTEL_RESET:
-      digitalWrite(INTEL_RESET_PIN, HIGH);
-      break;
+    // case kUnused1:
+    //   digitalWrite(kUnused1Pin, HIGH);
+    //   break;
 
-    case MOTOR_POWER:
-      digitalWrite(MOTOR_ON_OFF_PIN, HIGH);
+    // case kUnused2:
+    //   digitalWrite(kUnused2Pin, HIGH);
 
-      // Manually resetting the motor power will also reset the overcurrent
-      // alarm.
-      TAlarm::singleton().reset(TAlarm::MOTOR_ALARM);
-      break;
+    //   // Manually resetting the motor power will also reset the overcurrent
+    //   // alarm.
+    //    break;
 
-    case NVIDIA_POWER:
-      digitalWrite(NVIDIA_ON_OFF_PIN, HIGH);
-      break;
+    // case kUnused3:
+    //   digitalWrite(kUnused3Pin, HIGH);
+    //   break;
 
-    case MOTOR_ESTOP:
-      digitalWrite(MOTOR_ESTOP_PIN, HIGH);
+    case kMotorEStop:
+      digitalWrite(kMotorEStopPin, HIGH);
       break;
 
     default:
       break;
   }
 
-  g_deviceSetTimeMs[device] = millis();
+  g_device_set_time_ms_[device] = millis();
 }
 
 void TRelay::setup() {
-  pinMode(INTEL_ON_OFF_PIN, OUTPUT);
-  digitalWrite(INTEL_ON_OFF_PIN, LOW);
-  g_deviceSetTimeMs[INTEL_POWER] = millis();
+  // pinMode(kUnused0Pin, OUTPUT);
+  // digitalWrite(kUnused0Pin, LOW);
+  // g_device_set_time_ms_[kUnused0] = millis();
 
-  pinMode(INTEL_RESET_PIN, OUTPUT);
-  digitalWrite(INTEL_RESET_PIN, LOW);
-  g_deviceSetTimeMs[INTEL_RESET] = 0;
+  // pinMode(kUnused1Pin, OUTPUT);
+  // digitalWrite(kUnused1Pin, LOW);
+  // g_device_set_time_ms_[kUnused1] = 0;
 
-  pinMode(MOTOR_ON_OFF_PIN, OUTPUT);
-  digitalWrite(MOTOR_ON_OFF_PIN, LOW);
-  g_deviceSetTimeMs[MOTOR_POWER] = 0;
+  // pinMode(kUnused2Pin, OUTPUT);
+  // digitalWrite(kUnused2Pin, LOW);
+  // g_device_set_time_ms_[kUnused2] = 0;
 
-  pinMode(NVIDIA_ON_OFF_PIN, OUTPUT);
-  digitalWrite(NVIDIA_ON_OFF_PIN, LOW);
-  g_deviceSetTimeMs[NVIDIA_POWER] = millis();
+  // pinMode(kUnused3Pin, OUTPUT);
+  // digitalWrite(kUnused3Pin, LOW);
+  // g_device_set_time_ms_[kUnused3] = millis();
 
-  pinMode(MOTOR_ESTOP_PIN, OUTPUT);
-  digitalWrite(MOTOR_ESTOP_PIN, LOW);
-  g_deviceSetTimeMs[MOTOR_ESTOP] = 0;
+  pinMode(kMotorEStopPin, OUTPUT);
+  digitalWrite(kMotorEStopPin, LOW);
+  g_device_set_time_ms_[kMotorEStop] = 0;
 }
 
-TRelay::TRelay() : TModule(TModule::kRELAY) {}
+TRelay::TRelay() : TModule(TModule::kRelay) {}
 
 TRelay& TRelay::singleton() {
-  if (!g_singleton) {
-    g_singleton = new TRelay();
+  if (!g_singleton_) {
+    g_singleton_ = new TRelay();
   }
 
-  return *g_singleton;
+  return *g_singleton_;
 }
 
-uint32_t TRelay::g_deviceSetTimeMs[TRelay::NUMBER_DEVICES];
+uint32_t TRelay::g_device_set_time_ms_[TRelay::kNumberDevices];
 
-TRelay* TRelay::g_singleton = nullptr;
+TRelay* TRelay::g_singleton_ = nullptr;

@@ -3,8 +3,6 @@
 #include <stdint.h>
 
 //#include "Watchdog_t4.h"
-#include "talarm.h"
-// #include "talert.h"
 #include "tmicro_ros.h"
 #include "tmodule.h"
 #include "tmotor_current.h"
@@ -16,9 +14,7 @@
 #include "ttime_of_flight.h"
 
 // Initialize all TModule instances in any required order.
-TAlarm& alarm = TAlarm::singleton();
-// TAlert& alert = TAlert::singleton();
-TMicroRos& microRos = TMicroRos::singleton();
+TMicroRos& micro_ros = TMicroRos::singleton();
 // TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 // TPanelSelector& panelSelector = TPanelSelector::singleton();
 TRelay& relay = TRelay::singleton();
@@ -26,7 +22,7 @@ TRoboClaw& roboclaw = TRoboClaw::singleton();
 //#####TSd& sd = TSd::singleton();
 TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
-TTimeOfFlight& timeOfFlight = TTimeOfFlight::singleton();
+TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
 
 // WDT_T4<WDT3> wdt;
 
