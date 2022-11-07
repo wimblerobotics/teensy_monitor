@@ -163,4 +163,6 @@ class TRoboClaw : TModule {
 
   // State machine state.
   static State g_state_;
+
+  static const uint32_t kBaudRate = 38'400;
 };
