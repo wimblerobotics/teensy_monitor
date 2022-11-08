@@ -12,11 +12,15 @@ void TSonar::CommonInterruptHandler(uint8_t pin, long& end_time,
                                     size_t sonar_index) {
   switch (digitalRead(pin)) {
     case HIGH:
+      // When the SONAR begins transmitting, the echo pin will
+      // go HIGH. Capture the start time.
       end_time = 0;
       start_time = micros();
       break;
 
     case LOW:
+      // When an echo is received, the echo pin will go LOW.
+      // Compute the distance to the object and send a ROS message.
       end_time = micros();
       g_values_mm_[sonar_index] =
           (end_time - start_time) * g_time_to_mm_scaler_;
@@ -26,14 +30,17 @@ void TSonar::CommonInterruptHandler(uint8_t pin, long& end_time,
         average_index = 0;
       }
 
-      int averageSum = 0;
+      // Compute an average distance over the last few readings
+      // to help reduce the sensor noise.
+      int average_sum_mm = 0;
       for (size_t i = 0; i < kNumberReadingsToAverage; i++) {
-        averageSum += g_values_mm_history_[sonar_index][i];
+        average_sum_mm += g_values_mm_history_[sonar_index][i];
       }
 
       g_average_value_m_[sonar_index] =
-          (averageSum * 0.001) / kNumberReadingsToAverage;
+          (average_sum_mm * 0.001) / kNumberReadingsToAverage;
 
+      // Publish the average distance for the sensor.
       TMicroRos::PublishSonar(sonar_index, g_average_value_m_[sonar_index]);
       break;
   }
@@ -44,6 +51,8 @@ float TSonar::GetAverageValueM(Sonar device) {
 }
 
 void TSonar::Echo0InterruptHandler() {
+  // Each sensor has it's own distance timer and it's own
+  // set of values used to compute an averate distance.
   static long end_time = 0;
   static long start_time = 0;
   static uint8_t average_index = 0;
@@ -80,19 +89,12 @@ int TSonar::GetValueMm(Sonar device) {
 }
 
 void TSonar::loop() {
-  // const int kAlertDistanceMm = 3 * 25.4;
-
-  // for (uint8_t i = 0; i < kNumberSonars; i++) {
-  //   if (doStopMotorsOnCollisionThreat &&
-  //       (GetValueMm(static_cast<Sonar>(i)) < kAlertDistanceMm)) {
-  //     // TAlert::singleton().set(map[i]);
-  //   } else {
-  //     // TAlert::singleton().reset(map[i]);
-  //   }
-  // }
+  // Nothing needs to be done in the loop. Everything is drivven
+  // by interrupts.
 }
 
 void TSonar::setup() {
+  // Set up the Teensy pins to talk to the SONAR devices.
   pinMode(kPinEcho0, INPUT);
   pinMode(kPinTrigger0, OUTPUT);
   pinMode(kPinEcho1, INPUT);
@@ -101,8 +103,12 @@ void TSonar::setup() {
   pinMode(kPinTrigger2, OUTPUT);
   pinMode(kPinEcho3, INPUT);
   pinMode(kPinTrigger3, OUTPUT);
+
+  // Setup a timer to drive the state machine.
   Timer1.initialize(kTimerPeriodUSec);
   Timer1.attachInterrupt(TimerInterruptHandler);
+
+  // Attach an interrupt handler to each SONAR's echo pin.
   attachInterrupt(kPinEcho0, Echo0InterruptHandler, CHANGE);
   attachInterrupt(kPinEcho1, Echo1InterruptHandler, CHANGE);
   attachInterrupt(kPinEcho2, Echo2InterruptHandler, CHANGE);
@@ -110,21 +116,34 @@ void TSonar::setup() {
 }
 
 void TSonar::TimerInterruptHandler() {
-  typedef enum { COUNTDOWN, PULSE_HIGH, PULSE_LOW } TTimerState;
+  // The states of the state machine.
+  typedef enum {
+    COUNTDOWN,   // Count down timer ticks.
+    PULSE_HIGH,  // Begin transmitting the SONAR pulse.
+    PULSE_LOW  // Stop transmitting the SONAR pulse and begin listening for the
+               // echo.
+  } TTimerState;
 
+  // The current state of the state machine.
   static volatile TTimerState state = COUNTDOWN;
+
+  // Used to count timer pulses to drive the timing of each SONAR sensor.
   static volatile long countdown = kTimerCountsPerSamplingPeriod;
 
   if (--countdown == 0) {
+    // Time to start the next SONAR sensor in the list of sensors.
     state = PULSE_HIGH;
     countdown = kTimerCountsPerSamplingPeriod;
   }
 
   switch (state) {
     case COUNTDOWN:
+      // Continue counting so that the sensors are spaced
+      // apart in time so they don't interfere with each other.
       break;
 
     case PULSE_HIGH:
+      // Time to send out the ping for the next SONAR in the list.
       if ((g_next_sensor_index_ % 4) == 0) {
         digitalWrite(kPinTrigger0, HIGH);
       } else if ((g_next_sensor_index_ % 4) == 1) {
@@ -139,6 +158,8 @@ void TSonar::TimerInterruptHandler() {
       break;
 
     case PULSE_LOW:
+      // Time to stop the ping output and begin listening for the
+      // echo for the next SONAR in the list.
       if ((g_next_sensor_index_ % 4) == 0) {
         digitalWrite(kPinTrigger0, LOW);
       } else if ((g_next_sensor_index_ % 4) == 1) {
@@ -149,14 +170,17 @@ void TSonar::TimerInterruptHandler() {
         digitalWrite(kPinTrigger3, LOW);
       }
 
-      g_next_sensor_index_++;
-      state = COUNTDOWN;
+      g_next_sensor_index_++;  // Control the next sensor in the list the next
+                               // time around.
+      state = COUNTDOWN;       // Begin counting down again.
       break;
   }
 }
 
 TSonar::TSonar() : TModule(TModule::kSonar) {
   for (size_t i = 0; i < kNumberSonars; i++) {
+    // Initialize the array of readings used to computer the average distance
+    // per sensor.
     for (size_t j = 0; j < kNumberReadingsToAverage; j++) {
       g_values_mm_history_[i][j] = 0;
     }
@@ -164,6 +188,7 @@ TSonar::TSonar() : TModule(TModule::kSonar) {
 }
 
 TSonar& TSonar::singleton() {
+  // A singleton pattern is used to support the TModule design pattern.
   if (!g_singleton_) {
     g_singleton_ = new TSonar();
   }
@@ -171,15 +196,23 @@ TSonar& TSonar::singleton() {
   return *g_singleton_;
 }
 
-uint8_t TSonar::g_next_sensor_index_ = 0;
+uint8_t TSonar::g_next_sensor_index_ =
+    0;  // Which sensor in the list is being controlled now.
 
-TSonar* TSonar::g_singleton_ = nullptr;
+TSonar* TSonar::g_singleton_ =
+    nullptr;  // Used to ensure that only one instance of this class is ever
+              // constructed.
 
-int TSonar::g_values_mm_[TSonar::kNumberSonars] = {-1, -1, -1, -1};
+int TSonar::g_values_mm_[TSonar::kNumberSonars] = {
+    -1, -1, -1, -1};  // The last reading per sensor.
 
-int TSonar::g_values_mm_history_[TSonar::kNumberSonars]
-                                [TSonar::kNumberReadingsToAverage];
+int TSonar::g_values_mm_history_
+    [TSonar::kNumberSonars]
+    [TSonar::kNumberReadingsToAverage];  // List of readings per sensur used to
+                                         // computer an average per sensor.
 
-float TSonar::g_average_value_m_[TSonar::kNumberSonars] = {0, 0, 0, 0};
+float TSonar::g_average_value_m_[TSonar::kNumberSonars] = {
+    0, 0, 0, 0};  // The computed average distance per sensor.
 
-const float TSonar::g_time_to_mm_scaler_ = (10.0 / 2.0) / 29.1;
+const float TSonar::g_time_to_mm_scaler_ =
+    (10.0 / 2.0) / 29.1;  // For converting time to distance.

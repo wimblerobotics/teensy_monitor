@@ -16,10 +16,11 @@ class TSonar : TModule {
     kNumberSonars  // Number of SONAR sensors.
   } Sonar;
 
-  // Get sensed range for device. A value of < 0 => no sensor 'device' detected
-  // during setup.
+  // Get sensed range for the device. A value of < 0 => no sensor 'device'
+  // detected during setup.
   int GetValueMm(Sonar device);
 
+  // Get the average range for the device.
   float GetAverageValueM(Sonar device);
 
   // Singleton constructor.
@@ -36,8 +37,8 @@ class TSonar : TModule {
   void setup();
 
  private:
-  // Number of readings to average.
-  enum MiscConstants { kNumberReadingsToAverage = 4 };
+  // Number of readings to average together to reduce noise.
+  static const uint8_t kNumberReadingsToAverage = 4;
 
   // Private constructor.
   TSonar();
@@ -47,7 +48,7 @@ class TSonar : TModule {
                                      long& start_time, uint8_t& average_index,
                                      size_t sonar_index);
 
-  // Interrupt handler for device echo..
+  // Interrupt handler for per device echo.
   static void Echo0InterruptHandler();
   static void Echo1InterruptHandler();
   static void Echo2InterruptHandler();
@@ -63,8 +64,10 @@ class TSonar : TModule {
   // Last captured sensed distance for each SONAR device.
   static int g_values_mm_[kNumberSonars];
 
+  // List of last values, for computing an average.
   static int g_values_mm_history_[kNumberSonars][kNumberReadingsToAverage];
 
+  // Last captured average distance for each SONAR device.
   static float g_average_value_m_[kNumberSonars];
 
   // GPIO pins for controlling the SONAR sensors.
