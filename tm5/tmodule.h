@@ -35,7 +35,7 @@ class TModule {
   typedef enum Module {
     kMicroRos, // Make this the first module as it is used for diagnostic reporting.
     kMotorCurrent,
-    kPanelSelector,
+    kProximityPanel,
     kRelay,
     kRoboClaw,
     kSonar,

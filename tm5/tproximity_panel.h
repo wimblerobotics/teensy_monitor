@@ -6,20 +6,30 @@
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
 
-class TProximityPanel {
+class TProximityPanel : TModule {
  public:
-  static TProximityPanel& singleton();
-
   bool hasAlert();
 
+  // Singleton instance.
+  static TProximityPanel& singleton();
+
+ protected:
+  // From TModule.
   void loop();
 
+  // From TModule.
+  const char* name() { return "PX"; }
+
+  // From TModule.
   void setup();
 
+ private:
   static const uint16_t PANEL_BACKGROUND_COLOR = ILI9341_DARKGREEN;
 
- private:
   TProximityPanel();
+
+  // Set the alert icon to the given color.
+  void colorizeAlertIcon(uint16_t color);
 
   void loopTimeOfFlight();
   void loopSonar();
@@ -59,7 +69,8 @@ class TProximityPanel {
       (TEXT_SIZE_3_HEIGHT * 5) + BORDER_PAD;
   static const uint16_t TOF_SIXTH_LINE_Y =
       (TEXT_SIZE_3_HEIGHT * 6) + BORDER_PAD;
-  static const int TOF_BOX_POSITIONS[TTimeOfFlight::kNumberTimeOfFlightDevices][2];
+  static const int TOF_BOX_POSITIONS[TTimeOfFlight::kNumberTimeOfFlightDevices]
+                                    [2];
 
   static const uint16_t SONAR_TITLE_Y =
       TOF_SIXTH_LINE_Y + (TEXT_SIZE_3_HEIGHT * 3) + BORDER_PAD - 10;
@@ -77,10 +88,12 @@ class TProximityPanel {
 
   static const uint16_t TEMP_TITLE_Y =
       TOF_SIXTH_LINE_Y + (TEXT_SIZE_3_HEIGHT * 3) + BORDER_PAD - 10;
-  static const uint16_t TEMP_SECOND_LINE_Y =
-      TEMP_TITLE_Y + TEXT_SIZE_3_HEIGHT;
+  static const uint16_t TEMP_SECOND_LINE_Y = TEMP_TITLE_Y + TEXT_SIZE_3_HEIGHT;
   static const uint16_t TEMP_THIRD_LINE_Y =
       TEMP_SECOND_LINE_Y + TEXT_SIZE_3_HEIGHT;
   static const int TEMP_BOX_POSITIONS[TTemperature::kNumberTemperatures][2];
 
+  // Duration (ms) between alert/background color changes when alert is
+  // flashing.
+  static const int ALERT_ALTERNATING_FLASH_DURATION_MS = 500;
 };

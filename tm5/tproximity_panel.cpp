@@ -1,26 +1,32 @@
 #include "tproximity_panel.h"
 
 #include "tlabeled_on_off_button.h"
+#include "tmicro_ros.h"
 #include "tmotor_current.h"
 #include "ton_off_button.h"
-#include "tpanel_selector.h"
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
 
-TProximityPanel::TProximityPanel() { g_lastDisplayUpdateTime = millis(); }
-
-
-bool TProximityPanel::hasAlert() {
-  return g_tofAlert || g_sonarAlert || g_motorCurrentAlert || g_temperatureAlert;
+TProximityPanel::TProximityPanel() : TModule(TModule::kProximityPanel) {
+  g_lastDisplayUpdateTime = millis();
 }
 
+void TProximityPanel::colorizeAlertIcon(uint16_t color) {
+  g_tc.fillRect(270, 190, 50, 50, color);
+}
+
+bool TProximityPanel::hasAlert() {
+  return g_tofAlert || g_sonarAlert || g_motorCurrentAlert ||
+         g_temperatureAlert;
+}
 
 void TProximityPanel::loopTimeOfFlight() {
   g_tofAlert = false;
   for (uint8_t i = 0; i < TTimeOfFlight::kNumberTimeOfFlightDevices; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueMm = TTimeOfFlight::singleton().GetValueMm(static_cast<TTimeOfFlight::TimeOfFlightEnum>(i));
+    int valueMm = TTimeOfFlight::singleton().GetValueMm(
+        static_cast<TTimeOfFlight::TimeOfFlightEnum>(i));
     g_tc.fillRect(TOF_BOX_POSITIONS[i][0], TOF_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -50,7 +56,6 @@ void TProximityPanel::loopTimeOfFlight() {
     }
   }
 }
-
 
 void TProximityPanel::loopSonar() {
   g_sonarAlert = false;
@@ -88,20 +93,20 @@ void TProximityPanel::loopSonar() {
   }
 }
 
-
 void TProximityPanel::loopMotor() {
   g_motorCurrentAlert = false;
   for (uint8_t i = 0; i < TMotorCurrent::kNumberMotors; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    float valueMa = TMotorCurrent::singleton().GetValueMa(static_cast<TMotorCurrent::Motor>(i));
+    float valueMa = TMotorCurrent::singleton().GetValueMa(
+        static_cast<TMotorCurrent::Motor>(i));
     g_tc.fillRect(MOTOR_BOX_POSITIONS[i][0], MOTOR_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
     g_tc.setCursor(MOTOR_BOX_POSITIONS[i][0], MOTOR_BOX_POSITIONS[i][1]);
     if ((valueMa > 9'000) || (valueMa < -9'000)) {
-        g_tc.setTextSize(1);
-        g_tc.println("rng");
+      g_tc.setTextSize(1);
+      g_tc.println("rng");
     } else {
       char str[6];
       if ((valueMa > 2'000) || (valueMa < -2'000)) {
@@ -116,7 +121,7 @@ void TProximityPanel::loopMotor() {
         str[0] = ' ';
       }
 
-      int value =  valueMa / 10;
+      int value = valueMa / 10;
       str[1] = ((value / 100) % 10) + '0';
       str[2] = '.';
       str[3] = ((value / 10) % 10) + '0';
@@ -127,14 +132,13 @@ void TProximityPanel::loopMotor() {
   }
 }
 
-
-
 void TProximityPanel::loopTemperature() {
   g_temperatureAlert = false;
   for (uint8_t i = 0; i < TTemperature::kNumberTemperatures; i++) {
     g_tc.setTextColor(ILI9341_WHITE);
     g_tc.setTextSize(2);
-    int valueTenthsC = TTemperature::singleton().GetValueTenthsC(static_cast<TTemperature::Temperature>(i));
+    int valueTenthsC = TTemperature::singleton().GetValueTenthsC(
+        static_cast<TTemperature::Temperature>(i));
     g_tc.fillRect(TEMP_BOX_POSITIONS[i][0], TEMP_BOX_POSITIONS[i][1],
                   TEXT_SIZE_3_WIDTH * 5 - 1, TEXT_SIZE_3_HEIGHT - 1,
                   PANEL_BACKGROUND_COLOR);
@@ -150,28 +154,57 @@ void TProximityPanel::loopTemperature() {
   }
 }
 
-
 void TProximityPanel::loop() {
-  if (TPanelSelector::singleton().activePanel() ==
-      TPanelSelector::PROXIMITY_PANEL) {
-    uint32_t now = millis();
-    uint32_t durationMs = now - g_lastDisplayUpdateTime;
-    if (durationMs > PANEL_UPDATE_DELAY_MS) {
-      g_tc.setRotation(1);
-      loopTimeOfFlight();
-      loopSonar();
-      loopMotor();
-      loopTemperature();
-      g_lastDisplayUpdateTime = now;
+  static uint32_t periodStart = millis();  // For timing some-alert flashing.
+  static bool useAlertColor =
+      true;  // some-alert highlight color to use (alert color/bacground color).
+  static bool isFlashing = false;  // Is flashing occurring?
+
+  uint32_t now = millis();
+  uint32_t durationMs = now - g_lastDisplayUpdateTime;
+  TOnOffButton::update();
+
+  if (durationMs > PANEL_UPDATE_DELAY_MS) {
+    g_tc.setRotation(1);
+    loopTimeOfFlight();
+    loopSonar();
+    loopMotor();
+    loopTemperature();
+    g_lastDisplayUpdateTime = now;
+  }
+
+  if (hasAlert()) {
+    // Flash the alert icon.
+    uint32_t duration = millis() - periodStart;
+    uint16_t backgroundColor = PANEL_BACKGROUND_COLOR;
+    if (duration > ALERT_ALTERNATING_FLASH_DURATION_MS) {
+      // Time to alternate alert color.
+      if (useAlertColor) {
+        colorizeAlertIcon(ILI9341_RED);
+      } else {
+        colorizeAlertIcon(backgroundColor);
+      }
+
+      useAlertColor = !useAlertColor;
+      periodStart = millis();
+    }
+
+    isFlashing = true;
+  } else {
+    if (isFlashing) {
+      colorizeAlertIcon(ILI9341_GREEN);
+      isFlashing = false;
     }
   }
 }
 
-
 void TProximityPanel::setup() {
+  TMicroRos::singleton().PublishDiagnostic("[TProximityPanel::setup] start");
   TOnOffButton::clearAll();
+  TMicroRos::singleton().PublishDiagnostic("[TProximityPanel::setup] after clearAll");
   g_tc.fillScreen(PANEL_BACKGROUND_COLOR);
 
+  TMicroRos::singleton().PublishDiagnostic("[TProximityPanel::setup] after fillScreen");
   g_tc.setTextColor(ILI9341_WHITE);
   g_tc.setRotation(1);
 
@@ -189,7 +222,7 @@ void TProximityPanel::setup() {
   g_tc.drawVLine(boxWidth / 2,
                  TOF_SECOND_LINE_Y - TEXT_SIZE_3_HEIGHT + 2 + BORDER_PAD,
                  TEXT_SIZE_3_HEIGHT * 6 + BORDER_PAD - 5, ILI9341_BLUE);
-  
+
   // Setup SONAR display.
   g_tc.setTextSize(1);
   g_tc.setCursor(BORDER_PAD, SONAR_TITLE_Y - 1);
@@ -197,9 +230,9 @@ void TProximityPanel::setup() {
   g_tc.setTextSize(2);
   boxWidth = TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 1;
   g_tc.drawRect(0, SONAR_TITLE_Y - 8, boxWidth,
-                TEXT_SIZE_3_HEIGHT * 4 + 6 + BORDER_PAD,
-                ILI9341_GREEN);
-  g_tc.drawHLine(0, SONAR_SECOND_LINE_Y - TEXT_SIZE_3_HEIGHT + 9 + BORDER_PAD, boxWidth, ILI9341_GREEN);
+                TEXT_SIZE_3_HEIGHT * 4 + 6 + BORDER_PAD, ILI9341_GREEN);
+  g_tc.drawHLine(0, SONAR_SECOND_LINE_Y - TEXT_SIZE_3_HEIGHT + 9 + BORDER_PAD,
+                 boxWidth, ILI9341_GREEN);
 
   // Setup Motors display
   g_tc.setCursor(BORDER_PAD, MOTOR_SECOND_LINE_Y + 2);
@@ -208,10 +241,13 @@ void TProximityPanel::setup() {
   g_tc.setTextSize(2);
   boxWidth = 50 + (TEXT_SIZE_3_WIDTH * 11) + BORDER_PAD;
   g_tc.drawRect(0, MOTOR_SECOND_LINE_Y - 8, boxWidth,
-                TEXT_SIZE_3_HEIGHT * 1 + 7 + BORDER_PAD,
-                ILI9341_PINK);
-  g_tc.drawVLine(MOTOR_BOX_POSITIONS[0][0] - 7, MOTOR_BOX_POSITIONS[0][1] - BORDER_PAD - 4, TEXT_SIZE_3_HEIGHT + BORDER_PAD * 2 + 2, ILI9341_PINK);
-  g_tc.drawVLine(MOTOR_BOX_POSITIONS[1][0] - 7, MOTOR_BOX_POSITIONS[0][1] - BORDER_PAD - 4, TEXT_SIZE_3_HEIGHT + BORDER_PAD * 2 + 2, ILI9341_PINK);
+                TEXT_SIZE_3_HEIGHT * 1 + 7 + BORDER_PAD, ILI9341_PINK);
+  g_tc.drawVLine(MOTOR_BOX_POSITIONS[0][0] - 7,
+                 MOTOR_BOX_POSITIONS[0][1] - BORDER_PAD - 4,
+                 TEXT_SIZE_3_HEIGHT + BORDER_PAD * 2 + 2, ILI9341_PINK);
+  g_tc.drawVLine(MOTOR_BOX_POSITIONS[1][0] - 7,
+                 MOTOR_BOX_POSITIONS[0][1] - BORDER_PAD - 4,
+                 TEXT_SIZE_3_HEIGHT + BORDER_PAD * 2 + 2, ILI9341_PINK);
 
   // Setup Temperature display.
   int tempXStart = TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 5;
@@ -221,11 +257,14 @@ void TProximityPanel::setup() {
   g_tc.setTextSize(2);
   boxWidth = TEXT_SIZE_3_WIDTH * (6) + BORDER_PAD + 1;
   g_tc.drawRect(tempXStart, TEMP_TITLE_Y - 8, boxWidth,
-                TEXT_SIZE_3_HEIGHT * 4 + 6 + BORDER_PAD,
-                ILI9341_ORANGE);
-  g_tc.drawHLine(tempXStart, TEMP_SECOND_LINE_Y - TEXT_SIZE_3_HEIGHT + 9 + BORDER_PAD, boxWidth, ILI9341_ORANGE);
-}
+                TEXT_SIZE_3_HEIGHT * 4 + 6 + BORDER_PAD, ILI9341_ORANGE);
+  g_tc.drawHLine(tempXStart,
+                 TEMP_SECOND_LINE_Y - TEXT_SIZE_3_HEIGHT + 9 + BORDER_PAD,
+                 boxWidth, ILI9341_ORANGE);
 
+  colorizeAlertIcon(ILI9341_GREEN);
+  TMicroRos::singleton().PublishDiagnostic("[TProximityPanel::setup] end");
+}
 
 TProximityPanel& TProximityPanel::singleton() {
   if (!g_singleton_) {
@@ -234,7 +273,6 @@ TProximityPanel& TProximityPanel::singleton() {
 
   return *g_singleton_;
 }
-
 
 bool TProximityPanel::g_tofAlert = false;
 
@@ -250,8 +288,8 @@ TProximityPanel* TProximityPanel::g_singleton_ = nullptr;
 
 TControlDisplay& TProximityPanel::g_tc = TControlDisplay::singleton();
 
-const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::kNumberTimeOfFlightDevices][2] =
-    {
+const int TProximityPanel::TOF_BOX_POSITIONS
+    [TTimeOfFlight::kNumberTimeOfFlightDevices][2] = {
         /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, TOF_SECOND_LINE_Y},
         /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 6) + BORDER_PAD, TOF_SECOND_LINE_Y},
         /*2*/ {0 + BORDER_PAD, TOF_THIRD_LINE_Y},
@@ -261,22 +299,20 @@ const int TProximityPanel::TOF_BOX_POSITIONS[TTimeOfFlight::kNumberTimeOfFlightD
         /*6*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, TOF_SIXTH_LINE_Y},
         /*7*/ {TEXT_SIZE_3_WIDTH * (5 + 6) + BORDER_PAD, TOF_SIXTH_LINE_Y}};
 
-const int TProximityPanel::SONAR_BOX_POSITIONS[TSonar::kNumberSonars][2] =
-    {
-        /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, SONAR_SECOND_LINE_Y},
-        /*1*/ {0 + BORDER_PAD, SONAR_THIRD_LINE_Y},
-        /*2*/ {TEXT_SIZE_3_WIDTH * (5 + 5) + BORDER_PAD, SONAR_THIRD_LINE_Y},
-        /*3*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, SONAR_FOURTH_LINE_Y}
-    };
+const int TProximityPanel::SONAR_BOX_POSITIONS[TSonar::kNumberSonars][2] = {
+    /*0*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, SONAR_SECOND_LINE_Y},
+    /*1*/ {0 + BORDER_PAD, SONAR_THIRD_LINE_Y},
+    /*2*/ {TEXT_SIZE_3_WIDTH * (5 + 5) + BORDER_PAD, SONAR_THIRD_LINE_Y},
+    /*3*/ {TEXT_SIZE_3_WIDTH * 5 + BORDER_PAD, SONAR_FOURTH_LINE_Y}};
 
-const int TProximityPanel::MOTOR_BOX_POSITIONS[2][2] =
-    {
-      /*Left*/ {50, MOTOR_SECOND_LINE_Y},
-      /*Right*/ {50 + (TEXT_SIZE_3_WIDTH * 6), MOTOR_SECOND_LINE_Y}
-    };
+const int TProximityPanel::MOTOR_BOX_POSITIONS[2][2] = {
+    /*Left*/ {50, MOTOR_SECOND_LINE_Y},
+    /*Right*/ {50 + (TEXT_SIZE_3_WIDTH * 6), MOTOR_SECOND_LINE_Y}};
 
-const int TProximityPanel::TEMP_BOX_POSITIONS[TTemperature::kNumberTemperatures][2] =
-    {
-      /*0*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10, TEMP_SECOND_LINE_Y},
-      /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10, TEMP_THIRD_LINE_Y}
-    };
+const int
+    TProximityPanel::TEMP_BOX_POSITIONS[TTemperature::kNumberTemperatures][2] =
+        {
+            /*0*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10,
+                   TEMP_SECOND_LINE_Y},
+            /*1*/ {TEXT_SIZE_3_WIDTH * (5 + 5 + 5) + BORDER_PAD + 10,
+                   TEMP_THIRD_LINE_Y}};
