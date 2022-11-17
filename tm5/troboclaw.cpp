@@ -23,7 +23,7 @@ void TRoboClaw::CheckForMotorStall() {
 
   if (abs(motor_current = GetM1Current()) > kStallCurrentThreshold) {
     consecutiveStallFaultsLeftMotor += 1;
-    snprintf(msg, sizeof(msg), "WARN [TRoboclaw::CheckForMotorStall] M1 overcurrent: %f, consecutive faults: %d",
+    snprintf(msg, sizeof(msg), "WARN [TRoboclaw::CheckForMotorStall] M1 overcurrent: %f, consecutive faults: %ld",
     motor_current, consecutiveStallFaultsLeftMotor);
     TMicroRos::singleton().PublishDiagnostic(msg);
   } else {
@@ -32,7 +32,7 @@ void TRoboClaw::CheckForMotorStall() {
 
   if (abs(motor_current = GetM2Current()) > kStallCurrentThreshold) {
     consecutiveStallFaultsRightMotor += 1;
-    snprintf(msg, sizeof(msg), "WARN [TRoboclaw::CheckForMotorStall] M2 overcurrent: %f, consecutive faults: %d",
+    snprintf(msg, sizeof(msg), "WARN [TRoboclaw::CheckForMotorStall] M2 overcurrent: %f, consecutive faults: %ld",
     motor_current, consecutiveStallFaultsRightMotor);
     TMicroRos::singleton().PublishDiagnostic(msg);
   } else {
