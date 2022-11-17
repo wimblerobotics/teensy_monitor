@@ -81,6 +81,7 @@ int RoboClaw::peek()
 	else
 		return sserial->peek();
 #endif
+	return 0;
 }
 
 size_t RoboClaw::write(uint8_t byte)
@@ -91,6 +92,7 @@ size_t RoboClaw::write(uint8_t byte)
 	else
 		return sserial->write(byte);
 #endif
+	return 0;
 }
 
 int RoboClaw::read()
@@ -101,7 +103,7 @@ int RoboClaw::read()
 	else
 		return sserial->read();
 #endif
-
+	return 0;
 }
 
 int RoboClaw::available()
@@ -112,6 +114,7 @@ int RoboClaw::available()
 	else
 		return sserial->available();
 #endif
+	return 0;
 }
 
 void RoboClaw::flush()
@@ -144,6 +147,7 @@ int RoboClaw::read(uint32_t timeout)
 		}
 	}
 #endif
+	return 0;
 }
 
 void RoboClaw::clear()
@@ -285,7 +289,6 @@ bool RoboClaw::read_n(uint8_t cnt,uint8_t address,uint8_t cmd,...)
 }
 
 uint8_t RoboClaw::Read1(uint8_t address,uint8_t cmd,bool *valid){
-	uint8_t crc;
 
 	if(valid)
 		*valid = false;
@@ -328,8 +331,6 @@ uint8_t RoboClaw::Read1(uint8_t address,uint8_t cmd,bool *valid){
 }
 
 uint16_t RoboClaw::Read2(uint8_t address,uint8_t cmd,bool *valid){
-	uint8_t crc;
-
 	if(valid)
 		*valid = false;
 	
@@ -376,9 +377,7 @@ uint16_t RoboClaw::Read2(uint8_t address,uint8_t cmd,bool *valid){
 	return false;
 }
 
-uint32_t RoboClaw::Read4(uint8_t address, uint8_t cmd, bool *valid){
-	uint8_t crc;
-	
+uint32_t RoboClaw::Read4(uint8_t address, uint8_t cmd, bool *valid){	
 	if(valid)
 		*valid = false;
 	
@@ -438,8 +437,6 @@ uint32_t RoboClaw::Read4(uint8_t address, uint8_t cmd, bool *valid){
 }
 
 uint32_t RoboClaw::Read4_1(uint8_t address, uint8_t cmd, uint8_t *status, bool *valid){
-	uint8_t crc;
-
 	if(valid)
 		*valid = false;
 	
@@ -882,8 +879,6 @@ bool RoboClaw::SetPinFunctions(uint8_t address, uint8_t S3mode, uint8_t S4mode, 
 }
 
 bool RoboClaw::GetPinFunctions(uint8_t address, uint8_t &S3mode, uint8_t &S4mode, uint8_t &S5mode){
-	uint8_t crc;
-	bool valid = false;
 	uint8_t val1,val2,val3;
 	uint8_t trys=MAXRETRY;
 	int16_t data;
