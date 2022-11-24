@@ -38,6 +38,7 @@ class TModule {
     kProximityPanel,
     kRelay,
     kRoboClaw,
+    kSd,
     kSonar,
     kTemperature,
     kTimeOfFlight,

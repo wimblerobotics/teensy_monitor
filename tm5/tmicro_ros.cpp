@@ -13,6 +13,7 @@
 
 #include "trelay.h"
 #include "troboclaw.h"
+#include "tsd.h"
 
 #define ignore_result(x) \
   if (x) {               \
@@ -29,6 +30,7 @@
 void TMicroRos::loop() {
   switch (state_) {
     case kWaitingAgent: {
+      TSd::singleton().log("INFO [TMicroRos::loop] kWaitingAgent");
       static int64_t last_time = uxr_millis();
       if ((uxr_millis() - last_time) > 500) {
         state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? kAgentAvailable
@@ -38,15 +40,21 @@ void TMicroRos::loop() {
     } break;
 
     case kAgentAvailable:
+      TSd::singleton().log("INFO [TMicroRos::loop] kAgentAvailable");
       if (CreateEntities()) {
+        TSd::singleton().log(
+            "INFO [TMicroRos::loop] kAgentAvailable successful CreateEntities");
         state_ = kAgentConnected;
       } else {
+        TSd::singleton().log(
+            "ERROR [TMicroRos::loop] kAgentAvailable FAILED CreateEntities");
         state_ = kWaitingAgent;
         DestroyEntities();
       }
       break;
 
     case kAgentConnected: {
+      TSd::singleton().log("INFO [TMicroRos::loop] kAgentConnected");
       static int64_t last_time = uxr_millis();
       if ((uxr_millis() - last_time) > 10) {
         state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1))
@@ -60,6 +68,7 @@ void TMicroRos::loop() {
     } break;
 
     case kAgentDisconnected:
+      TSd::singleton().log("INFO [TMicroRos::loop] kAgentDisconnected");
       DestroyEntities();
       state_ = kWaitingAgent;
       break;
@@ -85,6 +94,7 @@ void TMicroRos::PublishDiagnostic(const char *msg) {
         strlen(g_singleton_->string_msg_.data.data);
     ignore_result(rcl_publish(&g_singleton_->diagnostics_publisher_,
                               &g_singleton_->string_msg_, nullptr));
+    TSd::singleton().log(msg);
   }
 }
 
@@ -199,6 +209,7 @@ void TMicroRos::TimerCallback(rcl_timer_t *timer, int64_t last_call_time) {
                TRoboClaw::singleton().GetM2Speed(), error);
       g_singleton_->string_msg_.data.size =
           strlen(g_singleton_->string_msg_.data.data);
+      TSd::singleton().log(g_singleton_->string_msg_.data.data);
       ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
                                 &g_singleton_->string_msg_, nullptr));
     }
@@ -236,9 +247,19 @@ void TMicroRos::TwistCallback(const void *twist_msg) {
       const int32_t m2_max_distance =
           fabs(m2_quad_pulses_per_second *
                g_singleton_->max_seconds_uncommanded_travel_);
+      char diagnostic_message[256];
+      snprintf(
+          diagnostic_message, sizeof(diagnostic_message),
+          "INFO [TMicroRos::TwistCallback(] accel qpps: %ld, m1 qpps: %ld, m1 "
+          "max d: %ld, m2 qpps: %ld, m2 max d: %ld",
+          g_singleton_->accel_quad_pulses_per_second_,
+          m1_quad_pulses_per_second, m1_max_distance, m2_quad_pulses_per_second,
+          m2_max_distance);
+      TSd::singleton().log(diagnostic_message);
       TRoboClaw::singleton().DoMixedSpeedAccelDist(
-          g_singleton_->accel_quad_pulses_per_second_, m1_quad_pulses_per_second,
-          m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
+          g_singleton_->accel_quad_pulses_per_second_,
+          m1_quad_pulses_per_second, m1_max_distance, m2_quad_pulses_per_second,
+          m2_max_distance);
     }
   }
 }

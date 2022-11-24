@@ -17,7 +17,7 @@ TControlDisplay::TControlDisplay() {
     pinMode(T_CS, OUTPUT);
     _touchScreen = new XPT2046_Touchscreen(T_CS, TIRQ_PIN);
     if (!_touchScreen->begin()) {
-        Serial.println("### FAILED TO INIT TOUCHSCREEN");
+        // Serial.println("### FAILED TO INIT TOUCHSCREEN");
     } else {
     }
 }

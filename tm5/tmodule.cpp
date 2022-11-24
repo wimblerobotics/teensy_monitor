@@ -3,7 +3,9 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "tconfiguration.h"
 #include "tmicro_ros.h"
+#include "tsd.h"
 
 #define DO_TIMING true
 
@@ -51,12 +53,24 @@ void TModule::GetStatistics(char* outString, size_t outStringSize) {
            statList);
   statTimingStart = micros();
   total_do_loop_count_ = 0;
+  TSd::singleton().log(outString);
 }
-
 void TModule::DoLoop() {
+  char diagnostic_message[256];
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::singleton().PublishDiagnostic("INFO [TModule::DoLoop] >> enter");
+  }
+
   for (size_t i = 0; i < kNumberModules; i++) {
     if (all_modules_[i] != nullptr) {
       TModule* module = all_modules_[i];
+      if (TM5::kDoDetailDebug) {
+        snprintf(diagnostic_message, sizeof(diagnostic_message),
+                 "INFO [TModule::DoLoop] about to loop on: %s",
+                 all_modules_[i]->name());
+        TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+      }
+
       uint32_t start = micros();
 
       all_modules_[i]->loop();
@@ -76,18 +90,32 @@ void TModule::DoLoop() {
   }
 
   total_do_loop_count_++;
+  if (TM5::kDoDetailDebug) {
+    snprintf(diagnostic_message, sizeof(diagnostic_message),
+             "INFO [TModule::DoLoop] << exit, total_do_loop_count: %ld",
+             total_do_loop_count_);
+    TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+  }
 }
 
 void TModule::DoSetup() {
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::singleton().PublishDiagnostic(
+        "INFO [TModule::DoSetup] >> enter");
+  }
+
   for (int i = 0; i < kNumberModules; i++) {
     if (all_modules_[i] != nullptr) {
       all_modules_[i]->setup();
     }
   }
+
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::singleton().PublishDiagnostic("INFO [TModule::DoSetup] << exit");
+  }
 }
 
 TModule* TModule::all_modules_[TModule::kNumberModules + 1] = {
-    nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr};
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 
 uint32_t TModule::total_do_loop_count_ = 0;

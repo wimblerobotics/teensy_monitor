@@ -3,11 +3,15 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "tconfiguration.h"
+#include "tmicro_ros.h"
+
 bool TRelay::IsPoweredOn(TRelayDevice device) {
   return g_device_set_time_ms_[device] != 0;
 }
 
 void TRelay::loop() {
+  TMicroRos::singleton().PublishDiagnostic("INFO [TRelay::loop]");
   // uint32_t now = millis();
   // if (g_device_set_time_ms_[kUnused1] &&
   //     (now > (g_device_set_time_ms_[kUnused1] + kResetDurationMs))) {
@@ -17,23 +21,30 @@ void TRelay::loop() {
 }
 
 void TRelay::PowerOff(TRelay::TRelayDevice device) {
+  char diagnostic_message[64];
   g_device_set_time_ms_[device] = 0;
+  if (TM5::kDoDetailDebug) {
+    snprintf(diagnostic_message, sizeof(diagnostic_message),
+             "INFO [TRelay::PowerOff] >> device: %d", (uint8_t)device);
+    TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+  }
+
   switch (device) {
-    // case kUnused0:
-    //   digitalWrite(kUnused0Pin, LOW);
-    //   break;
+      // case kUnused0:
+      //   digitalWrite(kUnused0Pin, LOW);
+      //   break;
 
-    // case kUnused1:
-    //   digitalWrite(kUnused1Pin, LOW);
-    //   break;
+      // case kUnused1:
+      //   digitalWrite(kUnused1Pin, LOW);
+      //   break;
 
-    // case kUnused2:
-    //   digitalWrite(kUnused2Pin, LOW);
-    //   break;
+      // case kUnused2:
+      //   digitalWrite(kUnused2Pin, LOW);
+      //   break;
 
-    // case kUnused3:
-    //   digitalWrite(kUnused3Pin, LOW);
-    //   break;
+      // case kUnused3:
+      //   digitalWrite(kUnused3Pin, LOW);
+      //   break;
 
     case kMotorEStop:
       digitalWrite(kMotorEStopPin, LOW);
@@ -45,25 +56,33 @@ void TRelay::PowerOff(TRelay::TRelayDevice device) {
 }
 
 void TRelay::PowerOn(TRelay::TRelayDevice device) {
+  char diagnostic_message[64];
+  g_device_set_time_ms_[device] = 0;
+  if (TM5::kDoDetailDebug) {
+    snprintf(diagnostic_message, sizeof(diagnostic_message),
+             "INFO [TRelay::PowerOn] >> device: %d", (uint8_t)device);
+    TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+  }
+
   switch (device) {
-    // case kUnused0:
-    //   digitalWrite(kUnused0Pin, HIGH);
-    //   break;
+      // case kUnused0:
+      //   digitalWrite(kUnused0Pin, HIGH);
+      //   break;
 
-    // case kUnused1:
-    //   digitalWrite(kUnused1Pin, HIGH);
-    //   break;
+      // case kUnused1:
+      //   digitalWrite(kUnused1Pin, HIGH);
+      //   break;
 
-    // case kUnused2:
-    //   digitalWrite(kUnused2Pin, HIGH);
+      // case kUnused2:
+      //   digitalWrite(kUnused2Pin, HIGH);
 
-    //   // Manually resetting the motor power will also reset the overcurrent
-    //   // alarm.
-    //    break;
+      //   // Manually resetting the motor power will also reset the overcurrent
+      //   // alarm.
+      //    break;
 
-    // case kUnused3:
-    //   digitalWrite(kUnused3Pin, HIGH);
-    //   break;
+      // case kUnused3:
+      //   digitalWrite(kUnused3Pin, HIGH);
+      //   break;
 
     case kMotorEStop:
       digitalWrite(kMotorEStopPin, HIGH);
@@ -77,6 +96,10 @@ void TRelay::PowerOn(TRelay::TRelayDevice device) {
 }
 
 void TRelay::setup() {
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::singleton().PublishDiagnostic("INFO [TRelay::setup] >>enter");
+  }
+
   // pinMode(kUnused0Pin, OUTPUT);
   // digitalWrite(kUnused0Pin, LOW);
   // g_device_set_time_ms_[kUnused0] = millis();
@@ -96,6 +119,7 @@ void TRelay::setup() {
   pinMode(kMotorEStopPin, OUTPUT);
   digitalWrite(kMotorEStopPin, LOW);
   g_device_set_time_ms_[kMotorEStop] = 0;
+  TMicroRos::singleton().PublishDiagnostic("INFO [TRelay::setup] >>exit");
 }
 
 TRelay::TRelay() : TModule(TModule::kRelay) {}

@@ -46,10 +46,10 @@ void TRoboClaw::CheckForMotorStall() {
   if (left_motor_stalled || right_motor_stalled) {
     if (left_motor_stalled) {
       TMicroRos::singleton().PublishDiagnostic(
-          "ERROR TRoboClaw::Loop STALL for M1 (left) motor");
+          "ERROR [TRoboClaw::CheckForMotorStall] STALL for M1 (left) motor");
     } else {
       TMicroRos::singleton().PublishDiagnostic(
-          "ERROR TRoboClaw::Loop STALL for M2 (right) motor");
+          "ERROR [TRoboClaw::CheckForMotorStall] STALL for M2 (right) motor");
     }
 
     TRelay::singleton().PowerOn(TRelay::kMotorEStop);  // E-stop the motors.
@@ -64,7 +64,7 @@ void TRoboClaw::DoMixedSpeedDist(int32_t m1_quad_pulses_per_second,
       (m1_quad_pulses_per_second == 0) && (m2_quad_pulses_per_second == 0)) {
     TRelay::singleton().PowerOff(TRelay::kMotorEStop);  // UN E-stop the motors.
     TMicroRos::singleton().PublishDiagnostic(
-        "Removing E-Stop because of zero velocity command");
+        "INFO [TRoboClaw::DoMixedSpeedDist] Removing E-Stop because of zero velocity command");
   }
 
   g_roboclaw_.SpeedDistanceM1M2(kDeviceAddress, m1_quad_pulses_per_second,
@@ -81,12 +81,12 @@ void TRoboClaw::DoMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
       (m1_quad_pulses_per_second == 0) && (m2_quad_pulses_per_second == 0)) {
     TRelay::singleton().PowerOff(TRelay::kMotorEStop);  // UN E-stop the motors.
     TMicroRos::singleton().PublishDiagnostic(
-        "Removing E-Stop because of zero velocity command");
+        "INFO [TRoboClaw::DoMixedSpeedAccelDist] Removing E-Stop because of zero velocity command");
   }
 
   char msg[512];
   snprintf(msg, sizeof(msg),
-           "accel_qpps: %ld, m1_qpps: %ld, m1_max_dist: %ld, m2_qpps: %ld, "
+           "INFO [TRoboClaw::DoMixedSpeedAccelDist] accel_qpps: %ld, m1_qpps: %ld, m1_max_dist: %ld, m2_qpps: %ld, "
            "m2_max_dist: %ld",
            accel_quad_pulses_per_second, m1_quad_pulses_per_second,
            m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
@@ -237,7 +237,7 @@ void TRoboClaw::GetVersion() {
       Reconnect();
     } else {
       snprintf(msg, sizeof(msg),
-               "info [TRoboClaw::GetVersion] version match, found: '%s'",
+               "INFO [TRoboClaw::GetVersion] version match, found: '%s'",
                version);
       TMicroRos::singleton().PublishDiagnostic(msg);
       g_state_ = kSpeedM1;
@@ -333,7 +333,7 @@ void TRoboClaw::CheckForRunaway(TRoboClaw::WhichMotor whichMotor) {
       TRelay::singleton().PowerOn(TRelay::kMotorEStop);  // E-stop the motors.
       char msg[512];
       snprintf(msg, sizeof(msg),
-               "ERROR TRoboClaw::Loop RUNAWAY for motor: %s, "
+               "ERROR [TRoboClaw::Loop] RUNAWAY for motor: %s, "
                "duration_since_last_runaway_check_for_encoder: %-2.3f",
                motor_name, duration_since_last_runaway_check_for_encoder);
       TMicroRos::singleton().PublishDiagnostic(msg);

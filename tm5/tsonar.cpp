@@ -5,6 +5,7 @@
 #include "Arduino.h"
 #include "TimerOne.h"
 #include "Wire.h"
+#include "tconfiguration.h"
 #include "tmicro_ros.h"
 
 void TSonar::CommonInterruptHandler(uint8_t pin, long& end_time,
@@ -89,11 +90,17 @@ int TSonar::GetValueMm(Sonar device) {
 }
 
 void TSonar::loop() {
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::PublishDiagnostic("INFO [TSonar::loop]");
+  }
   // Nothing needs to be done in the loop. Everything is drivven
   // by interrupts.
 }
 
 void TSonar::setup() {
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::PublishDiagnostic("INFO [TSonar::setup]");
+  }
   // Set up the Teensy pins to talk to the SONAR devices.
   pinMode(kPinEcho0, INPUT);
   pinMode(kPinTrigger0, OUTPUT);

@@ -4,21 +4,24 @@
 #include <Wire.h>
 #include <stdint.h>
 
+#include "tconfiguration.h"
 #include "tmicro_ros.h"
 
 int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
   char diagnostic[128];
   if (device >= kNumberTimeOfFlightDevices) {
     snprintf(diagnostic, sizeof(diagnostic),
-             "ERROR TTimeOfFlight::GetValueMm out of range device: %d", device);
+             "ERROR [TTimeOfFlight::GetValueMm] out of range device: %d",
+             device);
     TMicroRos::singleton().PublishDiagnostic(diagnostic);
     return -1;
   }
 
   if (g_sensor_[device] == nullptr) {
-    snprintf(diagnostic, sizeof(diagnostic),
-             "ERROR TTimeOfFlight::GetValueMm DEVICE NOT INITIALIZED device: %d",
-             device);
+    snprintf(
+        diagnostic, sizeof(diagnostic),
+        "ERROR [TTimeOfFlight::GetValueMm] DEVICE NON-INITIALIZED device: %d",
+        device);
     TMicroRos::singleton().PublishDiagnostic(diagnostic);
     return -1;
   }
@@ -54,6 +57,17 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
       TMicroRos::PublishTof((uint8_t)device,
                             g_cached_value_mm_[device] * 0.001);
     }
+  } else {
+    if (TM5::kDoDetailDebug) {
+      static uint32_t missed_timing_budget = 0;
+      missed_timing_budget++;
+      char diagnostic_message[128];
+      snprintf(diagnostic_message, sizeof(diagnostic_message),
+               "INFO [TTimeOfFlight::GetValueMm] missed timing, total missed "
+               "count: %ld",
+               missed_timing_budget);
+      TMicroRos::PublishDiagnostic(diagnostic_message);
+    }
   }
 
   if (g_sensor_[device]) {
@@ -81,7 +95,11 @@ void TTimeOfFlight::SelectTimeOfFlightSensor(TimeOfFlightEnum device) {
 }
 
 void TTimeOfFlight::setup() {
-  char msg[128];
+  char diagnostic_message[128];
+  if (TM5::kDoDetailDebug) {
+    TMicroRos::singleton().PublishDiagnostic("INFO [TTimeOfFlight::setup]");
+  }
+
   for (uint8_t device = 0; device < kNumberTimeOfFlightDevices; device++) {
     int retry_count = 0;
     bool success = false;
@@ -93,16 +111,16 @@ void TTimeOfFlight::setup() {
         g_sensor_[device] = sensor;
         sensor->setMeasurementTimingBudget(kTimingBudgetMs * 1000);
         sensor->startContinuous();
-        snprintf(msg, sizeof(msg),
-                 "info TTimeOfFlight::setup success device: %d", device);
-        TMicroRos::singleton().PublishDiagnostic(msg);
+        snprintf(diagnostic_message, sizeof(diagnostic_message),
+                 "INFO [TTimeOfFlight::setup] success device: %d", device);
+        TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
         success = true;
       }
     }
     if (!success) {
-      snprintf(msg, sizeof(msg), "ERROR TTimeOfFlight::setup FAIL device: %d",
-               device);
-      TMicroRos::singleton().PublishDiagnostic(msg);
+      snprintf(diagnostic_message, sizeof(diagnostic_message),
+               "ERROR [TTimeOfFlight::setup] FAIL device: %d", device);
+      TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
       g_sensor_[device] = nullptr;
     }
   }

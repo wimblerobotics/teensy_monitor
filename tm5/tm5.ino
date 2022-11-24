@@ -5,10 +5,11 @@
 //#include "Watchdog_t4.h"
 #include "tmicro_ros.h"
 #include "tmodule.h"
-#include "tmotor_current.h"
+// #include "tmotor_current.h"
 // #include "tproximity_panel.h"
 #include "trelay.h"
 #include "troboclaw.h"
+#include "tsd.h"
 #include "tsonar.h"
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
@@ -19,9 +20,9 @@ TMicroRos& micro_ros = TMicroRos::singleton();
 // TProximityPanel& proximityPanel = TProximityPanel::singleton();
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
-//#####TSd& sd = TSd::singleton();
+TSd& sd = TSd::singleton();
 TSonar& sonar = TSonar::singleton();
-TTemperature& temperature = TTemperature::singleton();
+// TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
 
 // WDT_T4<WDT3> wdt;
@@ -38,6 +39,7 @@ void setup() {
   // Serial.begin(38400);
   // while (!Serial && (millis() <= 1000))
   //   ;
+  //   Serial.println("Start");
 
   //  WDT_timings_t config;
   //  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed()
