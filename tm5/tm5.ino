@@ -2,7 +2,7 @@
 #include <micro_ros_arduino.h>
 #include <stdint.h>
 
-//#include "Watchdog_t4.h"
+// #include "Watchdog_t4.h"
 #include "tmicro_ros.h"
 #include "tmodule.h"
 // #include "tmotor_current.h"
@@ -18,6 +18,7 @@
 TMicroRos& micro_ros = TMicroRos::singleton();
 // TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 // TProximityPanel& proximityPanel = TProximityPanel::singleton();
+
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
 TSd& sd = TSd::singleton();
@@ -45,6 +46,7 @@ void setup() {
   //  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed()
   //  calls. config.timeout = 20000;  // Maximum time (ms) between watchdog
   //  feed() calls. config.callback = watchdogTimeout;
+
   TModule::DoSetup();
 
   //  wdt.begin(config);
