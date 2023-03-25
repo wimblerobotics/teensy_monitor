@@ -9,6 +9,13 @@
 
 #define DO_TIMING true
 
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else   // __ARM__
+extern char* __brkval;
+#endif  // __arm__
+
 TModule::TModule(TModule::Module moduleKind) {
   all_modules_[moduleKind] = this;
   loop_calls_between_get_statistics_calls_ = 0;
@@ -55,11 +62,23 @@ void TModule::GetStatistics(char* outString, size_t outStringSize) {
   total_do_loop_count_ = 0;
   TSd::singleton().log(outString);
 }
+
 void TModule::DoLoop() {
   char diagnostic_message[256];
   if (TM5::kDoDetailDebug) {
     TMicroRos::singleton().PublishDiagnostic("INFO [TModule::DoLoop] >> enter");
   }
+
+  // {
+  //   extern char _ebss[], _heap_end[], *__brkval;
+  //   auto sp = (char*)__builtin_frame_address(0);
+  //   auto stack = sp - _ebss;
+  //   auto heap = _heap_end - __brkval;
+  //   snprintf(diagnostic_message, sizeof(diagnostic_message),
+  //            "INFO [TModule::DoLoop] free stack kb %d, free heap kb: %d",
+  //            stack >> 10, heap >> 10);
+  //   TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+  // }
 
   for (size_t i = 0; i < kNumberModules; i++) {
     if (all_modules_[i] != nullptr) {
