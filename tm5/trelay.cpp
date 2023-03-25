@@ -11,7 +11,7 @@ bool TRelay::IsPoweredOn(TRelayDevice device) {
 }
 
 void TRelay::loop() {
-  TMicroRos::singleton().PublishDiagnostic("INFO [TRelay::loop]");
+  // TMicroRos::singleton().PublishDiagnostic("INFO [TRelay::loop]");
   // uint32_t now = millis();
   // if (g_device_set_time_ms_[kUnused1] &&
   //     (now > (g_device_set_time_ms_[kUnused1] + kResetDurationMs))) {
@@ -119,7 +119,6 @@ void TRelay::setup() {
   pinMode(kMotorEStopPin, OUTPUT);
   digitalWrite(kMotorEStopPin, LOW);
   g_device_set_time_ms_[kMotorEStop] = 0;
-  TMicroRos::singleton().PublishDiagnostic("INFO [TRelay::setup] >>exit");
 }
 
 TRelay::TRelay() : TModule(TModule::kRelay) {}
