@@ -446,7 +446,7 @@ TRoboClaw& TRoboClaw::singleton() {
   return *g_singleton_;
 }
 
-const char* TRoboClaw::kDeviceVersion = "USB Roboclaw 2x15a v4.2.5\n";
+const char* TRoboClaw::kDeviceVersion = "USB Roboclaw 2x15a v4.2.8\n";
 
 RoboClaw TRoboClaw::g_roboclaw_(&Serial6, 10'000);
 

@@ -21,7 +21,7 @@ class TTimeOfFlight : TModule {
 
   // Get the sensed distance for the device. A value of < 0 => no sensor at that
   // index.
-  int GetValueMm(TimeOfFlightEnum device);
+  float GetAverageValueM(TimeOfFlightEnum device);
 
   // Singleton constructor.
   static TTimeOfFlight& singleton();
@@ -48,6 +48,9 @@ class TTimeOfFlight : TModule {
 
   // Select a time-of-flight device through the multiplexer.
   void SelectTimeOfFlightSensor(TimeOfFlightEnum device);
+
+  // Get a new reading from the device, if available.
+  void UpdateSensorValue(TimeOfFlightEnum device);
 
   // Address of I2C multiplexer for time-of-flight devices.
   static const uint8_t kI2cMultiplexerAddress = 0x70;

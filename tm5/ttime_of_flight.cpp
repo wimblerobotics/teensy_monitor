@@ -7,23 +7,15 @@
 #include "tconfiguration.h"
 #include "tmicro_ros.h"
 
-int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
-  char diagnostic[128];
+void TTimeOfFlight::UpdateSensorValue(TimeOfFlightEnum device) {
   if (device >= kNumberTimeOfFlightDevices) {
-    snprintf(diagnostic, sizeof(diagnostic),
-             "ERROR [TTimeOfFlight::GetValueMm] out of range device: %d",
-             device);
-    TMicroRos::singleton().PublishDiagnostic(diagnostic);
-    return -1;
+    // Invalid device number.
+    return;
   }
 
   if (g_sensor_[device] == nullptr) {
-    snprintf(
-        diagnostic, sizeof(diagnostic),
-        "ERROR [TTimeOfFlight::GetValueMm] DEVICE NON-INITIALIZED device: %d",
-        device);
-    TMicroRos::singleton().PublishDiagnostic(diagnostic);
-    return -1;
+    // Device failed to initialize.
+    return;
   }
 
   SelectTimeOfFlightSensor(device);
@@ -39,50 +31,34 @@ int TTimeOfFlight::GetValueMm(TimeOfFlightEnum device) {
       // Clear the interrupt.
       g_sensor_[device]->writeReg(VL53L0X::SYSTEM_INTERRUPT_CLEAR, 0x01);
 
-      // Compute the running average of readings.
+      // Insert new reading into the round-robin queue.
       g_valuesMmHistory_[device][g_valuesMmHistoryIndex_[device]] =
           g_cached_value_mm_[device];
       g_valuesMmHistoryIndex_[device] += 1;
       if (g_valuesMmHistoryIndex_[device] >= kNumberReadingsToAverage) {
         g_valuesMmHistoryIndex_[device] = 0;
       }
-
-      int averageSum = 0;
-      for (size_t i = 0; i < kNumberReadingsToAverage; i++) {
-        averageSum += g_valuesMmHistory_[device][i];
-      }
-
-      // Post the new result.
-      // g_cached_value_mm_[device] = averageSum / kNumberReadingsToAverage;
-      TMicroRos::PublishTof((uint8_t)device,
-                            g_cached_value_mm_[device] * 0.001);
     }
-  } else {
-    if (TM5::kDoDetailDebug) {
-      static uint32_t missed_timing_budget = 0;
-      missed_timing_budget++;
-      char diagnostic_message[128];
-      snprintf(diagnostic_message, sizeof(diagnostic_message),
-               "INFO [TTimeOfFlight::GetValueMm] missed timing, total missed "
-               "count: %ld",
-               missed_timing_budget);
-      TMicroRos::PublishDiagnostic(diagnostic_message);
-    }
-  }
-
-  if (g_sensor_[device]) {
-    return g_cached_value_mm_[device];
-  } else {
-    return -1;
   }
 }
 
-void TTimeOfFlight::loop() {
-  static uint8_t next_sensor_to_read = 0;
+float TTimeOfFlight::GetAverageValueM(TimeOfFlightEnum device) {
+  // Update the queue with a new reading, if available.
+  UpdateSensorValue(device);
 
-  (void)GetValueMm(static_cast<TimeOfFlightEnum>(next_sensor_to_read++));
-  if (next_sensor_to_read >= kNumberTimeOfFlightDevices) {
-    next_sensor_to_read = 0;
+  // Compute the average distance
+  float averageSum_mm = 0.0;
+  for (size_t i = 0; i < kNumberReadingsToAverage; i++) {
+    averageSum_mm += (float)g_valuesMmHistory_[device][i];
+  }
+
+  return (averageSum_mm / (kNumberReadingsToAverage * 1.0)) * 0.001;
+}
+
+void TTimeOfFlight::loop() {
+  for (uint8_t device = 0; device < kNumberTimeOfFlightDevices; device++) {
+    TMicroRos::singleton().PublishTof(
+        device, GetAverageValueM((TimeOfFlightEnum)device));
   }
 }
 

@@ -5,8 +5,6 @@
 // #include "Watchdog_t4.h"
 #include "tmicro_ros.h"
 #include "tmodule.h"
-// #include "tmotor_current.h"
-// #include "tproximity_panel.h"
 #include "trelay.h"
 #include "troboclaw.h"
 #include "tsd.h"
@@ -16,9 +14,7 @@
 
 // Initialize all TModule instances in any required order.
 TMicroRos& micro_ros = TMicroRos::singleton();
-// TMotorCurrent& motorCurrent = TMotorCurrent::singleton();
 // TProximityPanel& proximityPanel = TProximityPanel::singleton();
-
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
 TSd& sd = TSd::singleton();

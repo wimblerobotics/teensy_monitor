@@ -94,14 +94,14 @@ void TModule::DoLoop() {
 
       all_modules_[i]->loop();
 
-      float duration = (micros() - start) / 1000.0;
-      module->duration_stats_[kSum] += duration;
-      if (duration < module->duration_stats_[kMin]) {
-        module->duration_stats_[kMin] = duration;
+      float duration_ms = (micros() - start) / 1000.0;
+      module->duration_stats_[kSum] += duration_ms;
+      if (duration_ms < module->duration_stats_[kMin]) {
+        module->duration_stats_[kMin] = duration_ms;
       }
 
-      if (duration > module->duration_stats_[kMax]) {
-        module->duration_stats_[kMax] = duration;
+      if (duration_ms > module->duration_stats_[kMax]) {
+        module->duration_stats_[kMax] = duration_ms;
       }
 
       module->loop_calls_between_get_statistics_calls_++;

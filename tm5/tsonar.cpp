@@ -40,9 +40,6 @@ void TSonar::CommonInterruptHandler(uint8_t pin, long& end_time,
 
       g_average_value_m_[sonar_index] =
           (average_sum_mm * 0.001) / kNumberReadingsToAverage;
-
-      // Publish the average distance for the sensor.
-      TMicroRos::PublishSonar(sonar_index, g_average_value_m_[sonar_index]);
       break;
   }
 }
@@ -93,8 +90,10 @@ void TSonar::loop() {
   if (TM5::kDoDetailDebug) {
     TMicroRos::PublishDiagnostic("INFO [TSonar::loop]");
   }
-  // Nothing needs to be done in the loop. Everything is drivven
-  // by interrupts.
+  
+  for (uint8_t device = 0; device < kNumberSonars; device++) {
+    TMicroRos::singleton().PublishSonar(device, GetAverageValueM((TSonar::Sonar) device));
+  }
 }
 
 void TSonar::setup() {

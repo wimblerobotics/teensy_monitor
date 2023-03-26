@@ -1,5 +1,6 @@
 #pragma once
 
+#include <diagnostic_msgs/msg/diagnostic_status.h>
 #include <geometry_msgs/msg/twist.h>
 #include <micro_ros_arduino.h>
 #include <rcl/error_handling.h>
@@ -16,6 +17,12 @@
 
 class TMicroRos : TModule {
  public:
+
+  // Check if ROS time appears to be correct and, if not, fix it.
+  // Returns a reasonable ROS time.
+  static int64_t FixedTime();
+
+  // Publish a diagnistoc message.
   static void PublishDiagnostic(const char* msg);
 
   // Called by SONAR sensor handler to publish a reading.
@@ -55,16 +62,36 @@ class TMicroRos : TModule {
 
   void DestroyEntities();
 
+  // Handler for heatbeat messages.
+  static void HeartbeatCallback(const void* heartbeat_msg);
+
+  // Sync ROS time.
+  static void SyncTime();
+
   // Regular maintenance, publish stats, etc.
   static void TimerCallback(rcl_timer_t* timer, int64_t last_call_time);
 
   // Handler for cmd_vel messages.
-  static void TwistCallback(const void* msg);
+  static void TwistCallback(const void* twist_msg);
+
+  // Block motor handling until time is synchronized again.
+  // This is because performing a time sync function can take a 
+  // quarter of a second or more. Setting this to true will
+  // prevent the cmd_vel listener from acting on any velocity
+  // command except one to stop the motors. This will prevent,
+  // say, the navigation system from moving the robot while
+  // the sensors are reporting invalid times, which would cause
+  // the sensors to be ignored.
+  bool await_time_sync_;
+
+  // For checking for a reasonable ROS time.
+  static volatile int64_t ros_sync_time_;
 
   // Micro-ROS variables
   rcl_allocator_t allocator_;
   rcl_subscription_t cmd_vel_subscriber_;
   rclc_executor_t executor_;
+  rcl_subscription_t heatbeat_subscriber_;
   bool micro_ros_init_successful_;
   rcl_node_t node_;
   rclc_support_t support_;
