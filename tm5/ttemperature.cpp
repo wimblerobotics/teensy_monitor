@@ -19,7 +19,7 @@ int16_t TTemperature::GetValueTenthsC(Temperature device) {
 }
 
 void TTemperature::loop() {
-  static uint32_t start_time = millis();
+  static uint32_t start_time_ms = millis();
 
   int raw = analogRead(kAnalog0Pin);
   float temp_mv = (raw * 3250 / 1024.0) - 55.0;  // TMP36 temperature conversion.
@@ -36,8 +36,8 @@ void TTemperature::loop() {
     g_next_average_index_ = 0;
   }
 
-  uint32_t now = millis();
-  if ((now - start_time) > 500) {
+  uint32_t now_ms = millis();
+  if ((now_ms - start_time_ms) > 500) {
     float left_motor_average_sum = 0;
     float right_motor_average_sum = 0;
     for (size_t reading = 0; reading < kNumberReadingsToAverage_; reading++) {
@@ -51,7 +51,7 @@ void TTemperature::loop() {
     TMicroRos::singleton().PublishTemperature(
         "right_motor",
         (right_motor_average_sum / kNumberReadingsToAverage_) / 10.0);
-    start_time = now;
+    start_time_ms = now_ms;
   }
 }
 

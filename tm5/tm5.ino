@@ -19,7 +19,7 @@ TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
 TSd& sd = TSd::singleton();
 TSonar& sonar = TSonar::singleton();
-TTemperature& temperature = TTemperature::singleton();
+// TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
 
 // WDT_T4<WDT3> wdt;

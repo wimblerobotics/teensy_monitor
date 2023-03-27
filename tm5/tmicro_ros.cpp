@@ -48,14 +48,14 @@ void TMicroRos::SyncTime() {
                                  // attempted synchronization.
   }
 
-  char diagnostic_message[256];
-  snprintf(diagnostic_message, sizeof(diagnostic_message),
-           "[TMicroRos::SyncTime] rmw_uros_sync_session(), call result: %d, sync_duration_ms: %f, "
-           "duration_since_last_sync_ms: %f, new time: "
-           "%lld.%lld",
-           sync_result, sync_duration_ms, duration_since_last_sync_ms,
-           ros_sync_time_ / 1'000'000'000, ros_sync_time_ % 1'000'000'000);
-  TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+  // char diagnostic_message[256];
+  // snprintf(diagnostic_message, sizeof(diagnostic_message),
+  //          "[TMicroRos::SyncTime] rmw_uros_sync_session(), call result: %d, sync_duration_ms: %f, "
+  //          "duration_since_last_sync_ms: %f, new time: "
+  //          "%lld.%lld",
+  //          sync_result, sync_duration_ms, duration_since_last_sync_ms,
+  //          ros_sync_time_ / 1'000'000'000, ros_sync_time_ % 1'000'000'000);
+  // TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
 
   TMicroRos::singleton().await_time_sync_ = false;  // Renable motor commands.
 }
@@ -188,6 +188,8 @@ void TMicroRos::PublishTemperature(const char *frame_id, float temperature) {
     snprintf(g_singleton_->temperature_msg_.header.frame_id.data,
              g_singleton_->temperature_msg_.header.frame_id.capacity, "%s",
              frame_id);
+    g_singleton_->temperature_msg_.header.frame_id.size =
+        strlen(g_singleton_->temperature_msg_.header.frame_id.data);
     g_singleton_->temperature_msg_.temperature = temperature;
     g_singleton_->temperature_msg_.variance = 0;
     ignore_result(rcl_publish(&g_singleton_->temperature_publisher_,
