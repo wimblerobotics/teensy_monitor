@@ -12,10 +12,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "tconfiguration.h"
 #include "tmodule.h"
 #include "trelay.h"
 #include "troboclaw.h"
+#if USE_TSD
 #include "tsd.h"
+#endif
 
 #define ignore_result(x) \
   if (x) {               \
@@ -29,12 +32,14 @@
     }                              \
   }
 
-void TMicroRos::SyncTime() {
+void TMicroRos::SyncTime(const char *caller, uint32_t fixed_time_call_count) {
+  static const int timeout_ms = 1000;
+  static uint32_t call_count = 0;
   static uint32_t time_at_last_sync = micros();
   TMicroRos::singleton().await_time_sync_ =
       true;  // Disable motor commands except for stop.
 
-  static const int timeout_ms = 1000;
+  call_count++;
   uint32_t start = micros();
   rmw_ret_t sync_result =
       rmw_uros_sync_session(timeout_ms);  // Atttempt synchronization.
@@ -48,29 +53,35 @@ void TMicroRos::SyncTime() {
                                  // attempted synchronization.
   }
 
-  // char diagnostic_message[256];
-  // snprintf(diagnostic_message, sizeof(diagnostic_message),
-  //          "[TMicroRos::SyncTime] rmw_uros_sync_session(), call result: %d, sync_duration_ms: %f, "
-  //          "duration_since_last_sync_ms: %f, new time: "
-  //          "%lld.%lld",
-  //          sync_result, sync_duration_ms, duration_since_last_sync_ms,
-  //          ros_sync_time_ / 1'000'000'000, ros_sync_time_ % 1'000'000'000);
-  // TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
+  char diagnostic_message[256];
+  snprintf(diagnostic_message, sizeof(diagnostic_message),
+           "[TMicroRos::SyncTime] rmw_uros_sync_session(), caller: %s"
+           ", call_count: %ld, "
+           ", fixed_time_call_count: %ld"
+           ", call result: %ld"
+           ", sync_duration_ms: %f"
+           ", duration_since_last_sync_ms: %f, new time: %lld.%lld",
+           caller, call_count, fixed_time_call_count, sync_result, sync_duration_ms,
+           duration_since_last_sync_ms, ros_sync_time_ / 1'000'000'000,
+           ros_sync_time_ % 1'000'000'000);
+  TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
 
   TMicroRos::singleton().await_time_sync_ = false;  // Renable motor commands.
 }
 
-int64_t TMicroRos::FixedTime() {
+int64_t TMicroRos::FixedTime(const char *caller) {
+  static uint32_t fixed_time_call_count = 0;
   int64_t ros_time = rmw_uros_epoch_nanos();
   int64_t skew = ros_time - ros_sync_time_;
+  fixed_time_call_count++;
   if (skew < 0) {
     // Time has gone backwards !
-    TMicroRos::singleton().SyncTime();
+    TMicroRos::singleton().SyncTime(caller, fixed_time_call_count);
     ros_time = ros_sync_time_;
   } else if (skew > 30'000'000) {
     // The current time appears to be 30ms or more out of whack from
     // previously synced time
-    TMicroRos::singleton().SyncTime();
+    TMicroRos::singleton().SyncTime(caller, fixed_time_call_count);
     ros_time = ros_sync_time_;
   } else if (skew <= 5'000'000) {
     // If the current time is within 5ms of the last synced time,
@@ -86,7 +97,9 @@ int64_t TMicroRos::FixedTime() {
 void TMicroRos::loop() {
   switch (state_) {
     case kWaitingAgent: {
+#if USE_TSD
       TSd::singleton().log("INFO [TMicroRos::loop] kWaitingAgent");
+#endif
       static int64_t last_time = uxr_millis();
       if ((uxr_millis() - last_time) > 500) {
         state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? kAgentAvailable
@@ -96,22 +109,30 @@ void TMicroRos::loop() {
     } break;
 
     case kAgentAvailable: {
+#if USE_TSD
       TSd::singleton().log("INFO [TMicroRos::loop] kAgentAvailable");
+#endif
       if (CreateEntities()) {
+#if USE_TSD
         TSd::singleton().log(
             "INFO [TMicroRos::loop] kAgentAvailable successful "
             "CreateEntities");
+#endif
         state_ = kAgentConnected;
       } else {
+#if USE_TSD
         TSd::singleton().log(
             "ERROR [TMicroRos::loop] kAgentAvailable FAILED CreateEntities");
+#endif
         state_ = kWaitingAgent;
         DestroyEntities();
       }
     } break;
 
     case kAgentConnected: {
+#if USE_TSD
       TSd::singleton().log("INFO [TMicroRos::loop] kAgentConnected");
+#endif
       static int64_t last_time = uxr_millis();
       if ((uxr_millis() - last_time) > 10) {
         state_ = (RMW_RET_OK == rmw_uros_ping_agent(100, 1))
@@ -125,7 +146,9 @@ void TMicroRos::loop() {
     } break;
 
     case kAgentDisconnected: {
+#if USE_TSD
       TSd::singleton().log("INFO [TMicroRos::loop] kAgentDisconnected");
+#endif
       DestroyEntities();
       state_ = kWaitingAgent;
     } break;
@@ -151,13 +174,17 @@ void TMicroRos::PublishDiagnostic(const char *msg) {
         strlen(g_singleton_->string_msg_.data.data);
     ignore_result(rcl_publish(&g_singleton_->diagnostics_publisher_,
                               &g_singleton_->string_msg_, nullptr));
+#if USE_TSD
     TSd::singleton().log(msg);
+#endif
   }
 }
 
 void TMicroRos::PublishSonar(uint8_t frame_id, float range) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    int64_t timestamp = TMicroRos::singleton().FixedTime();
+    char caller[32];
+    snprintf(caller, sizeof(caller), "PublisherSonar-%d", frame_id);
+    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
     g_singleton_->sonar_range_msg_.header.stamp.nanosec =
         (int32_t)(timestamp % 1'000'000'000);
     g_singleton_->sonar_range_msg_.header.stamp.sec =
@@ -179,11 +206,13 @@ void TMicroRos::PublishSonar(uint8_t frame_id, float range) {
 
 void TMicroRos::PublishTemperature(const char *frame_id, float temperature) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    int64_t timestamp = TMicroRos::singleton().FixedTime();
+    char caller[64];
+    snprintf(caller, sizeof(caller), "PublisherTemperature-%s", frame_id);
+    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
     g_singleton_->temperature_msg_.header.stamp.nanosec =
         (int32_t)(timestamp % 1'000'000'000);
     g_singleton_->temperature_msg_.header.stamp.sec =
-        (int32_t)(FLEXCAN3_HR_TIME_STAMP0 / 1'000'000'000);
+        (int32_t)(timestamp / 1'000'000'000);
 
     snprintf(g_singleton_->temperature_msg_.header.frame_id.data,
              g_singleton_->temperature_msg_.header.frame_id.capacity, "%s",
@@ -199,11 +228,13 @@ void TMicroRos::PublishTemperature(const char *frame_id, float temperature) {
 
 void TMicroRos::PublishTof(uint8_t frame_id, float range) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    int64_t timestamp = TMicroRos::singleton().FixedTime();
+    char caller[32];
+    snprintf(caller, sizeof(caller), "PublisherTof-%d", frame_id);
+    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
     g_singleton_->tof_range_msg_.header.stamp.nanosec =
         (int32_t)(timestamp % 1'000'000'000);
     g_singleton_->tof_range_msg_.header.stamp.sec =
-        (int32_t)(timestamp/ 1'000'000'000);
+        (int32_t)(timestamp / 1'000'000'000);
 
     snprintf(g_singleton_->tof_range_msg_.header.frame_id.data,
              g_singleton_->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
@@ -252,27 +283,29 @@ void TMicroRos::TimerCallback(rcl_timer_t *timer, int64_t last_call_time) {
       ignore_result(rcl_publish(&g_singleton_->teensy_stats_publisher_,
                                 &g_singleton_->string_msg_, nullptr));
 
-      uint32_t error = TRoboClaw::singleton().getError();
-      snprintf(g_singleton_->string_msg_.data.data,
-               g_singleton_->string_msg_.data.capacity,
-               "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
-               "Left\":%-ld,\"Encoder_Right\":"
-               "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
-               "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
-               "\"Errror\":%-lX}",
-               TRoboClaw::singleton().GetBatteryLogic(),
-               TRoboClaw::singleton().GetBatteryMain(),
-               TRoboClaw::singleton().GetM1Encoder(),
-               TRoboClaw::singleton().GetM2Encoder(),
-               TRoboClaw::singleton().GetM1Current(),
-               TRoboClaw::singleton().GetM2Current(),
-               TRoboClaw::singleton().GetM1Speed(),
-               TRoboClaw::singleton().GetM2Speed(), error);
-      g_singleton_->string_msg_.data.size =
-          strlen(g_singleton_->string_msg_.data.data);
-      TSd::singleton().log(g_singleton_->string_msg_.data.data);
-      ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
-                                &g_singleton_->string_msg_, nullptr));
+//       uint32_t error = TRoboClaw::singleton().getError();
+//       snprintf(g_singleton_->string_msg_.data.data,
+//                g_singleton_->string_msg_.data.capacity,
+//                "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
+//                "Left\":%-ld,\"Encoder_Right\":"
+//                "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
+//                "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
+//                "\"Errror\":%-lX}",
+//                TRoboClaw::singleton().GetBatteryLogic(),
+//                TRoboClaw::singleton().GetBatteryMain(),
+//                TRoboClaw::singleton().GetM1Encoder(),
+//                TRoboClaw::singleton().GetM2Encoder(),
+//                TRoboClaw::singleton().GetM1Current(),
+//                TRoboClaw::singleton().GetM2Current(),
+//                TRoboClaw::singleton().GetM1Speed(),
+//                TRoboClaw::singleton().GetM2Speed(), error);
+//       g_singleton_->string_msg_.data.size =
+//           strlen(g_singleton_->string_msg_.data.data);
+//       ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
+//                                 &g_singleton_->string_msg_, nullptr));
+// #if USE_TSD
+//       TSd::singleton().log(g_singleton_->string_msg_.data.data);
+// #endif
     }
   }
 }
@@ -283,7 +316,7 @@ void TMicroRos::HeartbeatCallback(const void *heartbeat_msg) {
   //       (const diagnostic_msgs__msg__DiagnosticStatus *)heartbeat_msg;
 
   //   int32_t nanosec = (int32_t)(TMicroRos::singleton().FixedTime() %
-  //   1000000000); int32_t sec = (int32_t)(TMicroRos::singleton().FixedTime() /
+  //   1000000000); int32_t sec = (int32_t)(TMicroRos::singleton().FixedTime("HeartbeatCallback") /
   //   1000000000);
   //   // msg.
   // }
@@ -335,7 +368,9 @@ void TMicroRos::TwistCallback(const void *twist_msg) {
                g_singleton_->accel_quad_pulses_per_second_,
                m1_quad_pulses_per_second, m1_max_distance,
                m2_quad_pulses_per_second, m2_max_distance);
+#if USE_TSD
       TSd::singleton().log(diagnostic_message);
+#endif
       TRoboClaw::singleton().DoMixedSpeedAccelDist(
           g_singleton_->accel_quad_pulses_per_second_,
           m1_quad_pulses_per_second, m1_max_distance, m2_quad_pulses_per_second,

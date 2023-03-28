@@ -2,12 +2,15 @@
 #include <micro_ros_arduino.h>
 #include <stdint.h>
 
+#include "tconfiguration.h"
 // #include "Watchdog_t4.h"
 #include "tmicro_ros.h"
 #include "tmodule.h"
 #include "trelay.h"
 #include "troboclaw.h"
+#if USE_TSD
 #include "tsd.h"
+#endif
 #include "tsonar.h"
 #include "ttemperature.h"
 #include "ttime_of_flight.h"
@@ -17,9 +20,11 @@ TMicroRos& micro_ros = TMicroRos::singleton();
 // TProximityPanel& proximityPanel = TProximityPanel::singleton();
 TRelay& relay = TRelay::singleton();
 TRoboClaw& roboclaw = TRoboClaw::singleton();
+#if USE_TSD
 TSd& sd = TSd::singleton();
+#endif
 TSonar& sonar = TSonar::singleton();
-// TTemperature& temperature = TTemperature::singleton();
+TTemperature& temperature = TTemperature::singleton();
 TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
 
 // WDT_T4<WDT3> wdt;

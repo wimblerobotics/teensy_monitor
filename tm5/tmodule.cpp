@@ -5,8 +5,6 @@
 
 #include "tconfiguration.h"
 #include "tmicro_ros.h"
-#include "tsd.h"
-
 #define DO_TIMING true
 
 #ifdef __arm__
@@ -60,7 +58,6 @@ void TModule::GetStatistics(char* outString, size_t outStringSize) {
            statList);
   statTimingStart = micros();
   total_do_loop_count_ = 0;
-  TSd::singleton().log(outString);
 }
 
 void TModule::DoLoop() {

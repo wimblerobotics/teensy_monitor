@@ -20,7 +20,7 @@ class TMicroRos : TModule {
 
   // Check if ROS time appears to be correct and, if not, fix it.
   // Returns a reasonable ROS time.
-  static int64_t FixedTime();
+  static int64_t FixedTime(const char* caller);
 
   // Publish a diagnistoc message.
   static void PublishDiagnostic(const char* msg);
@@ -66,7 +66,7 @@ class TMicroRos : TModule {
   static void HeartbeatCallback(const void* heartbeat_msg);
 
   // Sync ROS time.
-  static void SyncTime();
+  static void SyncTime(const char* caller, uint32_t fixed_time_call_count);
 
   // Regular maintenance, publish stats, etc.
   static void TimerCallback(rcl_timer_t* timer, int64_t last_call_time);
