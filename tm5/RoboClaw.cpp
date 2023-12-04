@@ -31,6 +31,7 @@ RoboClaw::RoboClaw(SoftwareSerial *serial, uint32_t tout)
 //
 RoboClaw::~RoboClaw()
 {
+	Serial6.end();
 }
 
 void RoboClaw::begin(long speed)

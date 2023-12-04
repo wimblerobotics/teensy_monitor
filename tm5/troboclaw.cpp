@@ -23,8 +23,10 @@ void TRoboClaw::CheckForMotorStall() {
 
   if (abs(motor_current = GetM1Current()) > kStallCurrentThreshold) {
     consecutiveStallFaultsLeftMotor += 1;
-    snprintf(msg, sizeof(msg), "WARN [TRoboclaw::CheckForMotorStall] M1 overcurrent: %f, consecutive faults: %ld",
-    motor_current, consecutiveStallFaultsLeftMotor);
+    snprintf(msg, sizeof(msg),
+             "WARN [TRoboclaw::CheckForMotorStall] M1 overcurrent: %f, "
+             "consecutive faults: %ld",
+             motor_current, consecutiveStallFaultsLeftMotor);
     TMicroRos::singleton().PublishDiagnostic(msg);
   } else {
     consecutiveStallFaultsLeftMotor = 0;
@@ -32,8 +34,10 @@ void TRoboClaw::CheckForMotorStall() {
 
   if (abs(motor_current = GetM2Current()) > kStallCurrentThreshold) {
     consecutiveStallFaultsRightMotor += 1;
-    snprintf(msg, sizeof(msg), "WARN [TRoboclaw::CheckForMotorStall] M2 overcurrent: %f, consecutive faults: %ld",
-    motor_current, consecutiveStallFaultsRightMotor);
+    snprintf(msg, sizeof(msg),
+             "WARN [TRoboclaw::CheckForMotorStall] M2 overcurrent: %f, "
+             "consecutive faults: %ld",
+             motor_current, consecutiveStallFaultsRightMotor);
     TMicroRos::singleton().PublishDiagnostic(msg);
   } else {
     consecutiveStallFaultsRightMotor = 0;
@@ -64,7 +68,8 @@ void TRoboClaw::DoMixedSpeedDist(int32_t m1_quad_pulses_per_second,
       (m1_quad_pulses_per_second == 0) && (m2_quad_pulses_per_second == 0)) {
     TRelay::singleton().PowerOff(TRelay::kMotorEStop);  // UN E-stop the motors.
     TMicroRos::singleton().PublishDiagnostic(
-        "INFO [TRoboClaw::DoMixedSpeedDist] Removing E-Stop because of zero velocity command");
+        "INFO [TRoboClaw::DoMixedSpeedDist] Removing E-Stop because of zero "
+        "velocity command");
   }
 
   g_roboclaw_.SpeedDistanceM1M2(kDeviceAddress, m1_quad_pulses_per_second,
@@ -81,12 +86,14 @@ void TRoboClaw::DoMixedSpeedAccelDist(uint32_t accel_quad_pulses_per_second,
       (m1_quad_pulses_per_second == 0) && (m2_quad_pulses_per_second == 0)) {
     TRelay::singleton().PowerOff(TRelay::kMotorEStop);  // UN E-stop the motors.
     TMicroRos::singleton().PublishDiagnostic(
-        "INFO [TRoboClaw::DoMixedSpeedAccelDist] Removing E-Stop because of zero velocity command");
+        "INFO [TRoboClaw::DoMixedSpeedAccelDist] Removing E-Stop because of "
+        "zero velocity command");
   }
 
   char msg[512];
   snprintf(msg, sizeof(msg),
-           "INFO [TRoboClaw::DoMixedSpeedAccelDist] accel_qpps: %ld, m1_qpps: %ld, m1_max_dist: %ld, m2_qpps: %ld, "
+           "INFO [TRoboClaw::DoMixedSpeedAccelDist] accel_qpps: %ld, m1_qpps: "
+           "%ld, m1_max_dist: %ld, m2_qpps: %ld, "
            "m2_max_dist: %ld",
            accel_quad_pulses_per_second, m1_quad_pulses_per_second,
            m1_max_distance, m2_quad_pulses_per_second, m2_max_distance);
@@ -100,66 +107,62 @@ float TRoboClaw::GetBatteryLogic() { return g_logic_battery_ / 10.0; }
 
 float TRoboClaw::GetBatteryMain() { return g_main_battery_ / 10.0; }
 
-void TRoboClaw::GetCurrents() {
+bool TRoboClaw::GetCurrents() {
   int16_t currentM1;
   int16_t currentM2;
   bool valid = g_roboclaw_.ReadCurrents(kDeviceAddress, currentM1, currentM2);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
         "ERROR [TRoboClaw::GetCurrents] fail");
-    Reconnect();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_current_m1_10ma_ = currentM1;
     g_current_m2_10ma_ = currentM2;
-    g_state_ = kLogicBattery;
+    return true;
   }
 }
 
-void TRoboClaw::GetEncoderM1() {
+bool TRoboClaw::GetEncoderM1() {
   bool valid;
   uint8_t status;
   int32_t value = g_roboclaw_.ReadEncM1(kDeviceAddress, &status, &valid);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
         "ERROR [TRoboClaw::GetEncoderM1] fail");
-    Reconnect();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_encoder_m1_ = value;
-    g_state_ = kEncoderM2;
+    return true;
   }
 }
 
-void TRoboClaw::GetEncoderM2() {
+bool TRoboClaw::GetEncoderM2() {
   bool valid;
   uint8_t status;
   int32_t value = g_roboclaw_.ReadEncM2(kDeviceAddress, &status, &valid);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
         "ERROR [TRoboClaw::GetEncoderM2] fail");
-    Reconnect();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_encoder_m2_ = value;
-    g_state_ = kCurrents;
+    return true;
   }
 }
 
 uint32_t TRoboClaw::getError() { return g_roboclaw_.ReadError(kDeviceAddress); }
 
-void TRoboClaw::GetLogicBattery() {
+bool TRoboClaw::GetLogicBattery() {
   bool valid;
   int16_t voltage;
   voltage = g_roboclaw_.ReadLogicBatteryVoltage(kDeviceAddress, &valid);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
         "ERROR [TRoboClaw::GetLogicBattery] fail");
-    Reconnect();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_logic_battery_ = voltage;
-    g_state_ = kMainBattery;
+    return true;
   }
 }
 
@@ -175,54 +178,51 @@ int32_t TRoboClaw::GetM2Encoder() { return g_encoder_m2_; }
 
 int32_t TRoboClaw::GetM2Speed() { return g_speed_m2_; }
 
-void TRoboClaw::GetMainBattery() {
+bool TRoboClaw::GetMainBattery() {
   bool valid;
   int16_t voltage;
   voltage = g_roboclaw_.ReadMainBatteryVoltage(kDeviceAddress, &valid);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
         "ERROR [TRoboClaw::GetMainBattery] fail");
-    Reconnect();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_main_battery_ = voltage;
-    g_state_ = kVersion;  //  Restart sequence
+    return true;
   }
 }
 
-void TRoboClaw::GetSpeedM1() {
+bool TRoboClaw::GetSpeedM1() {
   bool valid;
   uint8_t status;
   uint32_t speed = g_roboclaw_.ReadSpeedM1(kDeviceAddress, &status, &valid);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
-        "ERROR [TRoboClaw::GetSpeedM1] fail");
-    Reconnect();
+        "ERROR [TRoboClaw::GetSpeedM1a] fail");
     g_speed_m1_ = std::numeric_limits<uint32_t>::min();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_speed_m1_ = speed;
-    g_state_ = kSpeedM2;
+    return true;
   }
 }
 
-void TRoboClaw::GetSpeedM2() {
+bool TRoboClaw::GetSpeedM2() {
   bool valid;
   uint8_t status;
   int32_t speed = g_roboclaw_.ReadSpeedM2(kDeviceAddress, &status, &valid);
   if (!valid) {
     TMicroRos::singleton().PublishDiagnostic(
-        "ERROR [TRoboClaw::GetSpeedM2] fail");
-    Reconnect();
+        "ERROR [TRoboClaw::GetSpeedM2b] fail");
     g_speed_m2_ = std::numeric_limits<uint32_t>::min();
-    g_state_ = kVersion;
+    return false;
   } else {
     g_speed_m2_ = speed;
-    g_state_ = kEncoderM1;
+    return true;
   }
 }
 
-void TRoboClaw::GetVersion() {
+bool TRoboClaw::GetVersion() {
   static char version[32];
   version[0] = '\0';
   static bool version_matched = false;
@@ -234,22 +234,21 @@ void TRoboClaw::GetVersion() {
                "ERROR [TRoboClaw::GetVersion] version mismatch, found: '%s'",
                version);
       TMicroRos::singleton().PublishDiagnostic(msg);
-      Reconnect();
+      return false;
     } else {
       snprintf(msg, sizeof(msg),
                "INFO [TRoboClaw::GetVersion] version match, found: '%s'",
                version);
       TMicroRos::singleton().PublishDiagnostic(msg);
-      g_state_ = kSpeedM1;
       version_matched = true;
+      return true;
     }
   } else if (!version_matched) {
     TMicroRos::singleton().PublishDiagnostic(
         "ERROR [TRoboClaw::GetVersion fail");
-    Reconnect();
-    g_state_ = kVersion;
+    return false;
   } else {
-    g_state_ = kSpeedM1;
+    return true;
   }
 }
 
@@ -365,44 +364,213 @@ void TRoboClaw::CheckForRunaway(TRoboClaw::WhichMotor whichMotor) {
 void TRoboClaw::loop() {
   switch (g_state_) {
     case kVersion:
-      GetVersion();
+      if (GetVersion()) {
+        g_state_ = kSpeedM1;
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     case kSpeedM1: {
-      GetSpeedM1();
+      if (GetSpeedM1()) {
+        g_state_ = kSpeedM2;
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
     } break;
 
     case kSpeedM2:
-      GetSpeedM2();
+      if (GetSpeedM2()) {
+        g_state_ = kEncoderM1;
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     case kEncoderM1:
-      GetEncoderM1();
-      CheckForRunaway(kLeftMotor);
+      if (GetEncoderM1()) {
+        g_state_ = kEncoderM2;
+        CheckForRunaway(kLeftMotor);
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     case kEncoderM2:
-      GetEncoderM2();
-      CheckForRunaway(kRightMotor);
+      if (GetEncoderM2()) {
+        g_state_ = kCurrents;
+        CheckForRunaway(kRightMotor);
+        PublishOdometry();
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     case kCurrents:
-      GetCurrents();
-      CheckForMotorStall();
+      if (GetCurrents()) {
+        CheckForMotorStall();
+        g_state_ = kLogicBattery;
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     case kLogicBattery:
-      GetLogicBattery();
+      if (GetLogicBattery()) {
+        g_state_ = kMainBattery;
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     case kMainBattery:
-      GetMainBattery();
+      if (GetMainBattery()) {
+        g_state_ = kVersion;
+      } else {
+        Reconnect();
+        g_state_ = kVersion;
+      }
       break;
 
     default:
       g_state_ = kVersion;
       break;
   }
+}
+
+const void TRoboClaw::EulerToQuaternion(float roll, float pitch, float yaw,
+                                        float* q) {
+  float cy = cos(yaw * 0.5);
+  float sy = sin(yaw * 0.5);
+  float cp = cos(pitch * 0.5);
+  float sp = sin(pitch * 0.5);
+  float cr = cos(roll * 0.5);
+  float sr = sin(roll * 0.5);
+
+  q[0] = cy * cp * cr + sy * sp * sr;
+  q[1] = cy * cp * sr - sy * sp * cr;
+  q[2] = sy * cp * sr + cy * sp * cr;
+  q[3] = sy * cp * cr - cy * sp * sr;
+}
+
+void TRoboClaw::PublishOdometry() {
+  static const float body_width = 0.3048;
+  static const float wheel_center_offset = 0.030;
+  static const float inter_wheel_distance =
+      body_width + (2.0 * wheel_center_offset);
+  static const uint32_t quad_pulses_per_revolution = 1000;
+  static const float wheel_radius_meters = 0.10169;
+  static const float wheel_circumference = wheel_radius_meters * 2 * PI;
+  static uint32_t last_checked_encoder_time_microseconds = micros();
+  static int32_t last_m1_encoder = g_encoder_m1_;
+  static int32_t last_m2_encoder = g_encoder_m2_;
+  static float x_pos = 0.0;
+  static float y_pos = 0.0;
+  static float heading = 0.0;
+
+  {
+    char m[256];
+    snprintf(m, sizeof(m),
+             "PRE heading: %3.4f"
+             ", g_encoder_m1_: %ld"
+             ", g_encoder_m2_: %ld"
+             ", last_m1_encoder: %ld"
+             ", last_m2_encoder: %ld",
+             heading, g_encoder_m1_, g_encoder_m2_, last_m1_encoder,
+             last_m2_encoder);
+    TMicroRos::singleton().PublishDiagnostic(m);
+  }
+  uint32_t now_microseconds = micros();
+  float delta_time_secs =
+      (now_microseconds - last_checked_encoder_time_microseconds) / 1'000'000.0;
+  float delta_time_minutes = delta_time_secs / 60.0;
+  last_checked_encoder_time_microseconds = now_microseconds;
+
+  int32_t delta_m1_encoder = g_encoder_m1_ - last_m1_encoder;
+  int32_t delta_m2_encoder = g_encoder_m2_ - last_m2_encoder;
+  last_m1_encoder = g_encoder_m1_;
+  last_m2_encoder = g_encoder_m2_;
+
+  float rpm_m1 = ((float)delta_m1_encoder / (float)quad_pulses_per_revolution) /
+                 delta_time_minutes;
+  float rpm_m2 = ((float)delta_m2_encoder / (float)quad_pulses_per_revolution) /
+                 delta_time_minutes;
+
+  float average_rps_x = ((rpm_m1 + rpm_m2) / 2.0) / 60.0;
+  float velocity_x = average_rps_x * wheel_circumference;
+  float velocity_y = 0;
+  float average_rps_angle =
+      (rpm_m1 - rpm_m2) / 2.0 /
+      60.0;  // m1 in equation represents right motor, m2 is left.
+  float anglular_velocity_z_rps =
+      (average_rps_angle * wheel_circumference) / (inter_wheel_distance / 2.0);
+
+  float delta_heading = anglular_velocity_z_rps * delta_time_secs;
+  float cos_h = cos(heading);
+  float sin_h = sin(heading);
+  float delta_x = (velocity_x * cos_h - velocity_y * sin_h) * delta_time_secs;
+  float delta_y = (velocity_x * sin_h + velocity_y * cos_h) * delta_time_secs;
+
+  x_pos += delta_x;
+  y_pos += delta_y;
+  heading += delta_heading;
+
+  float q[4];
+  EulerToQuaternion(0, 0, heading, q);
+
+  TMicroRos::singleton().PublishOdometry(x_pos, y_pos, velocity_x, velocity_y,
+                                         anglular_velocity_z_rps, q);
+
+  {
+    char msg[256];
+    snprintf(msg, sizeof(msg),
+             "delta_time_secs: %3.4f"
+             ", average_rps_x: %3.4f"
+             ", average_rps_angle: %3.4f"
+             ", delta_heading: %3.4f"
+             ", cos_h: %3.4f"
+             ", sin_h: %3.4f"
+             ", dx: %3.4f"
+             ", dy: %3.4f"
+             ", x_pos: %3.4f"
+             ", y_posy: %3.4f"
+             ", heading: %3.4f",
+             (double)delta_time_secs, (double)average_rps_x,
+             (double)average_rps_angle, (double)delta_heading, (double)cos_h,
+             (double)sin_h, (double)x_pos, (double)y_pos, (double)heading);
+    TMicroRos::singleton().PublishDiagnostic(msg);
+    snprintf(msg, sizeof(msg),
+             "ODOM delta_m1_encoder: %ld"
+             ", delta_m2_encoder: %ld"
+             ", rpm_m`: %3.4f"
+             ", rpm_m2: %3.4f"
+             ", velocity_x: %3.4f"
+             ", velocity_y: %3.4f"
+             ", anglular_velocity_z_rps: %3.4f",
+             delta_m1_encoder, delta_m2_encoder, (double) rpm_m1, (double) rpm_m2, (double) velocity_x,
+             (double) velocity_y, (double) anglular_velocity_z_rps);
+    TMicroRos::singleton().PublishDiagnostic(msg);
+  }
+
+  // float average_delta_encoder = (delta_m1_encoder + delta_m2_encoder) / 2.0;
+  // float pulses_traveled_in_one_second = average_delta_encoder /
+  // delta_time_secs; float revolutions_in_one_second =
+  //     pulses_traveled_in_one_second / quad_pulses_per_revolution;
+  // float distance_in_one_second =
+  //     (2 * 3.14159 * wheel_radius_meters) * revolutions_in_one_second;
+  // float angle_traveled =
+  //     (((-delta_m1_encoder + delta_m2_encoder) / 2.0) / delta_time_secs) /
+  //     (inter_wheel_distance / 2.0);
+
+  // float q[4]; // Quaternion equivalent of roll/pitch/yaw.
+  // EulerToQuaternion(0.0, 0.0, angle_traveled, q);
 }
 
 void TRoboClaw::Reconnect() {

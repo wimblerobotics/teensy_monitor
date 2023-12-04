@@ -113,29 +113,35 @@ class TRoboClaw : TModule {
   // Check for motor stall.
   void CheckForMotorStall();
 
+  // Convert roll, pitch, yaw angles to a quaternion
+  const void EulerToQuaternion(float roll, float pitch, float yaw, float* q);
+
   // Get current for motor 1 and 2;
-  void GetCurrents();
+  bool GetCurrents();
 
   // Get encoder value for motor 1;
-  void GetEncoderM1();
+  bool GetEncoderM1();
 
   // Get encoder value for motor 2;
-  void GetEncoderM2();
+  bool GetEncoderM2();
 
   // Get logic battery voltage;
-  void GetLogicBattery();
+  bool GetLogicBattery();
 
   // Get main battery voltage;
-  void GetMainBattery();
+  bool GetMainBattery();
 
   // Get speed for motor 1;
-  void GetSpeedM1();
+  bool GetSpeedM1();
 
   // Get speed for motor 2;
-  void GetSpeedM2();
+  bool GetSpeedM2();
 
   // Get device version string;
-  void GetVersion();
+  bool GetVersion();
+
+  // Publish odometry;
+  void PublishOdometry();
 
   // Reestablish connection to device.
   void Reconnect();

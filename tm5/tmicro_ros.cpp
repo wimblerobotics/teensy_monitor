@@ -61,9 +61,9 @@ void TMicroRos::SyncTime(const char *caller, uint32_t fixed_time_call_count) {
            ", call result: %ld"
            ", sync_duration_ms: %f"
            ", duration_since_last_sync_ms: %f, new time: %lld.%lld",
-           caller, call_count, fixed_time_call_count, sync_result, sync_duration_ms,
-           duration_since_last_sync_ms, ros_sync_time_ / 1'000'000'000,
-           ros_sync_time_ % 1'000'000'000);
+           caller, call_count, fixed_time_call_count, sync_result,
+           sync_duration_ms, duration_since_last_sync_ms,
+           ros_sync_time_ / 1'000'000'000, ros_sync_time_ % 1'000'000'000);
   TMicroRos::singleton().PublishDiagnostic(diagnostic_message);
 
   TMicroRos::singleton().await_time_sync_ = false;  // Renable motor commands.
@@ -180,6 +180,45 @@ void TMicroRos::PublishDiagnostic(const char *msg) {
   }
 }
 
+void TMicroRos::PublishOdometry(double x, double y, double x_velocity,
+                                double y_velocity, double z_velocity,
+                                float *quaternion) {
+  if (TMicroRos::singleton().state_ == kAgentConnected) {
+    char caller[32];
+    snprintf(caller, sizeof(caller), "PublishOdometry");
+    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
+    g_singleton_->odom_msg_.header.stamp.nanosec =
+        (int32_t)(timestamp % 1'000'000'000);
+    g_singleton_->odom_msg_.header.stamp.sec =
+        (int32_t)(timestamp / 1'000'000'000);
+
+    g_singleton_->odom_msg_.pose.pose.position.x = x;
+    g_singleton_->odom_msg_.pose.pose.position.y = y;
+    g_singleton_->odom_msg_.pose.pose.position.z = 0.0;
+
+    g_singleton_->odom_msg_.pose.pose.orientation.x = quaternion[1];
+    g_singleton_->odom_msg_.pose.pose.orientation.y = quaternion[2];
+    g_singleton_->odom_msg_.pose.pose.orientation.z = quaternion[3];
+    g_singleton_->odom_msg_.pose.pose.orientation.w = quaternion[0];
+
+    g_singleton_->odom_msg_.twist.twist.linear.x = x_velocity;
+    g_singleton_->odom_msg_.twist.twist.linear.y = y_velocity;
+    g_singleton_->odom_msg_.twist.twist.linear.z = 0.0;
+
+    g_singleton_->odom_msg_.twist.twist.angular.x = 0.0;
+    g_singleton_->odom_msg_.twist.twist.angular.y = 0.0;
+    g_singleton_->odom_msg_.twist.twist.angular.z = z_velocity;
+
+    // ignore_result(rcl_publish(&g_singleton_->odom_publisher_,
+    //                           &g_singleton_->odom_msg_, nullptr));
+    rcl_ret_t temp_rc = rcl_publish(&g_singleton_->odom_publisher_,
+                                    &g_singleton_->odom_msg_, nullptr);
+    // char m[256];
+    // snprintf(m, sizeof(m), "PD temp_rc: %d", temp_rc);
+    // TMicroRos::singleton().PublishDiagnostic(m);
+  }
+}
+
 void TMicroRos::PublishSonar(uint8_t frame_id, float range) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
     char caller[32];
@@ -283,29 +322,29 @@ void TMicroRos::TimerCallback(rcl_timer_t *timer, int64_t last_call_time) {
       ignore_result(rcl_publish(&g_singleton_->teensy_stats_publisher_,
                                 &g_singleton_->string_msg_, nullptr));
 
-//       uint32_t error = TRoboClaw::singleton().getError();
-//       snprintf(g_singleton_->string_msg_.data.data,
-//                g_singleton_->string_msg_.data.capacity,
-//                "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
-//                "Left\":%-ld,\"Encoder_Right\":"
-//                "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
-//                "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
-//                "\"Errror\":%-lX}",
-//                TRoboClaw::singleton().GetBatteryLogic(),
-//                TRoboClaw::singleton().GetBatteryMain(),
-//                TRoboClaw::singleton().GetM1Encoder(),
-//                TRoboClaw::singleton().GetM2Encoder(),
-//                TRoboClaw::singleton().GetM1Current(),
-//                TRoboClaw::singleton().GetM2Current(),
-//                TRoboClaw::singleton().GetM1Speed(),
-//                TRoboClaw::singleton().GetM2Speed(), error);
-//       g_singleton_->string_msg_.data.size =
-//           strlen(g_singleton_->string_msg_.data.data);
-//       ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
-//                                 &g_singleton_->string_msg_, nullptr));
-// #if USE_TSD
-//       TSd::singleton().log(g_singleton_->string_msg_.data.data);
-// #endif
+      //       uint32_t error = TRoboClaw::singleton().getError();
+      //       snprintf(g_singleton_->string_msg_.data.data,
+      //                g_singleton_->string_msg_.data.capacity,
+      //                "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
+      //                "Left\":%-ld,\"Encoder_Right\":"
+      //                "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
+      //                "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
+      //                "\"Error\":%-lX}",
+      //                TRoboClaw::singleton().GetBatteryLogic(),
+      //                TRoboClaw::singleton().GetBatteryMain(),
+      //                TRoboClaw::singleton().GetM1Encoder(),
+      //                TRoboClaw::singleton().GetM2Encoder(),
+      //                TRoboClaw::singleton().GetM1Current(),
+      //                TRoboClaw::singleton().GetM2Current(),
+      //                TRoboClaw::singleton().GetM1Speed(),
+      //                TRoboClaw::singleton().GetM2Speed(), error);
+      //       g_singleton_->string_msg_.data.size =
+      //           strlen(g_singleton_->string_msg_.data.data);
+      //       ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
+      //                                 &g_singleton_->string_msg_, nullptr));
+      // // #if USE_TSD
+      // //       TSd::singleton().log(g_singleton_->string_msg_.data.data);
+      // // #endif
     }
   }
 }
@@ -316,7 +355,8 @@ void TMicroRos::HeartbeatCallback(const void *heartbeat_msg) {
   //       (const diagnostic_msgs__msg__DiagnosticStatus *)heartbeat_msg;
 
   //   int32_t nanosec = (int32_t)(TMicroRos::singleton().FixedTime() %
-  //   1000000000); int32_t sec = (int32_t)(TMicroRos::singleton().FixedTime("HeartbeatCallback") /
+  //   1000000000); int32_t sec =
+  //   (int32_t)(TMicroRos::singleton().FixedTime("HeartbeatCallback") /
   //   1000000000);
   //   // msg.
   // }
@@ -394,6 +434,42 @@ TMicroRos::TMicroRos()
       (char *)malloc(string_msg_.data.capacity * sizeof(char));
   string_msg_.data.size = 0;
 
+  odom_msg_.header.frame_id.capacity = 32;
+  odom_msg_.header.frame_id.data =
+      (char *)malloc(odom_msg_.header.frame_id.capacity * sizeof(char));
+  snprintf(odom_msg_.header.frame_id.data, odom_msg_.header.frame_id.capacity,
+           "odom");
+  odom_msg_.header.frame_id.size =
+      strlen(odom_msg_.header.frame_id.data);
+  odom_msg_.child_frame_id.capacity = 32;
+  odom_msg_.child_frame_id.data =
+      (char *)malloc(odom_msg_.child_frame_id.capacity * sizeof(char));
+  snprintf(odom_msg_.child_frame_id.data, odom_msg_.header.frame_id.capacity,
+           "base_link");
+  odom_msg_.child_frame_id.size =
+      strlen(odom_msg_.child_frame_id.data);
+
+  odom_msg_.header.frame_id.size = 0;
+  for (size_t i = 0; i < (sizeof(odom_msg_.pose.covariance) /
+                          sizeof(odom_msg_.pose.covariance[0]));
+       i++) {
+    odom_msg_.pose.covariance[i] = 0.0;
+  }
+
+  odom_msg_.pose.covariance[0] = 0.001;
+  odom_msg_.pose.covariance[7] = 0.001;
+  odom_msg_.pose.covariance[35] = 0.001;
+
+  for (size_t i = 0; i < (sizeof(odom_msg_.twist.covariance) /
+                          sizeof(odom_msg_.twist.covariance[0]));
+       i++) {
+    odom_msg_.twist.covariance[i] = 0.0;
+  }
+
+  odom_msg_.twist.covariance[0] = 0.0001;
+  odom_msg_.twist.covariance[7] = 0.0001;
+  odom_msg_.twist.covariance[35] = 0.0001;
+
   sonar_range_msg_.header.frame_id.capacity = 32;
   sonar_range_msg_.header.frame_id.data =
       (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
@@ -401,12 +477,12 @@ TMicroRos::TMicroRos()
 
   temperature_msg_.header.frame_id.capacity = 32;
   temperature_msg_.header.frame_id.data =
-      (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
+      (char *)malloc(temperature_msg_.header.frame_id.capacity * sizeof(char));
   temperature_msg_.header.frame_id.size = 0;
 
   tof_range_msg_.header.frame_id.capacity = 32;
   tof_range_msg_.header.frame_id.data =
-      (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
+      (char *)malloc(tof_range_msg_.header.frame_id.capacity * sizeof(char));
   tof_range_msg_.header.frame_id.size = 0;
 }
 
@@ -429,19 +505,23 @@ bool TMicroRos::CreateEntities() {
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
       "teensy_diagnostics"));
 
-  RCCHECK(rclc_publisher_init_best_effort(
+  RCCHECK(rclc_publisher_init_default(
+      &odom_publisher_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry), "wheel_odom"));
+
+  RCCHECK(rclc_publisher_init_default(
       &teensy_stats_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "teensy_stats"));
 
   for (size_t i = 0; i < 4; i++) {
     char topic_name[16];
     sprintf(topic_name, "sonar%-1dSensor", i);
-    RCCHECK(rclc_publisher_init_best_effort(
+    RCCHECK(rclc_publisher_init_default(
         &sonar_publisher_[i], &node_,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
   }
 
-  RCCHECK(rclc_publisher_init_best_effort(
+  RCCHECK(rclc_publisher_init_default(
       &temperature_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
       "temperature"));
@@ -485,6 +565,8 @@ void TMicroRos::DestroyEntities() {
   rmw_context_t *rmw_context = rcl_context_get_rmw_context(&support_.context);
   ignore_result(
       rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0));
+
+  ignore_result(rcl_publisher_fini(&odom_publisher_, &node_));
 
   // ignore_result(rcl_publisher_fini(&roboclaw_status_publisher_, &node_));
   ignore_result(rcl_publisher_fini(&teensy_stats_publisher_, &node_));

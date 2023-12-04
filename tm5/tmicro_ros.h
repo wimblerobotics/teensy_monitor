@@ -1,8 +1,10 @@
 #pragma once
 
 #include <diagnostic_msgs/msg/diagnostic_status.h>
+#include <geometry_msgs/msg/quaternion.h>
 #include <geometry_msgs/msg/twist.h>
 #include <micro_ros_arduino.h>
+#include <nav_msgs/msg/odometry.h>
 #include <rcl/error_handling.h>
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -12,18 +14,23 @@
 #include <sensor_msgs/msg/temperature.h>
 #include <std_msgs/msg/string.h>
 #include <stdio.h>
+// #include <tf2_ros/transform_broadcaster.h>
 
 #include "tmodule.h"
 
 class TMicroRos : TModule {
  public:
-
   // Check if ROS time appears to be correct and, if not, fix it.
   // Returns a reasonable ROS time.
   static int64_t FixedTime(const char* caller);
 
   // Publish a diagnistoc message.
   static void PublishDiagnostic(const char* msg);
+
+  // Publish the odom transform and topic.
+  static void PublishOdometry(double x, double y, double x_velocity,
+                              double y_velocity, double z_velocity,
+                              float* quaternion);
 
   // Called by SONAR sensor handler to publish a reading.
   static void PublishSonar(uint8_t frame_id, float range);
@@ -75,7 +82,7 @@ class TMicroRos : TModule {
   static void TwistCallback(const void* twist_msg);
 
   // Block motor handling until time is synchronized again.
-  // This is because performing a time sync function can take a 
+  // This is because performing a time sync function can take a
   // quarter of a second or more. Setting this to true will
   // prevent the cmd_vel listener from acting on any velocity
   // command except one to stop the motors. This will prevent,
@@ -99,6 +106,7 @@ class TMicroRos : TModule {
 
   // ROS publishers.
   rcl_publisher_t diagnostics_publisher_;
+  rcl_publisher_t odom_publisher_;
   rcl_publisher_t roboclaw_status_publisher_;
   rcl_publisher_t sonar_publisher_[4];
   rcl_publisher_t teensy_stats_publisher_;
@@ -111,6 +119,7 @@ class TMicroRos : TModule {
   sensor_msgs__msg__Temperature temperature_msg_;
   sensor_msgs__msg__Range tof_range_msg_;
   geometry_msgs__msg__Twist twist_msg_;
+  nav_msgs__msg__Odometry odom_msg_;
 
   // Motor driver configuration values.
   int32_t accel_quad_pulses_per_second_;

@@ -37,7 +37,7 @@ void watchdogTimeout() {
 void setup() {
   Wire.begin();
   pinMode(13, OUTPUT);
-  digitalWrite(13, 0);
+  
   // Serial.begin(38400);
   // while (!Serial && (millis() <= 1000))
   //   ;
