@@ -2,6 +2,7 @@
 
 #include <diagnostic_msgs/msg/diagnostic_status.h>
 #include <geometry_msgs/msg/quaternion.h>
+#include <geometry_msgs/msg/transform_stamped.h>
 #include <geometry_msgs/msg/twist.h>
 #include <micro_ros_arduino.h>
 #include <nav_msgs/msg/odometry.h>
@@ -106,6 +107,7 @@ class TMicroRos : TModule {
 
   // ROS publishers.
   rcl_publisher_t diagnostics_publisher_;
+  rcl_publisher_t odom_broadcaster_;
   rcl_publisher_t odom_publisher_;
   rcl_publisher_t roboclaw_status_publisher_;
   rcl_publisher_t sonar_publisher_[4];
@@ -120,6 +122,7 @@ class TMicroRos : TModule {
   sensor_msgs__msg__Range tof_range_msg_;
   geometry_msgs__msg__Twist twist_msg_;
   nav_msgs__msg__Odometry odom_msg_;
+  geometry_msgs__msg__TransformStamped odom_trans_;
 
   // Motor driver configuration values.
   int32_t accel_quad_pulses_per_second_;

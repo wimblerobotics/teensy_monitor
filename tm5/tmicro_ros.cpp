@@ -209,13 +209,23 @@ void TMicroRos::PublishOdometry(double x, double y, double x_velocity,
     g_singleton_->odom_msg_.twist.twist.angular.y = 0.0;
     g_singleton_->odom_msg_.twist.twist.angular.z = z_velocity;
 
-    // ignore_result(rcl_publish(&g_singleton_->odom_publisher_,
-    //                           &g_singleton_->odom_msg_, nullptr));
-    rcl_ret_t temp_rc = rcl_publish(&g_singleton_->odom_publisher_,
-                                    &g_singleton_->odom_msg_, nullptr);
-    // char m[256];
-    // snprintf(m, sizeof(m), "PD temp_rc: %d", temp_rc);
-    // TMicroRos::singleton().PublishDiagnostic(m);
+    ignore_result(rcl_publish(&g_singleton_->odom_publisher_,
+                              &g_singleton_->odom_msg_, nullptr));
+
+    g_singleton_->odom_trans_.header.stamp.nanosec =
+        (int32_t)(timestamp % 1'000'000'000);
+    g_singleton_->odom_trans_.header.stamp.sec =
+        (int32_t)(timestamp / 1'000'000'000);
+    g_singleton_->odom_trans_.transform.translation.x = x;
+    g_singleton_->odom_trans_.transform.translation.y = y;
+    g_singleton_->odom_trans_.transform.translation.z = 0.0;
+    g_singleton_->odom_trans_.transform.rotation.x = quaternion[1];
+    g_singleton_->odom_trans_.transform.rotation.y = quaternion[2];
+    g_singleton_->odom_trans_.transform.rotation.z = quaternion[3];
+    g_singleton_->odom_trans_.transform.rotation.w = quaternion[0];
+
+    ignore_result(rcl_publish(&g_singleton_->odom_broadcaster_,
+                              &g_singleton_->odom_trans_, nullptr));
   }
 }
 
@@ -439,15 +449,13 @@ TMicroRos::TMicroRos()
       (char *)malloc(odom_msg_.header.frame_id.capacity * sizeof(char));
   snprintf(odom_msg_.header.frame_id.data, odom_msg_.header.frame_id.capacity,
            "odom");
-  odom_msg_.header.frame_id.size =
-      strlen(odom_msg_.header.frame_id.data);
+  odom_msg_.header.frame_id.size = strlen(odom_msg_.header.frame_id.data);
   odom_msg_.child_frame_id.capacity = 32;
   odom_msg_.child_frame_id.data =
       (char *)malloc(odom_msg_.child_frame_id.capacity * sizeof(char));
   snprintf(odom_msg_.child_frame_id.data, odom_msg_.header.frame_id.capacity,
            "base_link");
-  odom_msg_.child_frame_id.size =
-      strlen(odom_msg_.child_frame_id.data);
+  odom_msg_.child_frame_id.size = strlen(odom_msg_.child_frame_id.data);
 
   odom_msg_.header.frame_id.size = 0;
   for (size_t i = 0; i < (sizeof(odom_msg_.pose.covariance) /
@@ -469,6 +477,19 @@ TMicroRos::TMicroRos()
   odom_msg_.twist.covariance[0] = 0.0001;
   odom_msg_.twist.covariance[7] = 0.0001;
   odom_msg_.twist.covariance[35] = 0.0001;
+
+  odom_trans_.header.frame_id.capacity = 32;
+  odom_trans_.header.frame_id.data =
+      (char *)malloc(odom_trans_.header.frame_id.capacity * sizeof(char));
+  snprintf(odom_trans_.header.frame_id.data,
+           odom_trans_.header.frame_id.capacity, "odom");
+  odom_trans_.header.frame_id.size = strlen(odom_trans_.header.frame_id.data);
+  odom_trans_.child_frame_id.capacity = 32;
+  odom_trans_.child_frame_id.data =
+      (char *)malloc(odom_trans_.child_frame_id.capacity * sizeof(char));
+  snprintf(odom_trans_.child_frame_id.data,
+           odom_trans_.header.frame_id.capacity, "base_link");
+  odom_trans_.child_frame_id.size = strlen(odom_trans_.child_frame_id.data);
 
   sonar_range_msg_.header.frame_id.capacity = 32;
   sonar_range_msg_.header.frame_id.data =
@@ -504,6 +525,10 @@ bool TMicroRos::CreateEntities() {
       &diagnostics_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
       "teensy_diagnostics"));
+
+  RCCHECK(rclc_publisher_init_default(
+      &odom_broadcaster_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, TransformStamped), "tf"));
 
   RCCHECK(rclc_publisher_init_default(
       &odom_publisher_, &node_,

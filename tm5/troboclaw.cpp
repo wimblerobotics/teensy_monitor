@@ -544,7 +544,8 @@ void TRoboClaw::PublishOdometry() {
              ", heading: %3.4f",
              (double)delta_time_secs, (double)average_rps_x,
              (double)average_rps_angle, (double)delta_heading, (double)cos_h,
-             (double)sin_h, (double)x_pos, (double)y_pos, (double)heading);
+             (double)sin_h, (double)delta_x, (double)delta_y, (double)x_pos,
+             (double)y_pos, (double)heading);
     TMicroRos::singleton().PublishDiagnostic(msg);
     snprintf(msg, sizeof(msg),
              "ODOM delta_m1_encoder: %ld"
@@ -554,8 +555,9 @@ void TRoboClaw::PublishOdometry() {
              ", velocity_x: %3.4f"
              ", velocity_y: %3.4f"
              ", anglular_velocity_z_rps: %3.4f",
-             delta_m1_encoder, delta_m2_encoder, (double) rpm_m1, (double) rpm_m2, (double) velocity_x,
-             (double) velocity_y, (double) anglular_velocity_z_rps);
+             delta_m1_encoder, delta_m2_encoder, (double)rpm_m1, (double)rpm_m2,
+             (double)velocity_x, (double)velocity_y,
+             (double)anglular_velocity_z_rps);
     TMicroRos::singleton().PublishDiagnostic(msg);
   }
 
