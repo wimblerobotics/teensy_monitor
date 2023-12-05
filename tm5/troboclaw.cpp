@@ -507,7 +507,7 @@ void TRoboClaw::PublishOdometry() {
   float velocity_x = average_rps_x * wheel_circumference;
   float velocity_y = 0;
   float average_rps_angle =
-      (rpm_m1 - rpm_m2) / 2.0 /
+      (-rpm_m1 + rpm_m2) / 2.0 /
       60.0;  // m1 in equation represents right motor, m2 is left.
   float anglular_velocity_z_rps =
       (average_rps_angle * wheel_circumference) / (inter_wheel_distance / 2.0);
