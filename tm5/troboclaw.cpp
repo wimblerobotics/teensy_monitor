@@ -372,17 +372,8 @@ void TRoboClaw::loop() {
       }
       break;
 
-    case kSpeedM1: {
-      if (GetSpeedM1()) {
-        g_state_ = kSpeedM2;
-      } else {
-        Reconnect();
-        g_state_ = kVersion;
-      }
-    } break;
-
-    case kSpeedM2:
-      if (GetSpeedM2()) {
+    case kSpeedM1:
+      if (GetSpeedM1() && GetSpeedM2()) {
         g_state_ = kEncoderM1;
       } else {
         Reconnect();
@@ -391,48 +382,11 @@ void TRoboClaw::loop() {
       break;
 
     case kEncoderM1:
-      if (GetEncoderM1()) {
-        g_state_ = kEncoderM2;
+      if (GetEncoderM1() && GetEncoderM2()) {
+        g_state_ = kSpeedM1;
         CheckForRunaway(kLeftMotor);
-      } else {
-        Reconnect();
-        g_state_ = kVersion;
-      }
-      break;
-
-    case kEncoderM2:
-      if (GetEncoderM2()) {
-        g_state_ = kCurrents;
         CheckForRunaway(kRightMotor);
         PublishOdometry();
-      } else {
-        Reconnect();
-        g_state_ = kVersion;
-      }
-      break;
-
-    case kCurrents:
-      if (GetCurrents()) {
-        CheckForMotorStall();
-        g_state_ = kLogicBattery;
-      } else {
-        Reconnect();
-        g_state_ = kVersion;
-      }
-      break;
-
-    case kLogicBattery:
-      if (GetLogicBattery()) {
-        g_state_ = kMainBattery;
-      } else {
-        Reconnect();
-        g_state_ = kVersion;
-      }
-      break;
-
-    case kMainBattery:
-      if (GetMainBattery()) {
-        g_state_ = kVersion;
       } else {
         Reconnect();
         g_state_ = kVersion;
@@ -475,18 +429,18 @@ void TRoboClaw::PublishOdometry() {
   static float y_pos = 0.0;
   static float heading = 0.0;
 
-  {
-    char m[256];
-    snprintf(m, sizeof(m),
-             "PRE heading: %3.4f"
-             ", g_encoder_m1_: %ld"
-             ", g_encoder_m2_: %ld"
-             ", last_m1_encoder: %ld"
-             ", last_m2_encoder: %ld",
-             heading, g_encoder_m1_, g_encoder_m2_, last_m1_encoder,
-             last_m2_encoder);
-    TMicroRos::singleton().PublishDiagnostic(m);
-  }
+  // {
+  //   char m[256];
+  //   snprintf(m, sizeof(m),
+  //            "PRE heading: %3.4f"
+  //            ", g_encoder_m1_: %ld"
+  //            ", g_encoder_m2_: %ld"
+  //            ", last_m1_encoder: %ld"
+  //            ", last_m2_encoder: %ld",
+  //            heading, g_encoder_m1_, g_encoder_m2_, last_m1_encoder,
+  //            last_m2_encoder);
+  //   TMicroRos::singleton().PublishDiagnostic(m);
+  // }
   uint32_t now_microseconds = micros();
   float delta_time_secs =
       (now_microseconds - last_checked_encoder_time_microseconds) / 1'000'000.0;
@@ -529,36 +483,36 @@ void TRoboClaw::PublishOdometry() {
                                          anglular_velocity_z_rps, q);
 
   {
-    char msg[256];
-    snprintf(msg, sizeof(msg),
-             "delta_time_secs: %3.4f"
-             ", average_rps_x: %3.4f"
-             ", average_rps_angle: %3.4f"
-             ", delta_heading: %3.4f"
-             ", cos_h: %3.4f"
-             ", sin_h: %3.4f"
-             ", dx: %3.4f"
-             ", dy: %3.4f"
-             ", x_pos: %3.4f"
-             ", y_posy: %3.4f"
-             ", heading: %3.4f",
-             (double)delta_time_secs, (double)average_rps_x,
-             (double)average_rps_angle, (double)delta_heading, (double)cos_h,
-             (double)sin_h, (double)delta_x, (double)delta_y, (double)x_pos,
-             (double)y_pos, (double)heading);
-    TMicroRos::singleton().PublishDiagnostic(msg);
-    snprintf(msg, sizeof(msg),
-             "ODOM delta_m1_encoder: %ld"
-             ", delta_m2_encoder: %ld"
-             ", rpm_m`: %3.4f"
-             ", rpm_m2: %3.4f"
-             ", velocity_x: %3.4f"
-             ", velocity_y: %3.4f"
-             ", anglular_velocity_z_rps: %3.4f",
-             delta_m1_encoder, delta_m2_encoder, (double)rpm_m1, (double)rpm_m2,
-             (double)velocity_x, (double)velocity_y,
-             (double)anglular_velocity_z_rps);
-    TMicroRos::singleton().PublishDiagnostic(msg);
+    // char msg[256];
+    // snprintf(msg, sizeof(msg),
+    //          "delta_time_secs: %3.4f"
+    //          ", average_rps_x: %3.4f"
+    //          ", average_rps_angle: %3.4f"
+    //          ", delta_heading: %3.4f"
+    //          ", cos_h: %3.4f"
+    //          ", sin_h: %3.4f"
+    //          ", dx: %3.4f"
+    //          ", dy: %3.4f"
+    //          ", x_pos: %3.4f"
+    //          ", y_posy: %3.4f"
+    //          ", heading: %3.4f",
+    //          (double)delta_time_secs, (double)average_rps_x,
+    //          (double)average_rps_angle, (double)delta_heading, (double)cos_h,
+    //          (double)sin_h, (double)delta_x, (double)delta_y, (double)x_pos,
+    //          (double)y_pos, (double)heading);
+    // TMicroRos::singleton().PublishDiagnostic(msg);
+    // snprintf(msg, sizeof(msg),
+    //          "ODOM delta_m1_encoder: %ld"
+    //          ", delta_m2_encoder: %ld"
+    //          ", rpm_m`: %3.4f"
+    //          ", rpm_m2: %3.4f"
+    //          ", velocity_x: %3.4f"
+    //          ", velocity_y: %3.4f"
+    //          ", anglular_velocity_z_rps: %3.4f",
+    //          delta_m1_encoder, delta_m2_encoder, (double)rpm_m1, (double)rpm_m2,
+    //          (double)velocity_x, (double)velocity_y,
+    //          (double)anglular_velocity_z_rps);
+    // TMicroRos::singleton().PublishDiagnostic(msg);
   }
 
   // float average_delta_encoder = (delta_m1_encoder + delta_m2_encoder) / 2.0;
