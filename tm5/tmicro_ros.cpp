@@ -311,8 +311,8 @@ void TMicroRos::setup() {
       loop();
     }
 
-    TRoboClaw::singleton().SetM1PID(7.26239, 1.36838, 00, 2437);
-    TRoboClaw::singleton().SetM2PID(7.26239, 1.36838, 00, 2437);
+    TRoboClaw::singleton().SetM1PID(7.26239, 2.43, 00, 2437);
+    TRoboClaw::singleton().SetM2PID(7.26239, 2.43, 00, 2437);
     is_setup = true;
   }
 }
