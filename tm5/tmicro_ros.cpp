@@ -437,8 +437,8 @@ TMicroRos::TMicroRos()
       max_linear_velocity_(0.3),
       max_seconds_uncommanded_travel_(0.25),
       quad_pulses_per_meter_(1566),
-      wheel_radius_(0.10169),
-      wheel_separation_(0.345) {
+      wheel_radius_(0.05),
+      wheel_separation_(0.395) {
   string_msg_.data.capacity = 512;
   string_msg_.data.data =
       (char *)malloc(string_msg_.data.capacity * sizeof(char));

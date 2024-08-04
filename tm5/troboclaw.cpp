@@ -461,12 +461,9 @@ const void TRoboClaw::EulerToQuaternion(float roll, float pitch, float yaw,
 }
 
 void TRoboClaw::PublishOdometry() {
-  static const float body_width = 0.3048;
-  static const float wheel_center_offset = 0.030;
-  static const float inter_wheel_distance =
-      body_width + (2.0 * wheel_center_offset);
+  static const float inter_wheel_distance = 0.395;
   static const uint32_t quad_pulses_per_revolution = 1000;
-  static const float wheel_radius_meters = 0.10169;
+  static const float wheel_radius_meters = 0.05;
   static const float wheel_circumference = wheel_radius_meters * 2 * PI;
   static uint32_t last_checked_encoder_time_microseconds = micros();
   static int32_t last_m1_encoder = g_encoder_m1_;
@@ -517,6 +514,8 @@ void TRoboClaw::PublishOdometry() {
   float sin_h = sin(heading);
   float delta_x = (velocity_x * cos_h - velocity_y * sin_h) * delta_time_secs;
   float delta_y = (velocity_x * sin_h + velocity_y * cos_h) * delta_time_secs;
+  delta_heading = (((delta_m1_encoder * 1.0 / quad_pulses_per_revolution) * wheel_circumference)
+                 - ((delta_m2_encoder * 1.0 / quad_pulses_per_revolution) * wheel_circumference)) / inter_wheel_distance;
 
   x_pos += delta_x;
   y_pos += delta_y;
@@ -550,7 +549,7 @@ void TRoboClaw::PublishOdometry() {
     snprintf(msg, sizeof(msg),
              "ODOM delta_m1_encoder: %ld"
              ", delta_m2_encoder: %ld"
-             ", rpm_m`: %3.4f"
+             ", rpm_m1: %3.4f"
              ", rpm_m2: %3.4f"
              ", velocity_x: %3.4f"
              ", velocity_y: %3.4f"
