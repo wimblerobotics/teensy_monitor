@@ -25,7 +25,10 @@ TSd& sd = TSd::singleton();
 #endif
 TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
-TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
+
+// if (TM5::kDoTOF) {
+//   TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
+// }
 
 // WDT_T4<WDT3> wdt;
 

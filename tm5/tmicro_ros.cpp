@@ -311,8 +311,8 @@ void TMicroRos::setup() {
       loop();
     }
 
-    TRoboClaw::singleton().SetM1PID(7.26239, 1.36838, 00, 2437);
-    TRoboClaw::singleton().SetM2PID(7.26239, 1.36838, 00, 2437);
+    TRoboClaw::singleton().SetM1PID(7.26239, 2.43, 00, 2437);
+    TRoboClaw::singleton().SetM2PID(7.26239, 2.43, 00, 2437);
     is_setup = true;
   }
 }
@@ -332,29 +332,29 @@ void TMicroRos::TimerCallback(rcl_timer_t *timer, int64_t last_call_time) {
       ignore_result(rcl_publish(&g_singleton_->teensy_stats_publisher_,
                                 &g_singleton_->string_msg_, nullptr));
 
-      //       uint32_t error = TRoboClaw::singleton().getError();
-      //       snprintf(g_singleton_->string_msg_.data.data,
-      //                g_singleton_->string_msg_.data.capacity,
-      //                "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
-      //                "Left\":%-ld,\"Encoder_Right\":"
-      //                "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
-      //                "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
-      //                "\"Error\":%-lX}",
-      //                TRoboClaw::singleton().GetBatteryLogic(),
-      //                TRoboClaw::singleton().GetBatteryMain(),
-      //                TRoboClaw::singleton().GetM1Encoder(),
-      //                TRoboClaw::singleton().GetM2Encoder(),
-      //                TRoboClaw::singleton().GetM1Current(),
-      //                TRoboClaw::singleton().GetM2Current(),
-      //                TRoboClaw::singleton().GetM1Speed(),
-      //                TRoboClaw::singleton().GetM2Speed(), error);
-      //       g_singleton_->string_msg_.data.size =
-      //           strlen(g_singleton_->string_msg_.data.data);
-      //       ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
-      //                                 &g_singleton_->string_msg_, nullptr));
-      // // #if USE_TSD
-      // //       TSd::singleton().log(g_singleton_->string_msg_.data.data);
-      // // #endif
+      uint32_t error = TRoboClaw::singleton().getError();
+      snprintf(g_singleton_->string_msg_.data.data,
+                g_singleton_->string_msg_.data.capacity,
+                "{\"LogicVoltage\":%-2.1f,\"MainVoltage\":%-2.1f,\"Encoder_"
+                "Left\":%-ld,\"Encoder_Right\":"
+                "%-ld,\"LeftMotorCurrent\":%-2.3f,\"RightMotorCurrent\":%-2.3f,"
+                "\"LeftMotorSpeed\":%ld,\"RightMotorSpeed\":%ld,"
+                "\"Error\":%-lX}",
+                TRoboClaw::singleton().GetBatteryLogic(),
+                TRoboClaw::singleton().GetBatteryMain(),
+                TRoboClaw::singleton().GetM1Encoder(),
+                TRoboClaw::singleton().GetM2Encoder(),
+                TRoboClaw::singleton().GetM1Current(),
+                TRoboClaw::singleton().GetM2Current(),
+                TRoboClaw::singleton().GetM1Speed(),
+                TRoboClaw::singleton().GetM2Speed(), error);
+      g_singleton_->string_msg_.data.size =
+          strlen(g_singleton_->string_msg_.data.data);
+      ignore_result(rcl_publish(&g_singleton_->roboclaw_status_publisher_,
+                                &g_singleton_->string_msg_, nullptr));
+      // #if USE_TSD
+      //       TSd::singleton().log(g_singleton_->string_msg_.data.data);
+      // #endif
     }
   }
 }
@@ -517,11 +517,11 @@ bool TMicroRos::CreateEntities() {
   RCCHECK(rclc_node_init_default(&node_, "teensy_node", "", &support_));
 
   // create publishers.
-  RCCHECK(rclc_publisher_init_best_effort(
+  RCCHECK(rclc_publisher_init_default(
       &roboclaw_status_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "roboclaw_status"));
 
-  RCCHECK(rclc_publisher_init_best_effort(
+  RCCHECK(rclc_publisher_init_default(
       &diagnostics_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
       "teensy_diagnostics"));
@@ -551,12 +551,14 @@ bool TMicroRos::CreateEntities() {
       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
       "temperature"));
 
-  for (size_t i = 0; i < 8; i++) {
-    char topic_name[16];
-    sprintf(topic_name, "tof%-1dSensor", i);
-    RCCHECK(rclc_publisher_init_default(
-        &tof_publisher_[i], &node_,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
+  if (TM5::kDoTOF) {
+  // for (size_t i = 0; i < 8; i++) {
+  //   char topic_name[16];
+  //   sprintf(topic_name, "tof%-1dSensor", i);
+  //   RCCHECK(rclc_publisher_init_default(
+  //       &tof_publisher_[i], &node_,
+  //       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
+  // }
   }
 
   // Create subscribers.
