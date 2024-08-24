@@ -211,94 +211,104 @@ void TMicroRos::PublishOdometry(double x, double y, double x_velocity,
 
     ignore_result(rcl_publish(&g_singleton_->odom_publisher_,
                               &g_singleton_->odom_msg_, nullptr));
-
-    // g_singleton_->odom_trans_.header.stamp.nanosec =
-    //     (int32_t)(timestamp % 1'000'000'000);
-    // g_singleton_->odom_trans_.header.stamp.sec =
-    //     (int32_t)(timestamp / 1'000'000'000);
-    // g_singleton_->odom_trans_.transform.translation.x = x;
-    // g_singleton_->odom_trans_.transform.translation.y = y;
-    // g_singleton_->odom_trans_.transform.translation.z = 0.0;
-    // g_singleton_->odom_trans_.transform.rotation.x = quaternion[1];
-    // g_singleton_->odom_trans_.transform.rotation.y = quaternion[2];
-    // g_singleton_->odom_trans_.transform.rotation.z = quaternion[3];
-    // g_singleton_->odom_trans_.transform.rotation.w = quaternion[0];
-
-    // ignore_result(rcl_publish(&g_singleton_->odom_broadcaster_,
-    //                           &g_singleton_->odom_trans_, nullptr));
   }
 }
 
 void TMicroRos::PublishSonar(uint8_t frame_id, float range) {
-  if (TMicroRos::singleton().state_ == kAgentConnected) {
-    char caller[32];
-    snprintf(caller, sizeof(caller), "PublisherSonar-%d", frame_id);
-    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-    g_singleton_->sonar_range_msg_.header.stamp.nanosec =
-        (int32_t)(timestamp % 1'000'000'000);
-    g_singleton_->sonar_range_msg_.header.stamp.sec =
-        (int32_t)(timestamp / 1'000'000'000);
-    snprintf(g_singleton_->sonar_range_msg_.header.frame_id.data,
-             g_singleton_->sonar_range_msg_.header.frame_id.capacity,
-             "sonar_%1d", frame_id);
-    g_singleton_->sonar_range_msg_.header.frame_id.size =
-        strlen(g_singleton_->sonar_range_msg_.header.frame_id.data);
-    g_singleton_->sonar_range_msg_.radiation_type = 0;
-    g_singleton_->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
-    g_singleton_->sonar_range_msg_.max_range = 2.0;
-    g_singleton_->sonar_range_msg_.min_range = 0.0254;
-    g_singleton_->sonar_range_msg_.range = range;
-    ignore_result(rcl_publish(&g_singleton_->sonar_publisher_[frame_id],
-                              &g_singleton_->sonar_range_msg_, nullptr));
-  }
+  // if (TMicroRos::singleton().state_ == kAgentConnected) {
+  //   char caller[32];
+  //   snprintf(caller, sizeof(caller), "PublisherSonar-%d", frame_id);
+  //   int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
+  //   g_singleton_->sonar_range_msg_.header.stamp.nanosec =
+  //       (int32_t)(timestamp % 1'000'000'000);
+  //   g_singleton_->sonar_range_msg_.header.stamp.sec =
+  //       (int32_t)(timestamp / 1'000'000'000);
+  //   snprintf(g_singleton_->sonar_range_msg_.header.frame_id.data,
+  //            g_singleton_->sonar_range_msg_.header.frame_id.capacity,
+  //            "sonar_%1d", frame_id);
+  //   g_singleton_->sonar_range_msg_.header.frame_id.size =
+  //       strlen(g_singleton_->sonar_range_msg_.header.frame_id.data);
+  //   g_singleton_->sonar_range_msg_.radiation_type = 0;
+  //   g_singleton_->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
+  //   g_singleton_->sonar_range_msg_.max_range = 2.0;
+  //   g_singleton_->sonar_range_msg_.min_range = 0.0254;
+  //   g_singleton_->sonar_range_msg_.range = range;
+  //   ignore_result(rcl_publish(&g_singleton_->sonar_publisher_[frame_id],
+  //                             &g_singleton_->sonar_range_msg_, nullptr));
+  // }
 }
 
 void TMicroRos::PublishTemperature(const char *frame_id, float temperature) {
-  if (TMicroRos::singleton().state_ == kAgentConnected) {
-    char caller[64];
-    snprintf(caller, sizeof(caller), "PublisherTemperature-%s", frame_id);
-    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-    g_singleton_->temperature_msg_.header.stamp.nanosec =
-        (int32_t)(timestamp % 1'000'000'000);
-    g_singleton_->temperature_msg_.header.stamp.sec =
-        (int32_t)(timestamp / 1'000'000'000);
+  // if (TMicroRos::singleton().state_ == kAgentConnected) {
+  //   char caller[64];
+  //   snprintf(caller, sizeof(caller), "PublisherTemperature-%s", frame_id);
+  //   int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
+  //   g_singleton_->temperature_msg_.header.stamp.nanosec =
+  //       (int32_t)(timestamp % 1'000'000'000);
+  //   g_singleton_->temperature_msg_.header.stamp.sec =
+  //       (int32_t)(timestamp / 1'000'000'000);
 
-    snprintf(g_singleton_->temperature_msg_.header.frame_id.data,
-             g_singleton_->temperature_msg_.header.frame_id.capacity, "%s",
-             frame_id);
-    g_singleton_->temperature_msg_.header.frame_id.size =
-        strlen(g_singleton_->temperature_msg_.header.frame_id.data);
-    g_singleton_->temperature_msg_.temperature = temperature;
-    g_singleton_->temperature_msg_.variance = 0;
-    ignore_result(rcl_publish(&g_singleton_->temperature_publisher_,
-                              &g_singleton_->temperature_msg_, nullptr));
-  }
+  //   snprintf(g_singleton_->temperature_msg_.header.frame_id.data,
+  //            g_singleton_->temperature_msg_.header.frame_id.capacity, "%s",
+  //            frame_id);
+  //   g_singleton_->temperature_msg_.header.frame_id.size =
+  //       strlen(g_singleton_->temperature_msg_.header.frame_id.data);
+  //   g_singleton_->temperature_msg_.temperature = temperature;
+  //   g_singleton_->temperature_msg_.variance = 0;
+  //   ignore_result(rcl_publish(&g_singleton_->temperature_publisher_,
+  //                             &g_singleton_->temperature_msg_, nullptr));
+  // }
 }
 
 void TMicroRos::PublishTof(uint8_t frame_id, float range) {
-  if (TMicroRos::singleton().state_ == kAgentConnected) {
-    char caller[32];
-    snprintf(caller, sizeof(caller), "PublisherTof-%d", frame_id);
-    int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-    g_singleton_->tof_range_msg_.header.stamp.nanosec =
-        (int32_t)(timestamp % 1'000'000'000);
-    g_singleton_->tof_range_msg_.header.stamp.sec =
-        (int32_t)(timestamp / 1'000'000'000);
+  // if (TMicroRos::singleton().state_ == kAgentConnected) {
+  //   char caller[32];
+  //   snprintf(caller, sizeof(caller), "PublisherTof-%d", frame_id);
+  //   int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
+  //   g_singleton_->tof_range_msg_.header.stamp.nanosec =
+  //       (int32_t)(timestamp % 1'000'000'000);
+  //   g_singleton_->tof_range_msg_.header.stamp.sec =
+  //       (int32_t)(timestamp / 1'000'000'000);
 
-    snprintf(g_singleton_->tof_range_msg_.header.frame_id.data,
-             g_singleton_->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
-             frame_id);
-    g_singleton_->tof_range_msg_.header.frame_id.size =
-        strlen(g_singleton_->tof_range_msg_.header.frame_id.data);
-    g_singleton_->tof_range_msg_.radiation_type = 0;
-    g_singleton_->tof_range_msg_.field_of_view = 0.436332;  // 25 degrees
-    g_singleton_->tof_range_msg_.max_range = 2.0;
-    g_singleton_->tof_range_msg_.min_range = 0.0254;
-    g_singleton_->tof_range_msg_.radiation_type =
-        sensor_msgs__msg__Range__ULTRASOUND;
-    g_singleton_->tof_range_msg_.range = range;
-    ignore_result(rcl_publish(&g_singleton_->tof_publisher_[frame_id],
-                              &g_singleton_->tof_range_msg_, nullptr));
+  //   snprintf(g_singleton_->tof_range_msg_.header.frame_id.data,
+  //            g_singleton_->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
+  //            frame_id);
+  //   g_singleton_->tof_range_msg_.header.frame_id.size =
+  //       strlen(g_singleton_->tof_range_msg_.header.frame_id.data);
+  //   g_singleton_->tof_range_msg_.radiation_type = 0;
+  //   g_singleton_->tof_range_msg_.field_of_view = 0.436332;  // 25 degrees
+  //   g_singleton_->tof_range_msg_.max_range = 2.0;
+  //   g_singleton_->tof_range_msg_.min_range = 0.0254;
+  //   g_singleton_->tof_range_msg_.radiation_type =
+  //       sensor_msgs__msg__Range__ULTRASOUND;
+  //   g_singleton_->tof_range_msg_.range = range;
+  //   ignore_result(rcl_publish(&g_singleton_->tof_publisher_[frame_id],
+  //                             &g_singleton_->tof_range_msg_, nullptr));
+  // }
+}
+
+void TMicroRos::PublishBattery(const char* frame_id, float voltage) {
+  if (TMicroRos::singleton().state_ == kAgentConnected) {
+    // char caller[64];
+    // snprintf(caller, sizeof(caller), "PublisherBattery-%s", frame_id);
+    // int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
+    // g_singleton_->battery_msg_.header.stamp.nanosec =
+    //     (int32_t)(timestamp % 1'000'000'000);
+    // g_singleton_->battery_msg_.header.stamp.sec =
+    //     (int32_t)(timestamp / 1'000'000'000);
+
+    // snprintf(g_singleton_->battery_msg_.header.frame_id.data,
+    //          g_singleton_->battery_msg_.header.frame_id.capacity, "%s",
+    //          frame_id);
+    // g_singleton_->battery_msg_.header.frame_id.size =
+    //     strlen(g_singleton_->battery_msg_.header.frame_id.data);
+    // g_singleton_->battery_msg_.voltage = voltage;
+    // ignore_result(rcl_publish(&g_singleton_->battery_publisher_,
+    //                           &g_singleton_->battery_msg_, nullptr));
+    
+    g_singleton_->float32_msg_.data = voltage;
+    ignore_result(rcl_publish(&g_singleton_->battery_publisher_,
+                              &g_singleton_->float32_msg_, nullptr));
   }
 }
 
@@ -357,19 +367,6 @@ void TMicroRos::TimerCallback(rcl_timer_t *timer, int64_t last_call_time) {
       // // #endif
     }
   }
-}
-
-void TMicroRos::HeartbeatCallback(const void *heartbeat_msg) {
-  // if (TMicroRos::singleton().state_ == kAgentConnected) {
-  //   const diagnostic_msgs__msg__DiagnosticStatus *msg =
-  //       (const diagnostic_msgs__msg__DiagnosticStatus *)heartbeat_msg;
-
-  //   int32_t nanosec = (int32_t)(TMicroRos::singleton().FixedTime() %
-  //   1000000000); int32_t sec =
-  //   (int32_t)(TMicroRos::singleton().FixedTime("HeartbeatCallback") /
-  //   1000000000);
-  //   // msg.
-  // }
 }
 
 void TMicroRos::TwistCallback(const void *twist_msg) {
@@ -439,6 +436,36 @@ TMicroRos::TMicroRos()
       quad_pulses_per_meter_(1566),
       wheel_radius_(0.10169),
       wheel_separation_(0.345) {
+  // battery_msg_.header.frame_id.capacity = 64;
+  // battery_msg_.header.frame_id.data =
+  //     (char *)malloc(battery_msg_.header.frame_id.capacity * sizeof(char)); 
+  // snprintf(battery_msg_.header.frame_id.data, battery_msg_.header.frame_id.capacity,
+  //          "main_battery");
+  // battery_msg_.header.frame_id.size = strlen(battery_msg_.header.frame_id.data);
+  // battery_msg_.current = NAN;
+  // battery_msg_.charge = NAN;
+  // battery_msg_.capacity = NAN;
+  // battery_msg_.design_capacity = NAN;
+  // battery_msg_.percentage = NAN;
+  // battery_msg_.power_supply_status = sensor_msgs__msg__BatteryState__POWER_SUPPLY_STATUS_UNKNOWN;
+  // battery_msg_.power_supply_health = sensor_msgs__msg__BatteryState__POWER_SUPPLY_HEALTH_UNKNOWN;
+  // battery_msg_.power_supply_technology = sensor_msgs__msg__BatteryState__POWER_SUPPLY_TECHNOLOGY_LION;
+  // battery_msg_.present = true;
+  // battery_msg_.serial_number.capacity = 10;
+  // battery_msg_.serial_number.data = (char *)malloc(battery_msg_.serial_number.capacity * sizeof(char));
+  // snprintf(battery_msg_.serial_number.data, battery_msg_.serial_number.capacity,
+  //          "unknown");
+  // battery_msg_.serial_number.size = strlen(battery_msg_.serial_number.data);
+  // battery_msg_.cell_voltage.capacity = 1;
+  // battery_msg_.cell_voltage.data = (float *)malloc(battery_msg_.cell_voltage.capacity * sizeof(float));
+  // battery_msg_.cell_voltage.size = 0;
+  // battery_msg_.location.capacity = 16;
+  // battery_msg_.location.data = (char *)malloc(battery_msg_.location.capacity * sizeof(char));
+  // snprintf(battery_msg_.location.data, battery_msg_.location.capacity,
+  //          "unknown");
+  // battery_msg_.location.size = strlen(battery_msg_.location.data);
+  // battery_msg_.voltage = NAN;
+
   string_msg_.data.capacity = 512;
   string_msg_.data.data =
       (char *)malloc(string_msg_.data.capacity * sizeof(char));
@@ -477,34 +504,6 @@ TMicroRos::TMicroRos()
   odom_msg_.twist.covariance[0] = 0.0001;
   odom_msg_.twist.covariance[7] = 0.0001;
   odom_msg_.twist.covariance[35] = 0.0001;
-
-  // odom_trans_.header.frame_id.capacity = 32;
-  // odom_trans_.header.frame_id.data =
-  //     (char *)malloc(odom_trans_.header.frame_id.capacity * sizeof(char));
-  // snprintf(odom_trans_.header.frame_id.data,
-  //          odom_trans_.header.frame_id.capacity, "odom");
-  // odom_trans_.header.frame_id.size = strlen(odom_trans_.header.frame_id.data);
-  // odom_trans_.child_frame_id.capacity = 32;
-  // odom_trans_.child_frame_id.data =
-  //     (char *)malloc(odom_trans_.child_frame_id.capacity * sizeof(char));
-  // snprintf(odom_trans_.child_frame_id.data,
-  //          odom_trans_.header.frame_id.capacity, "base_footprint");
-  // odom_trans_.child_frame_id.size = strlen(odom_trans_.child_frame_id.data);
-
-  sonar_range_msg_.header.frame_id.capacity = 32;
-  sonar_range_msg_.header.frame_id.data =
-      (char *)malloc(sonar_range_msg_.header.frame_id.capacity * sizeof(char));
-  sonar_range_msg_.header.frame_id.size = 0;
-
-  temperature_msg_.header.frame_id.capacity = 32;
-  temperature_msg_.header.frame_id.data =
-      (char *)malloc(temperature_msg_.header.frame_id.capacity * sizeof(char));
-  temperature_msg_.header.frame_id.size = 0;
-
-  tof_range_msg_.header.frame_id.capacity = 32;
-  tof_range_msg_.header.frame_id.data =
-      (char *)malloc(tof_range_msg_.header.frame_id.capacity * sizeof(char));
-  tof_range_msg_.header.frame_id.size = 0;
 }
 
 bool TMicroRos::CreateEntities() {
@@ -521,14 +520,18 @@ bool TMicroRos::CreateEntities() {
       &roboclaw_status_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "roboclaw_status"));
 
+  // RCCHECK(rclc_publisher_init_default(
+  //     &battery_publisher_, &node_,
+  //     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState), "main_battery"));
+
+  RCCHECK(rclc_publisher_init_default(
+      &battery_publisher_, &node_,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "main_battery"));
+
   RCCHECK(rclc_publisher_init_best_effort(
       &diagnostics_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
       "teensy_diagnostics"));
-
-  // RCCHECK(rclc_publisher_init_default(
-  //     &odom_broadcaster_, &node_,
-  //     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, TransformStamped), "tf"));
 
   RCCHECK(rclc_publisher_init_default(
       &odom_publisher_, &node_,
@@ -538,35 +541,10 @@ bool TMicroRos::CreateEntities() {
       &teensy_stats_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "teensy_stats"));
 
-  for (size_t i = 0; i < 4; i++) {
-    char topic_name[16];
-    sprintf(topic_name, "sonar%-1dSensor", i);
-    RCCHECK(rclc_publisher_init_default(
-        &sonar_publisher_[i], &node_,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
-  }
-
-  RCCHECK(rclc_publisher_init_default(
-      &temperature_publisher_, &node_,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
-      "temperature"));
-
-  for (size_t i = 0; i < 8; i++) {
-    char topic_name[16];
-    sprintf(topic_name, "tof%-1dSensor", i);
-    RCCHECK(rclc_publisher_init_default(
-        &tof_publisher_[i], &node_,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range), topic_name));
-  }
-
   // Create subscribers.
   RCCHECK(rclc_subscription_init_default(
       &cmd_vel_subscriber_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "cmd_vel"));
-
-  // RCCHECK(rclc_subscription_init_default(
-  //     &heatbeat_subscriber_, &node_,
-  //     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "heartbeat"));
 
   // Create timer,
   const unsigned int timer_timeout_ns = 1'000'000'000;
@@ -580,9 +558,6 @@ bool TMicroRos::CreateEntities() {
   RCCHECK(rclc_executor_add_subscription(&executor_, &cmd_vel_subscriber_,
                                          &twist_msg_, &TwistCallback,
                                          ON_NEW_DATA));
-  // RCCHECK(rclc_executor_add_subscription(&executor_, &heatbeat_subscriber_,
-  //                                        &twist_msg_, &HeartbeatCallback,
-  //                                        ON_NEW_DATA));
   return true;
 }
 
@@ -591,19 +566,11 @@ void TMicroRos::DestroyEntities() {
   ignore_result(
       rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0));
 
+  ignore_result(rcl_publisher_fini(&battery_publisher_, &node_));
   ignore_result(rcl_publisher_fini(&odom_publisher_, &node_));
 
   // ignore_result(rcl_publisher_fini(&roboclaw_status_publisher_, &node_));
   ignore_result(rcl_publisher_fini(&teensy_stats_publisher_, &node_));
-  for (size_t i = 0; i < 4; i++) {
-    ignore_result(rcl_publisher_fini(&sonar_publisher_[i], &node_));
-  }
-
-  ignore_result(rcl_publisher_fini(&temperature_publisher_, &node_));
-  for (size_t i = 0; i < 8; i++) {
-    ignore_result(rcl_publisher_fini(&tof_publisher_[i], &node_));
-  }
-
   ignore_result(rcl_timer_fini(&timer_));
   ignore_result(rclc_executor_fini(&executor_));
   ignore_result(rcl_node_fini(&node_));

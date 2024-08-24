@@ -27,9 +27,8 @@ void TTemperature::loop() {
   g_averages_[0][g_next_average_index_] = g_left_motor_temperature_tenthsC_;
 
   raw = analogRead(kAnalog1Pin);
-  temp_mv = (raw * 3250 / 1024.0) - 55.0;
-  g_right_motor_temperature_tenthsC_ = (temp_mv - 500);
-  g_averages_[1][g_next_average_index_] = g_right_motor_temperature_tenthsC_;
+  float battery_v = raw * 0.08845 * 0.91;
+  g_averages_[1][g_next_average_index_] = battery_v;
 
   g_next_average_index_ += 1;
   if (g_next_average_index_ >= kNumberReadingsToAverage_) {
@@ -39,18 +38,17 @@ void TTemperature::loop() {
   uint32_t now_ms = millis();
   if ((now_ms - start_time_ms) > 500) {
     float left_motor_average_sum = 0;
-    float right_motor_average_sum = 0;
+    float voltage_sum = 0;
     for (size_t reading = 0; reading < kNumberReadingsToAverage_; reading++) {
       left_motor_average_sum += g_averages_[0][reading];
-      right_motor_average_sum += g_averages_[1][reading];
+      voltage_sum += g_averages_[1][reading];
     }
 
     TMicroRos::singleton().PublishTemperature(
         "left_motor",
         (left_motor_average_sum / kNumberReadingsToAverage_) / 10.0);
-    TMicroRos::singleton().PublishTemperature(
-        "right_motor",
-        (right_motor_average_sum / kNumberReadingsToAverage_) / 10.0);
+    TMicroRos::singleton().PublishBattery(
+        "main_battery", voltage_sum / kNumberReadingsToAverage_);
     start_time_ms = now_ms;
   }
 }

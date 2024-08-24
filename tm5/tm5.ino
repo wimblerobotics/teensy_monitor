@@ -1,3 +1,5 @@
+#include <micro_ros_arduino.h>
+
 #include <Wire.h>
 #include <micro_ros_arduino.h>
 #include <stdint.h>

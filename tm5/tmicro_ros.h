@@ -14,6 +14,10 @@
 #include <sensor_msgs/msg/range.h>
 #include <sensor_msgs/msg/temperature.h>
 #include <std_msgs/msg/string.h>
+
+// #include <sensor_msgs/msg/battery_state.h>
+#include <std_msgs/msg/float32.h> 
+
 #include <stdio.h>
 // #include <tf2_ros/transform_broadcaster.h>
 
@@ -24,6 +28,9 @@ class TMicroRos : TModule {
   // Check if ROS time appears to be correct and, if not, fix it.
   // Returns a reasonable ROS time.
   static int64_t FixedTime(const char* caller);
+
+  // Called by Temperature module handler to publish a reading.
+  static void PublishBattery(const char* frame_id, float voltage);
 
   // Publish a diagnistoc message.
   static void PublishDiagnostic(const char* msg);
@@ -36,7 +43,7 @@ class TMicroRos : TModule {
   // Called by SONAR sensor handler to publish a reading.
   static void PublishSonar(uint8_t frame_id, float range);
 
-  // Called by SONAR sensor handler to publish a reading.
+  // Called by Temperature module handler to publish a reading.
   static void PublishTemperature(const char* frame_id, float temperature);
 
   // Called by Time of Flight sensor handler to publish a reading.
@@ -70,8 +77,6 @@ class TMicroRos : TModule {
 
   void DestroyEntities();
 
-  // Handler for heatbeat messages.
-  static void HeartbeatCallback(const void* heartbeat_msg);
 
   // Sync ROS time.
   static void SyncTime(const char* caller, uint32_t fixed_time_call_count);
@@ -99,30 +104,24 @@ class TMicroRos : TModule {
   rcl_allocator_t allocator_;
   rcl_subscription_t cmd_vel_subscriber_;
   rclc_executor_t executor_;
-  rcl_subscription_t heatbeat_subscriber_;
   bool micro_ros_init_successful_;
   rcl_node_t node_;
   rclc_support_t support_;
   rcl_timer_t timer_;
 
   // ROS publishers.
+  rcl_publisher_t battery_publisher_;
   rcl_publisher_t diagnostics_publisher_;
-  // rcl_publisher_t odom_broadcaster_;
   rcl_publisher_t odom_publisher_;
   rcl_publisher_t roboclaw_status_publisher_;
-  rcl_publisher_t sonar_publisher_[4];
   rcl_publisher_t teensy_stats_publisher_;
-  rcl_publisher_t temperature_publisher_;
-  rcl_publisher_t tof_publisher_[8];
 
   // ROS messages, allocated once.
-  sensor_msgs__msg__Range sonar_range_msg_;
+  // sensor_msgs__msg__BatteryState battery_msg_;
+  std_msgs__msg__Float32 float32_msg_;
   std_msgs__msg__String string_msg_;
-  sensor_msgs__msg__Temperature temperature_msg_;
-  sensor_msgs__msg__Range tof_range_msg_;
   geometry_msgs__msg__Twist twist_msg_;
   nav_msgs__msg__Odometry odom_msg_;
-  // geometry_msgs__msg__TransformStamped odom_trans_;
 
   // Motor driver configuration values.
   int32_t accel_quad_pulses_per_second_;
