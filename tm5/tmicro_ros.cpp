@@ -8,8 +8,6 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
-#include <sensor_msgs/msg/range.h>
-#include <sensor_msgs/msg/temperature.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -213,79 +211,6 @@ void TMicroRos::PublishOdometry(double x, double y, double x_velocity,
     ignore_result(rcl_publish(&g_singleton_->odom_publisher_,
                               &g_singleton_->odom_msg_, nullptr));
   }
-}
-
-void TMicroRos::PublishSonar(uint8_t frame_id, float range) {
-  // if (TMicroRos::singleton().state_ == kAgentConnected) {
-  //   char caller[32];
-  //   snprintf(caller, sizeof(caller), "PublisherSonar-%d", frame_id);
-  //   int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-  //   g_singleton_->sonar_range_msg_.header.stamp.nanosec =
-  //       (int32_t)(timestamp % 1'000'000'000);
-  //   g_singleton_->sonar_range_msg_.header.stamp.sec =
-  //       (int32_t)(timestamp / 1'000'000'000);
-  //   snprintf(g_singleton_->sonar_range_msg_.header.frame_id.data,
-  //            g_singleton_->sonar_range_msg_.header.frame_id.capacity,
-  //            "sonar_%1d", frame_id);
-  //   g_singleton_->sonar_range_msg_.header.frame_id.size =
-  //       strlen(g_singleton_->sonar_range_msg_.header.frame_id.data);
-  //   g_singleton_->sonar_range_msg_.radiation_type = 0;
-  //   g_singleton_->sonar_range_msg_.field_of_view = 0.523599;  // 30 degrees.
-  //   g_singleton_->sonar_range_msg_.max_range = 2.0;
-  //   g_singleton_->sonar_range_msg_.min_range = 0.0254;
-  //   g_singleton_->sonar_range_msg_.range = range;
-  //   ignore_result(rcl_publish(&g_singleton_->sonar_publisher_[frame_id],
-  //                             &g_singleton_->sonar_range_msg_, nullptr));
-  // }
-}
-
-void TMicroRos::PublishTemperature(const char *frame_id, float temperature) {
-  // if (TMicroRos::singleton().state_ == kAgentConnected) {
-  //   char caller[64];
-  //   snprintf(caller, sizeof(caller), "PublisherTemperature-%s", frame_id);
-  //   int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-  //   g_singleton_->temperature_msg_.header.stamp.nanosec =
-  //       (int32_t)(timestamp % 1'000'000'000);
-  //   g_singleton_->temperature_msg_.header.stamp.sec =
-  //       (int32_t)(timestamp / 1'000'000'000);
-
-  //   snprintf(g_singleton_->temperature_msg_.header.frame_id.data,
-  //            g_singleton_->temperature_msg_.header.frame_id.capacity, "%s",
-  //            frame_id);
-  //   g_singleton_->temperature_msg_.header.frame_id.size =
-  //       strlen(g_singleton_->temperature_msg_.header.frame_id.data);
-  //   g_singleton_->temperature_msg_.temperature = temperature;
-  //   g_singleton_->temperature_msg_.variance = 0;
-  //   ignore_result(rcl_publish(&g_singleton_->temperature_publisher_,
-  //                             &g_singleton_->temperature_msg_, nullptr));
-  // }
-}
-
-void TMicroRos::PublishTof(uint8_t frame_id, float range) {
-  // if (TMicroRos::singleton().state_ == kAgentConnected) {
-  //   char caller[32];
-  //   snprintf(caller, sizeof(caller), "PublisherTof-%d", frame_id);
-  //   int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-  //   g_singleton_->tof_range_msg_.header.stamp.nanosec =
-  //       (int32_t)(timestamp % 1'000'000'000);
-  //   g_singleton_->tof_range_msg_.header.stamp.sec =
-  //       (int32_t)(timestamp / 1'000'000'000);
-
-  //   snprintf(g_singleton_->tof_range_msg_.header.frame_id.data,
-  //            g_singleton_->tof_range_msg_.header.frame_id.capacity, "tof_%1d",
-  //            frame_id);
-  //   g_singleton_->tof_range_msg_.header.frame_id.size =
-  //       strlen(g_singleton_->tof_range_msg_.header.frame_id.data);
-  //   g_singleton_->tof_range_msg_.radiation_type = 0;
-  //   g_singleton_->tof_range_msg_.field_of_view = 0.436332;  // 25 degrees
-  //   g_singleton_->tof_range_msg_.max_range = 2.0;
-  //   g_singleton_->tof_range_msg_.min_range = 0.0254;
-  //   g_singleton_->tof_range_msg_.radiation_type =
-  //       sensor_msgs__msg__Range__ULTRASOUND;
-  //   g_singleton_->tof_range_msg_.range = range;
-  //   ignore_result(rcl_publish(&g_singleton_->tof_publisher_[frame_id],
-  //                             &g_singleton_->tof_range_msg_, nullptr));
-  // }
 }
 
 void TMicroRos::PublishBattery(const char* frame_id, float voltage) {

@@ -13,9 +13,7 @@
 #if USE_TSD
 #include "tsd.h"
 #endif
-#include "tsonar.h"
 #include "ttemperature.h"
-#include "ttime_of_flight.h"
 
 // Initialize all TModule instances in any required order.
 TMicroRos& micro_ros = TMicroRos::singleton();
@@ -25,12 +23,7 @@ TRoboClaw& roboclaw = TRoboClaw::singleton();
 #if USE_TSD
 TSd& sd = TSd::singleton();
 #endif
-TSonar& sonar = TSonar::singleton();
 TTemperature& temperature = TTemperature::singleton();
-
-// if (TM5::kDoTOF) {
-//   TTimeOfFlight& time_of_flight = TTimeOfFlight::singleton();
-// }
 
 // WDT_T4<WDT3> wdt;
 
@@ -43,10 +36,6 @@ void setup() {
   Wire.begin();
   pinMode(13, OUTPUT);
   
-  // Serial.begin(38400);
-  // while (!Serial && (millis() <= 1000))
-  //   ;
-  //   Serial.println("Start");
 
   //  WDT_timings_t config;
   //  config.window = 1;       // Minimum time (ms) betwee//n watchdog feed()

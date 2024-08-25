@@ -13,7 +13,6 @@ class TTemperature : TModule {
     kNumberTemperatures  // Number of temperature sensors.
   } Temperature;
 
-  int16_t GetValueTenthsC(Temperature device);
 
   // Singleton constructor.
   static TTemperature& singleton();
@@ -36,8 +35,6 @@ class TTemperature : TModule {
   TTemperature();
 
   // Last temperature sensor readings.
-  static int16_t g_left_motor_temperature_tenthsC_;
-  static int16_t g_right_motor_temperature_tenthsC_;
 
   static const uint8_t kNumberReadingsToAverage_ = 50;
   static float g_averages_[2][kNumberReadingsToAverage_];

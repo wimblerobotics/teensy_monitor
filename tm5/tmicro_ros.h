@@ -2,7 +2,6 @@
 
 #include <diagnostic_msgs/msg/diagnostic_status.h>
 #include <geometry_msgs/msg/quaternion.h>
-// #include <geometry_msgs/msg/transform_stamped.h>
 #include <geometry_msgs/msg/twist.h>
 #include <micro_ros_arduino.h>
 #include <nav_msgs/msg/odometry.h>
@@ -11,12 +10,10 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
-#include <sensor_msgs/msg/range.h>
+#include <sensor_msgs/msg/battery_state.h>
 #include <sensor_msgs/msg/temperature.h>
 #include <std_msgs/msg/string.h>
 
-#include <sensor_msgs/msg/battery_state.h>
-// #include <std_msgs/msg/float32.h> 
 
 #include <stdio.h>
 // #include <tf2_ros/transform_broadcaster.h>
@@ -39,15 +36,6 @@ class TMicroRos : TModule {
   static void PublishOdometry(double x, double y, double x_velocity,
                               double y_velocity, double z_velocity,
                               float* quaternion);
-
-  // Called by SONAR sensor handler to publish a reading.
-  static void PublishSonar(uint8_t frame_id, float range);
-
-  // Called by Temperature module handler to publish a reading.
-  static void PublishTemperature(const char* frame_id, float temperature);
-
-  // Called by Time of Flight sensor handler to publish a reading.
-  static void PublishTof(uint8_t frame_id, float range);
 
   // Singleton constructor.
   static TMicroRos& singleton();
@@ -118,7 +106,6 @@ class TMicroRos : TModule {
 
   // ROS messages, allocated once.
   sensor_msgs__msg__BatteryState battery_msg_;
-  // std_msgs__msg__Float32 float32_msg_;
   std_msgs__msg__String string_msg_;
   geometry_msgs__msg__Twist twist_msg_;
   nav_msgs__msg__Odometry odom_msg_;
