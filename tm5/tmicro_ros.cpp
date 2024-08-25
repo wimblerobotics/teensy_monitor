@@ -2,6 +2,7 @@
 
 #include <geometry_msgs/msg/twist.h>
 #include <micro_ros_arduino.h>
+#include <micro_ros_utilities/string_utilities.h>
 #include <rcl/error_handling.h>
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -289,26 +290,10 @@ void TMicroRos::PublishTof(uint8_t frame_id, float range) {
 
 void TMicroRos::PublishBattery(const char* frame_id, float voltage) {
   if (TMicroRos::singleton().state_ == kAgentConnected) {
-    // char caller[64];
-    // snprintf(caller, sizeof(caller), "PublisherBattery-%s", frame_id);
-    // int64_t timestamp = TMicroRos::singleton().FixedTime(caller);
-    // g_singleton_->battery_msg_.header.stamp.nanosec =
-    //     (int32_t)(timestamp % 1'000'000'000);
-    // g_singleton_->battery_msg_.header.stamp.sec =
-    //     (int32_t)(timestamp / 1'000'000'000);
-
-    // snprintf(g_singleton_->battery_msg_.header.frame_id.data,
-    //          g_singleton_->battery_msg_.header.frame_id.capacity, "%s",
-    //          frame_id);
-    // g_singleton_->battery_msg_.header.frame_id.size =
-    //     strlen(g_singleton_->battery_msg_.header.frame_id.data);
-    // g_singleton_->battery_msg_.voltage = voltage;
-    // ignore_result(rcl_publish(&g_singleton_->battery_publisher_,
-    //                           &g_singleton_->battery_msg_, nullptr));
-    
-    g_singleton_->float32_msg_.data = voltage;
+    g_singleton_->battery_msg_.voltage = voltage;
     ignore_result(rcl_publish(&g_singleton_->battery_publisher_,
-                              &g_singleton_->float32_msg_, nullptr));
+                              &g_singleton_->battery_msg_, nullptr));
+    
   }
 }
 
@@ -436,35 +421,31 @@ TMicroRos::TMicroRos()
       quad_pulses_per_meter_(1566),
       wheel_radius_(0.05),
       wheel_separation_(0.395) {
-  // battery_msg_.header.frame_id.capacity = 64;
-  // battery_msg_.header.frame_id.data =
-  //     (char *)malloc(battery_msg_.header.frame_id.capacity * sizeof(char)); 
-  // snprintf(battery_msg_.header.frame_id.data, battery_msg_.header.frame_id.capacity,
-  //          "main_battery");
-  // battery_msg_.header.frame_id.size = strlen(battery_msg_.header.frame_id.data);
-  // battery_msg_.current = NAN;
-  // battery_msg_.charge = NAN;
-  // battery_msg_.capacity = NAN;
-  // battery_msg_.design_capacity = NAN;
-  // battery_msg_.percentage = NAN;
-  // battery_msg_.power_supply_status = sensor_msgs__msg__BatteryState__POWER_SUPPLY_STATUS_UNKNOWN;
-  // battery_msg_.power_supply_health = sensor_msgs__msg__BatteryState__POWER_SUPPLY_HEALTH_UNKNOWN;
-  // battery_msg_.power_supply_technology = sensor_msgs__msg__BatteryState__POWER_SUPPLY_TECHNOLOGY_LION;
-  // battery_msg_.present = true;
-  // battery_msg_.serial_number.capacity = 10;
-  // battery_msg_.serial_number.data = (char *)malloc(battery_msg_.serial_number.capacity * sizeof(char));
-  // snprintf(battery_msg_.serial_number.data, battery_msg_.serial_number.capacity,
-  //          "unknown");
-  // battery_msg_.serial_number.size = strlen(battery_msg_.serial_number.data);
-  // battery_msg_.cell_voltage.capacity = 1;
-  // battery_msg_.cell_voltage.data = (float *)malloc(battery_msg_.cell_voltage.capacity * sizeof(float));
-  // battery_msg_.cell_voltage.size = 0;
-  // battery_msg_.location.capacity = 16;
-  // battery_msg_.location.data = (char *)malloc(battery_msg_.location.capacity * sizeof(char));
-  // snprintf(battery_msg_.location.data, battery_msg_.location.capacity,
-  //          "unknown");
-  // battery_msg_.location.size = strlen(battery_msg_.location.data);
-  // battery_msg_.voltage = NAN;
+  battery_msg_.header.frame_id = 
+      micro_ros_string_utilities_init("main_battery");
+  battery_msg_.voltage = 0.0;
+  battery_msg_.current = NAN;
+  battery_msg_.charge = NAN;
+  battery_msg_.capacity = NAN;
+  battery_msg_.design_capacity = NAN;
+  battery_msg_.percentage = 0.0;
+  battery_msg_.power_supply_status = sensor_msgs__msg__BatteryState__POWER_SUPPLY_STATUS_UNKNOWN;
+  battery_msg_.power_supply_health = sensor_msgs__msg__BatteryState__POWER_SUPPLY_HEALTH_UNKNOWN;
+  battery_msg_.power_supply_technology = sensor_msgs__msg__BatteryState__POWER_SUPPLY_TECHNOLOGY_LION;
+  battery_msg_.present = true;
+
+  battery_msg_.cell_voltage.data = nullptr;
+  battery_msg_.cell_voltage.capacity = 0;
+  battery_msg_.cell_voltage.size = 0;
+
+  battery_msg_.cell_temperature.data = nullptr;
+  battery_msg_.cell_temperature.capacity = 0;
+  battery_msg_.cell_temperature.size = 0;
+
+  battery_msg_.temperature = NAN;
+  
+  battery_msg_.location = micro_ros_string_utilities_init("Sigyn");
+    battery_msg_.serial_number = micro_ros_string_utilities_init("none");
 
   string_msg_.data.capacity = 512;
   string_msg_.data.data =
@@ -520,13 +501,10 @@ bool TMicroRos::CreateEntities() {
       &roboclaw_status_publisher_, &node_,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "roboclaw_status"));
 
-  // RCCHECK(rclc_publisher_init_default(
-  //     &battery_publisher_, &node_,
-  //     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState), "main_battery"));
-
   RCCHECK(rclc_publisher_init_default(
       &battery_publisher_, &node_,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "main_battery"));
+      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState), "main_battery"));
+
 
   RCCHECK(rclc_publisher_init_default(
       &diagnostics_publisher_, &node_,

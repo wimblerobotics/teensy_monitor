@@ -15,8 +15,8 @@
 #include <sensor_msgs/msg/temperature.h>
 #include <std_msgs/msg/string.h>
 
-// #include <sensor_msgs/msg/battery_state.h>
-#include <std_msgs/msg/float32.h> 
+#include <sensor_msgs/msg/battery_state.h>
+// #include <std_msgs/msg/float32.h> 
 
 #include <stdio.h>
 // #include <tf2_ros/transform_broadcaster.h>
@@ -117,8 +117,8 @@ class TMicroRos : TModule {
   rcl_publisher_t teensy_stats_publisher_;
 
   // ROS messages, allocated once.
-  // sensor_msgs__msg__BatteryState battery_msg_;
-  std_msgs__msg__Float32 float32_msg_;
+  sensor_msgs__msg__BatteryState battery_msg_;
+  // std_msgs__msg__Float32 float32_msg_;
   std_msgs__msg__String string_msg_;
   geometry_msgs__msg__Twist twist_msg_;
   nav_msgs__msg__Odometry odom_msg_;
