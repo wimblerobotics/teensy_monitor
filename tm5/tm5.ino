@@ -4,6 +4,7 @@
 #include <micro_ros_arduino.h>
 #include <stdint.h>
 
+#include "tbattery.h"
 #include "tconfiguration.h"
 // #include "Watchdog_t4.h"
 #include "tmicro_ros.h"
@@ -13,7 +14,6 @@
 #if USE_TSD
 #include "tsd.h"
 #endif
-#include "ttemperature.h"
 
 // Initialize all TModule instances in any required order.
 TMicroRos& micro_ros = TMicroRos::singleton();
@@ -23,7 +23,7 @@ TRoboClaw& roboclaw = TRoboClaw::singleton();
 #if USE_TSD
 TSd& sd = TSd::singleton();
 #endif
-TTemperature& temperature = TTemperature::singleton();
+TBattery& temperature = TBattery::singleton();
 
 // WDT_T4<WDT3> wdt;
 

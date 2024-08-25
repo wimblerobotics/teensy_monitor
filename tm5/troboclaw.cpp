@@ -468,8 +468,11 @@ void TRoboClaw::PublishOdometry() {
   float sin_h = sin(heading);
   float delta_x = (velocity_x * cos_h - velocity_y * sin_h) * delta_time_secs;
   float delta_y = (velocity_x * sin_h + velocity_y * cos_h) * delta_time_secs;
-  delta_heading = (((delta_m1_encoder * 1.0 / quad_pulses_per_revolution) * wheel_circumference)
-                 - ((delta_m2_encoder * 1.0 / quad_pulses_per_revolution) * wheel_circumference)) / inter_wheel_distance;
+  delta_heading = (((delta_m1_encoder * 1.0 / quad_pulses_per_revolution) *
+                    wheel_circumference) -
+                   ((delta_m2_encoder * 1.0 / quad_pulses_per_revolution) *
+                    wheel_circumference)) /
+                  inter_wheel_distance;
 
   x_pos += delta_x;
   y_pos += delta_y;
@@ -478,6 +481,17 @@ void TRoboClaw::PublishOdometry() {
   float q[4];
   EulerToQuaternion(0, 0, heading, q);
 
+  // {
+  //   char m[256];
+  //   snprintf(m, sizeof(m),
+  //            " x_pos: %3.4f"
+  //            ", delta_x: %3.4f"
+  //            ", velocity_x: %3.4f"
+  //            ", velocity_y: %3.4f"
+  //            ", delta_time_secs: %3.4f",
+  //            x_pos, delta_x, velocity_x, velocity_y, delta_time_secs);
+  //   TMicroRos::singleton().PublishDiagnostic(m);
+  // }
   TMicroRos::singleton().PublishOdometry(x_pos, y_pos, velocity_x, velocity_y,
                                          anglular_velocity_z_rps, q);
 
@@ -508,8 +522,8 @@ void TRoboClaw::PublishOdometry() {
     //          ", velocity_x: %3.4f"
     //          ", velocity_y: %3.4f"
     //          ", anglular_velocity_z_rps: %3.4f",
-    //          delta_m1_encoder, delta_m2_encoder, (double)rpm_m1, (double)rpm_m2,
-    //          (double)velocity_x, (double)velocity_y,
+    //          delta_m1_encoder, delta_m2_encoder, (double)rpm_m1,
+    //          (double)rpm_m2, (double)velocity_x, (double)velocity_y,
     //          (double)anglular_velocity_z_rps);
     // TMicroRos::singleton().PublishDiagnostic(msg);
   }
